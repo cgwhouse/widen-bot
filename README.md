@@ -7,6 +7,7 @@
 - Add DigitalOcean referral badge
 - Document build / run process
 - Consider SponsorBlock plugin
+- Test systemd service on server once everything else is working
 
 ## Prerequisites
 
