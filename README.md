@@ -3,7 +3,7 @@
 ## TODO
 
 - Get connected to a bot that can play music (up to current point in tutorial)
-- Write interactive script that prompts user for all sensitive bits and puts them in the right places
+- Write script + config json for dealing with sensitive bits
 - Add DigitalOcean referral badge
 - Document build / run process
 - Consider SponsorBlock plugin

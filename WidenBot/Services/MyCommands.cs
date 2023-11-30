@@ -17,74 +17,74 @@ namespace WidenBot.Services
             _audioService = audioService;
         }
 
-        // XXX does not match example
+        // XXX does not match tutorial
         [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
         public async Task Play(string query)
         {
-            // Defer the response to indicate that the bot is working on the command.
-            // Resolving tracks from YouTube may take some time, so we want to let the user
-            // know that the bot is working on the command.
             await DeferAsync().ConfigureAwait(false);
 
-            // Retrieve the player using the method we created earlier.
-            // We allow to connect to the voice channel if the user is not connected.
             var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
 
-            // If the player is null, something failed. We already sent an error message to the user
-            if (player is null)
-            {
+            if (player == null)
                 return;
-            }
 
-            // Load the track from YouTube. This may take some time, so we await the result.
             var track = await _audioService
                 .Tracks
                 .LoadTrackAsync(query, TrackSearchMode.YouTube)
                 .ConfigureAwait(false);
 
-            // If no track was found, we send an error message to the user.
-            if (track is null)
+            if (track == null)
             {
                 await FollowupAsync("😖 No results.").ConfigureAwait(false);
                 return;
             }
 
-            // Play the track and inform the user about the track that is being played.
-            await player.PlayAsync(track).ConfigureAwait(false);
-            await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            var position = await player.PlayAsync(track).ConfigureAwait(false);
+
+            if (position == 0)
+                await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            else
+                await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
         }
 
-        // XXX does not match example
         private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(
             bool connectToVoiceChannel = true
         )
         {
-            var channelBehavior = connectToVoiceChannel
-                ? PlayerChannelBehavior.Join
-                : PlayerChannelBehavior.None;
-
-            var retrieveOptions = new PlayerRetrieveOptions(ChannelBehavior: channelBehavior);
-
             var result = await _audioService
                 .Players
-                .RetrieveAsync(Context, playerFactory: PlayerFactory.Queued, retrieveOptions)
+                .RetrieveAsync(
+                    Context,
+                    playerFactory: PlayerFactory.Queued,
+                    new PlayerRetrieveOptions(
+                        ChannelBehavior: connectToVoiceChannel
+                            ? PlayerChannelBehavior.Join
+                            : PlayerChannelBehavior.None
+                    )
+                )
                 .ConfigureAwait(false);
 
-            if (!result.IsSuccess)
-            {
-                var errorMessage = result.Status switch
-                {
-                    PlayerRetrieveStatus.UserNotInVoiceChannel
-                        => "You are not connected to a voice channel.",
-                    PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
-                    _ => "Unknown error.",
-                };
+            if (result.IsSuccess)
+                return result.Player;
 
-                await FollowupAsync(errorMessage).ConfigureAwait(false);
-                return null;
+            // Something went wrong
+            string errorMessage;
+            switch (result.Status)
+            {
+                case PlayerRetrieveStatus.UserNotInVoiceChannel:
+                    errorMessage = "You are not connected to a voice channel.";
+                    break;
+                case PlayerRetrieveStatus.BotNotConnected:
+                    errorMessage = "The bot is currently not connected.";
+                    break;
+                default:
+                    errorMessage = "Unknown error.";
+                    break;
             }
 
-            return result.Player;
+            await FollowupAsync(errorMessage).ConfigureAwait(false);
+
+            return null;
         }
     }
 }
