@@ -1,4 +1,6 @@
 ﻿using System;
+using Discord.Interactions;
+using Discord.WebSocket;
 using Lavalink4NET.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,14 +16,19 @@ namespace WidenBot
 
             builder
                 .Services
+                .AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace))
+                // Dependency Injection
+                .AddSingleton<DiscordSocketClient>()
+                .AddSingleton<InteractionService>()
+                .AddHostedService<DiscordClientHost>()
+                // Lavalink
                 .AddLavalink()
                 .ConfigureLavalink(config =>
                 {
                     config.ReadyTimeout = TimeSpan.FromSeconds(10);
                     config.Label = "WidenBot";
                     config.Passphrase = "adminadmin_2";
-                })
-                .AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace));
+                });
 
             builder.Build().Run();
         }
