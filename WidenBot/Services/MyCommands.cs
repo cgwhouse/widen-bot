@@ -17,7 +17,7 @@ namespace WidenBot.Services
             _audioService = audioService;
         }
 
-        // XXX does not match example bot source
+        // XXX does not match example
         [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
         public async Task Play(string query)
         {
@@ -54,7 +54,7 @@ namespace WidenBot.Services
             await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
         }
 
-        // XXX does not match example bot source
+        // XXX does not match example
         private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(
             bool connectToVoiceChannel = true
         )
