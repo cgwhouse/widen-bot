@@ -8,11 +8,12 @@ using Lavalink4NET.Rest.Entities.Tracks;
 
 namespace WidenBot.Services
 {
-    public class MyCommands : InteractionModuleBase<SocketInteractionContext>
+    [RequireContext(ContextType.Guild)]
+    public class MusicModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly IAudioService _audioService;
 
-        public MyCommands(IAudioService audioService)
+        public MusicModule(IAudioService audioService)
         {
             _audioService = audioService;
         }
