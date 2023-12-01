@@ -6,79 +6,76 @@ using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
 
-namespace WidenBot
+namespace WidenBot;
+
+[RequireContext(ContextType.Guild)]
+internal sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
-    [RequireContext(ContextType.Guild)]
-    public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
+    private readonly IAudioService _audioService;
+
+    public MusicModule(IAudioService audioService)
     {
-        private readonly IAudioService _audioService;
+        _audioService = audioService;
+    }
 
-        public MusicModule(IAudioService audioService)
+    [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
+    public async Task Play(string query)
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
+
+        if (player == null)
+            return;
+
+        var track = await _audioService
+            .Tracks
+            .LoadTrackAsync(query, TrackSearchMode.YouTube)
+            .ConfigureAwait(false);
+
+        if (track == null)
         {
-            _audioService = audioService;
+            await FollowupAsync("😖 No results.").ConfigureAwait(false);
+            return;
         }
 
-        [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
-        public async Task Play(string query)
-        {
-            await DeferAsync().ConfigureAwait(false);
+        var position = await player.PlayAsync(track).ConfigureAwait(false);
 
-            var player = await GetPlayerAsync(connectToVoiceChannel: true).ConfigureAwait(false);
+        if (position == 0)
+            await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+        else
+            await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
+    }
 
-            if (player == null)
-                return;
-
-            var track = await _audioService
-                .Tracks
-                .LoadTrackAsync(query, TrackSearchMode.YouTube)
-                .ConfigureAwait(false);
-
-            if (track == null)
-            {
-                await FollowupAsync("😖 No results.").ConfigureAwait(false);
-                return;
-            }
-
-            var position = await player.PlayAsync(track).ConfigureAwait(false);
-
-            if (position == 0)
-                await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
-            else
-                await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
-        }
-
-        private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(
-            bool connectToVoiceChannel = true
-        )
-        {
-            var result = await _audioService
-                .Players
-                .RetrieveAsync(
-                    Context,
-                    playerFactory: PlayerFactory.Queued,
-                    new PlayerRetrieveOptions(
-                        ChannelBehavior: connectToVoiceChannel
-                            ? PlayerChannelBehavior.Join
-                            : PlayerChannelBehavior.None
-                    )
+    private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
+    {
+        var result = await _audioService
+            .Players
+            .RetrieveAsync(
+                Context,
+                playerFactory: PlayerFactory.Queued,
+                new PlayerRetrieveOptions(
+                    ChannelBehavior: connectToVoiceChannel
+                        ? PlayerChannelBehavior.Join
+                        : PlayerChannelBehavior.None
                 )
-                .ConfigureAwait(false);
+            )
+            .ConfigureAwait(false);
 
-            if (result.IsSuccess)
-                return result.Player;
+        if (result.IsSuccess)
+            return result.Player;
 
-            // Something went wrong
-            string errorMessage = result.Status switch
-            {
-                PlayerRetrieveStatus.UserNotInVoiceChannel
-                    => "You are not connected to a voice channel.",
-                PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
-                _ => "Unknown error.",
-            };
+        // Something went wrong
+        string errorMessage = result.Status switch
+        {
+            PlayerRetrieveStatus.UserNotInVoiceChannel
+                => "You are not connected to a voice channel.",
+            PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
+            _ => "Unknown error.",
+        };
 
-            await FollowupAsync(errorMessage).ConfigureAwait(false);
+        await FollowupAsync(errorMessage).ConfigureAwait(false);
 
-            return null;
-        }
+        return null;
     }
 }
