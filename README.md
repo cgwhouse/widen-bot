@@ -2,10 +2,11 @@
 
 ## TODO
 
-- Get connected to a bot that can play music (up to current point in tutorial)
+- Get connected to a bot that can play YouTube link (up to current point in tutorial)
 - Write script + config json for dealing with sensitive bits
 - Add DigitalOcean referral badge
-- Document build / run process
+- Better handling for queries, multiple sources + playlists
+- Document build + run process
 - Consider SponsorBlock plugin
 - Test systemd service on server once everything else is working
 
