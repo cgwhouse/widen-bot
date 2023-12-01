@@ -11,14 +11,22 @@
 - Consider SponsorBlock plugin
 - Test systemd service on server
 
-## Dependencies
+## Get Started
+
+not intended to be available to more than one server at a time. widenbot is an introvert
+requires a Discord bot already configured and invited to server
+really two components, the sound server and the client
+remember note about lavalink google oauth prompt
+
+### Dependencies
 
 - .NET SDK 7 or newer
 - JRE 17 or newer
 
 Make sure the outputs of both `dotnet --list-sdks` and `java --version` look correct before continuing.
 
-## Setup Guide
+### Setup Guide
 
-1. Clone this repo on the machine that will be running widen-bot
+1. Clone this repo on the machine that will be running WidenBot
 2. Change current directory to the root of this repo
+3. That's it!
