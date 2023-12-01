@@ -18,7 +18,6 @@ namespace WidenBot
             _audioService = audioService;
         }
 
-        // XXX does not match tutorial
         [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
         public async Task Play(string query)
         {
