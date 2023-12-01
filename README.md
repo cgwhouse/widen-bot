@@ -1,24 +1,22 @@
-# widen-bot-dotnet
+# WidenBot
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
 ## TODO
 
-- Write script + config json for dealing with sensitive bits
-- Describe each parameter in the config.json (table?)
+- Write setup guide
 - Better handling for queries, multiple sources + playlists
-- Document build + run process
 - Consider SponsorBlock plugin
-- Test systemd service on server once everything else is working
+- Test systemd service on server
 
-## Prerequisites
+## Dependencies
 
 - .NET SDK 7 or newer
 - JRE 17 or newer
 
-Ensure output of `dotnet --list-sdks` and `java --version` both look correct before continuing.
+Make sure the outputs of both `dotnet --list-sdks` and `java --version` look correct before continuing.
 
-## Setup Steps
+## Setup Guide
 
 1. Clone this repo on the machine that will be running widen-bot
 2. Change current directory to the root of this repo
