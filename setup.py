@@ -7,7 +7,6 @@ Before executing, ensure that values for all properties in config.json have been
 Cristian W.
 """
 
-import os, shutil, sys
 import json
 
 
@@ -34,89 +33,26 @@ def main():
             print("All values must be supplied in config.json. Exiting")
 
     # Handle .NET by injecting config values into Constants.cs
-    rawConstants = get_file_contents("WidenBot/Constants.cs")
+    dotnetRaw = get_file_contents("WidenBot/Constants.cs")
 
-    updatedConstants = (
-        rawConstants.replace("<DISCORD_BOT_TOKEN>", user_config["DiscordBotToken"])
+    dotnetUpdated = (
+        dotnetRaw.replace("<DISCORD_BOT_TOKEN>", user_config["DiscordBotToken"])
         .replace("<DISCORD_SERVER_ID>", user_config["DiscordServerID"])
         .replace("<LAVALINK_PASSWORD>", user_config["LavalinkPassword"])
     )
 
-    # Write updated
-    write_file_contents("WidenBot/Constants.cs", updatedConstants)
+    write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
 
-    # rawDiscordClientHost.replace("<DISCORD_BOT_TOKEN>")
+    # Handle Lavalink by injecting config values into application.yml
+    lavalinkRaw = get_file_contents("Lavalink/application.yml")
 
+    lavalinkUpdated = (
+        lavalinkRaw.replace("<YOUTUBE_EMAIL>", user_config["YouTubeEmail"])
+        .replace("<YOUTUBE_PASSWORD>", user_config["YouTubePassword"])
+        .replace("<LAVALINK_PASSWORD>", user_config["LavalinkPassword"])
+    )
 
-#    f.write(f"{full_package_name} abi_x86_32")
-#    f.close()
-# This script should never need to be run with elevated privileges, ensure
-
-
-#    try:
-#        is_admin = os.getuid() == 0
-#        if is_admin:
-#            print("\nThis script should not be executed with root privileges\n")
-#            return
-#    except AttributeError:
-#        print(
-#            "\nUnable to check for root privileges, is this a Windows machine? If not, please contact the developer\n"
-#        )
-#        return
-
-# Retrieve and validate input
-# try:
-#    output_dir = sys.argv[1]
-# except IndexError:
-#    # Prompt user if not provided via CLI
-#    output_dir = input(
-#        "\nEnter desired path of script output, absolute or relative (to the current directory): "
-#    )
-
-# Create output directory
-# try:
-#    os.makedirs(output_dir)
-# except FileNotFoundError:
-#    print("\nInvalid path\n")
-#    return
-# except PermissionError:
-#    print(
-#        "\nInvalid path, permission was denied while attempting to create the directory\n"
-#    )
-#    return
-# except FileExistsError:
-#    choice = input(
-#        "\nThis directory already exists, do you want to wipe its contents? Type 'yes' to confirm: "
-#    )
-
-#    if choice.lower() != "yes":
-#        print("\nExiting\n")
-#        return
-
-#    # Wipe directory contents and recreate empty
-#    shutil.rmtree(output_dir)
-#    os.makedirs(output_dir)
-
-## Init console output
-# emerge_command = "sudo emerge -av "
-
-# for full_package_name in package_names:
-#    # Add full name to emerge command
-#    emerge_command += f"{full_package_name} "
-
-#    short_package_name = full_package_name.split("/")[1]
-
-#    # Create file named short_package_name, need to write the full name with 32-bit flag into the file
-#    f = open(f"{output_dir}/{short_package_name}", "w")
-#    f.write(f"{full_package_name} abi_x86_32")
-#    f.close()
-
-## Output emerge command
-# print(f"\n{emerge_command.strip()}")
-
-# print(
-#    f"\nAll done. Copy the contents of {output_dir} into /etc/portage/package.use, then execute the emerge command above!\n"
-# )
+    write_file_contents("Lavalink/application.yml", lavalinkUpdated)
 
 
 main()
