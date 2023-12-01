@@ -1,7 +1,7 @@
 {
   "DiscordBotToken": "",
   "DiscordServerID": "",
-  "LavalinkServerPassword": "",
+  "LavalinkPassword": "",
   "YouTubeEmail": "",
   "YouTubePassword": ""
 }
