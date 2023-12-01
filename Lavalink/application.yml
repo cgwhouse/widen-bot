@@ -38,9 +38,9 @@ lavalink:
     youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
     gc-warnings: true
-    youtubeConfig: # Required for avoiding all age restrictions by YouTube, some restricted videos still can be played without.
-      email: "<YOUTUBE_EMAIL>" # Email of Google account
-      password: "<YOUTUBE_PASSWORD>" # Password of Google account
+    youtubeConfig:
+      email: "<YOUTUBE_EMAIL>"
+      password: "<YOUTUBE_PASSWORD>"
 
 metrics:
   prometheus:
