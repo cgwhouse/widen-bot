@@ -6,6 +6,8 @@
 
 - Write setup guide
 - Better handling for queries, multiple sources + playlists
+- Implement more commands
+- Go through rest of docs and add more fancy / relevant things
 - Consider SponsorBlock plugin
 - Test systemd service on server
 
