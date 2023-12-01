@@ -12,12 +12,17 @@ import json
 
 def main():
     # Get config.json
-    user_config = json.loads(get_file_contents("config.json"))
+    try:
+        user_config = json.loads(get_file_contents("config.json"))
+    except FileNotFoundError:
+        print("config.json was not found. Exiting")
+        return
 
     # Validate config
     for key in user_config:
         if user_config[key] == "":
             print("All values must be supplied in config.json. Exiting")
+            return
 
     # Handle .NET by injecting config values into Constants.cs
     dotnetRaw = get_file_contents("WidenBot/Constants.cs")
