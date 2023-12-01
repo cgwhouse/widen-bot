@@ -9,7 +9,7 @@ using Lavalink4NET.Rest.Entities.Tracks;
 namespace WidenBot
 {
     [RequireContext(ContextType.Guild)]
-    public class MusicModule : InteractionModuleBase<SocketInteractionContext>
+    public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly IAudioService _audioService;
 
@@ -69,19 +69,13 @@ namespace WidenBot
                 return result.Player;
 
             // Something went wrong
-            string errorMessage;
-            switch (result.Status)
+            string errorMessage = result.Status switch
             {
-                case PlayerRetrieveStatus.UserNotInVoiceChannel:
-                    errorMessage = "You are not connected to a voice channel.";
-                    break;
-                case PlayerRetrieveStatus.BotNotConnected:
-                    errorMessage = "The bot is currently not connected.";
-                    break;
-                default:
-                    errorMessage = "Unknown error.";
-                    break;
-            }
+                PlayerRetrieveStatus.UserNotInVoiceChannel
+                    => "You are not connected to a voice channel.",
+                PlayerRetrieveStatus.BotNotConnected => "The bot is currently not connected.",
+                _ => "Unknown error.",
+            };
 
             await FollowupAsync(errorMessage).ConfigureAwait(false);
 
