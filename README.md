@@ -5,6 +5,7 @@
 ## TODO
 
 - Write script + config json for dealing with sensitive bits
+- Describe each parameter in the config.json (table?)
 - Better handling for queries, multiple sources + playlists
 - Document build + run process
 - Consider SponsorBlock plugin
