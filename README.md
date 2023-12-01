@@ -1,10 +1,10 @@
 # widen-bot-dotnet
 
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
 ## TODO
 
-- Get connected to a bot that can play YouTube link (up to current point in tutorial)
 - Write script + config json for dealing with sensitive bits
-- Add DigitalOcean referral badge
 - Better handling for queries, multiple sources + playlists
 - Document build + run process
 - Consider SponsorBlock plugin
