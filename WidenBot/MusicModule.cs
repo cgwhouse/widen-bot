@@ -6,7 +6,7 @@ using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
 
-namespace WidenBot.Services
+namespace WidenBot
 {
     [RequireContext(ContextType.Guild)]
     public class MusicModule : InteractionModuleBase<SocketInteractionContext>
