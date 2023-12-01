@@ -10,19 +10,6 @@ Cristian W.
 import json
 
 
-def get_file_contents(path):
-    f = open(path, "r")
-    raw = f.read()
-    f.close()
-    return raw
-
-
-def write_file_contents(path, contents):
-    f = open(path, "w")
-    f.write(contents)
-    f.close()
-
-
 def main():
     # Get config.json
     user_config = json.loads(get_file_contents("config.json"))
@@ -53,6 +40,19 @@ def main():
     )
 
     write_file_contents("Lavalink/application.yml", lavalinkUpdated)
+
+
+def get_file_contents(path):
+    f = open(path, "r")
+    raw = f.read()
+    f.close()
+    return raw
+
+
+def write_file_contents(path, contents):
+    f = open(path, "w")
+    f.write(contents)
+    f.close()
 
 
 main()
