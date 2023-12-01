@@ -11,20 +11,19 @@ import json
 
 
 def main():
-    # Get config.json
+    # Get config.json and validate
     try:
         user_config = json.loads(get_file_contents("config.json"))
     except FileNotFoundError:
         print("config.json was not found. Exiting")
         return
 
-    # Validate config
     for key in user_config:
         if user_config[key] == "":
             print("All values must be supplied in config.json. Exiting")
             return
 
-    # Handle .NET by injecting config values into Constants.cs
+    # Handle .NET, inject values into Constants.cs
     dotnetRaw = get_file_contents("WidenBot/Constants.cs")
 
     dotnetUpdated = (
@@ -35,7 +34,7 @@ def main():
 
     write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
 
-    # Handle Lavalink by injecting config values into application.yml
+    # Handle Lavalink, inject values into application.yml
     lavalinkRaw = get_file_contents("Lavalink/application.yml")
 
     lavalinkUpdated = (
