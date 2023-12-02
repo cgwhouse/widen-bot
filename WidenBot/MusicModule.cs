@@ -9,7 +9,7 @@ using Lavalink4NET.Rest.Entities.Tracks;
 namespace WidenBot;
 
 [RequireContext(ContextType.Guild)]
-internal sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
+public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
 
