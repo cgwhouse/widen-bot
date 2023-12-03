@@ -5,11 +5,13 @@
 ## TODO
 
 - Write setup guide
+- Update setup script to download Lavalink for you
+- Update setup script to check whether it actually needs to do the config injections
+- Play with updating the default volume on channel join
 - Better handling for queries, multiple sources + playlists
-- Implement more commands
 - Go through rest of docs and add more fancy / relevant things
+  - top priority commands: skip, pause, resume
 - Consider SponsorBlock plugin
-- Test systemd service on server
 
 ## Get Started
 
