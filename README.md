@@ -15,16 +15,21 @@ WidenBot is a private music bot for Discord.
 WidenBot consists of three components:
 
 - A discord bot, configured via the Discord developer portal
-- The server (Lavalink), a standalone Java application
+- The server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
 - The client (WidenBot), a .NET service
 
-Requires a Discord bot already configured and invited to server
 
-Remember note about lavalink google oauth prompt
+### Part 1: Dependencies
 
-### Part 1: Discord Bot
+- Python 3
+- .NET SDK 7 or newer
+- JRE 17 or newer (OpenJDK recommended)
 
-1. Go to the Discord Developer Portal, login as yourself / whichever Discord account should own the bot, and create a new application
+Make sure the outputs of `python --version`, `dotnet --list-sdks`, and `java --version` each look correct before continuing.
+
+### Part 2: Discord Bot
+
+1. Go to the Discord Developer Portal, login as the Discord account should own the bot, and create a new application
 
 2. Within the Bot settings:
 
@@ -52,7 +57,7 @@ Remember note about lavalink google oauth prompt
 
 5. In Discord, right-click on the server you invited the bot to, select "Copy Server ID", and paste the server ID somewhere for later
 
-### Part 2: WidenBot
+### Part 3: WidenBot
 
 1. Clone this repository
 
@@ -64,22 +69,16 @@ Remember note about lavalink google oauth prompt
 
 5. Using a Google account that you have access to, enter the email + password combo into `YoutubeEmail` and `YouTubePassword` respectively
 
-### Dependencies
+6. From the root of the repository, execute `python3 setup.py`
 
-- .NET SDK 7 or newer
-- JRE 17 or newer (OpenJDK recommended)
+7. Change to the `Lavalink` directory and execute `java -jar Lavalink.jar`. On first run, inspect the output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.
 
-Make sure the outputs of both `dotnet --list-sdks` and `java --version` look correct before continuing.
+8. Once the Lavalink output looks good, open another terminal window in the `WidenBot` directory, and execute `dotnet run -c Release`.
 
-### Setup Guide
-
-1. Clone this repo on the machine that will be running WidenBot
-2. Change current directory to the root of this repo
-3. That's it!
+9. Done! The bot user you invited should now be online, and slash commands should be available.
 
 ## TODO
 
-- Write setup guide
 - More commands: skip, pause and resume
 - Better default volume on join
 - Leave when voice channel empty
