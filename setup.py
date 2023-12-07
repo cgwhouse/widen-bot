@@ -11,26 +11,7 @@ import json, os, urllib.request
 
 
 def main():
-    discord_bot_token = "<DISCORD_BOT_TOKEN>"
-    discord_server_id = "<DISCORD_SERVER_ID>"
-    lavalink_password = "<LAVALINK_PASSWORD>"
-    youtube_email = "<YOUTUBE_EMAIL>"
-    youtube_password = "<YOUTUBE_PASSWORD>"
-
     print("Performing WidenBot setup...")
-
-    # Download Lavalink.jar if needed
-    if not os.path.isfile("Lavalink/Lavalink.jar"):
-        print("Downloading Lavalink...")
-
-        urllib.request.urlretrieve(
-            "https://github.com/lavalink-devs/Lavalink/releases/latest/download/Lavalink.jar",
-            "Lavalink/Lavalink.jar",
-        )
-
-        print("Lavalink binary successfully downloaded...")
-    else:
-        print("Lavalink binary already exists, skipping download...")
 
     # Get config.json and validate
     try:
@@ -43,6 +24,16 @@ def main():
         if user_config[key] == "":
             print("ERROR: All values must be supplied in config.json. Exiting")
             return
+
+    # Download Lavalink if needed
+    handle_lavalink_binary()
+
+    # Tokens to search for
+    discord_bot_token = "<DISCORD_BOT_TOKEN>"
+    discord_server_id = "<DISCORD_SERVER_ID>"
+    lavalink_password = "<LAVALINK_PASSWORD>"
+    youtube_email = "<YOUTUBE_EMAIL>"
+    youtube_password = "<YOUTUBE_PASSWORD>"
 
     # Handle .NET, inject values into Constants.cs
     dotnetRaw = get_file_contents("WidenBot/Constants.cs")
@@ -76,6 +67,8 @@ def main():
     ):
         print("application.yml has already been updated, skipping...")
     else:
+        print("Injecting config values into application.yml...")
+
         lavalinkUpdated = (
             lavalinkRaw.replace(youtube_email, user_config["YouTubeEmail"])
             .replace(youtube_password, user_config["YouTubePassword"])
@@ -85,6 +78,8 @@ def main():
         write_file_contents("Lavalink/application.yml", lavalinkUpdated)
 
         print("application.yml has been updated...")
+
+    print("Done!")
 
 
 def get_file_contents(path):
@@ -98,6 +93,20 @@ def write_file_contents(path, contents):
     f = open(path, "w")
     f.write(contents)
     f.close()
+
+
+def handle_lavalink_binary():
+    if not os.path.isfile("Lavalink/Lavalink.jar"):
+        print("Downloading Lavalink...")
+
+        urllib.request.urlretrieve(
+            "https://github.com/lavalink-devs/Lavalink/releases/latest/download/Lavalink.jar",
+            "Lavalink/Lavalink.jar",
+        )
+
+        print("Lavalink binary successfully downloaded...")
+    else:
+        print("Lavalink binary already exists, skipping download...")
 
 
 main()
