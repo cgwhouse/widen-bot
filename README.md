@@ -18,7 +18,6 @@ WidenBot consists of three components:
 - The server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
 - The client (WidenBot), a .NET service
 
-
 ### Part 1: Dependencies
 
 - Python 3
