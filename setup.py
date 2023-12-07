@@ -28,7 +28,7 @@ def main():
     # Download Lavalink if needed
     handle_lavalink_binary()
 
-    # Tokens to search for
+    # Placeholders to search for
     discord_bot_token = "<DISCORD_BOT_TOKEN>"
     discord_server_id = "<DISCORD_SERVER_ID>"
     lavalink_password = "<LAVALINK_PASSWORD>"
