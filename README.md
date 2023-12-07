@@ -15,10 +15,13 @@
 
 ## Get Started
 
-not intended to be available to more than one server at a time. widenbot is an introvert
-requires a Discord bot already configured and invited to server
-really two components, the sound server and the client
-remember note about lavalink google oauth prompt
+Not intended to be available to more than one server at a time. widenbot is an introvert
+
+Requires a Discord bot already configured and invited to server
+
+Really two components, the sound server and the client
+
+Remember note about lavalink google oauth prompt
 
 ### Dependencies
 
