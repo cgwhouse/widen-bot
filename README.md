@@ -2,15 +2,11 @@
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
-WidenBot is a private music bot for Discord.
+WidenBot is a private, self-hosted music bot for Discord.
 
 ## Setup Guide
 
-**Disclaimers:**
-
-**WidenBot is introverted, and not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires some manual setup, and hosting is up to you. For an out-of-the-box experience, the WidenBot team recommends [CakeyBot](https://cakey.bot/), or Tanner Gabriel's [discord-bot](https://github.com/TannerGabriel/discord-bot) repo as alternatives to this project.**
-
-**A single instance of WidenBot cannot serve more than one server at a time. This is by design; WidenBot just wants to hang out with you and your friends, no one else.**
+**Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
 
 WidenBot consists of three components:
 
@@ -18,15 +14,15 @@ WidenBot consists of three components:
 - The server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
 - The client (WidenBot), a .NET service
 
-### Part 1: Dependencies
+### Dependencies
 
 - Python 3
 - .NET SDK 7 or newer
 - JRE 17 or newer (OpenJDK recommended)
 
-Make sure the outputs of `python --version`, `dotnet --list-sdks`, and `java --version` each look correct before continuing.
+Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --version` each look correct before continuing.
 
-### Part 2: Discord Bot
+### Discord Developer Portal
 
 1. Go to the Discord Developer Portal, login as the Discord account should own the bot, and create a new application
 
@@ -42,7 +38,7 @@ Make sure the outputs of `python --version`, `dotnet --list-sdks`, and `java --v
 
    a. Add a redirect for `https://discord.com` (Under "General" sub-category)
 
-   b. Generate an invite URL with the `bot` scope, and the following bot permissions:
+   b. Generate an invite URL with the `bot` scope, and the following permissions:
 
    - Read Messages/View Channels
    - Send Messages
@@ -56,7 +52,7 @@ Make sure the outputs of `python --version`, `dotnet --list-sdks`, and `java --v
 
 5. In Discord, right-click on the server you invited the bot to, select "Copy Server ID", and paste the server ID somewhere for later
 
-### Part 3: WidenBot
+### WidenBot
 
 1. Clone this repository
 
