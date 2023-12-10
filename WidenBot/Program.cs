@@ -18,6 +18,7 @@ var builder = new HostApplicationBuilder(args);
 builder
     .Services
     .AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace))
+    .AddMemoryCache()
     .AddSingleton<DiscordSocketClient>()
     .AddSingleton<InteractionService>()
     .AddHostedService<DiscordClientHost>()
