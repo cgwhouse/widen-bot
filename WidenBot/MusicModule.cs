@@ -47,6 +47,32 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
     }
 
+    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
+    public async Task Skip()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player == null)
+            return;
+
+        if (player.CurrentItem == null)
+        {
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.SkipAsync().ConfigureAwait(false);
+
+        var track = player.CurrentItem;
+
+        if (track != null)
+            await RespondAsync($"Skipped. Now playing: {track.Track!.Uri}").ConfigureAwait(false);
+        else
+            await RespondAsync("Skipped. Stopped playing because the queue is now empty.")
+                .ConfigureAwait(false);
+    }
+
     [SlashCommand("pause", description: "Pauses the player.", runMode: RunMode.Async)]
     public async Task PauseAsync()
     {
