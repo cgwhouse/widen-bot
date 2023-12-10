@@ -47,6 +47,26 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
     }
 
+    [SlashCommand("stop", description: "Stops the current track", runMode: RunMode.Async)]
+    public async Task Stop()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player is null)
+            return;
+
+        if (player.CurrentItem is null)
+        {
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.StopAsync().ConfigureAwait(false);
+
+        await RespondAsync("Stopped playing.").ConfigureAwait(false);
+    }
+
     private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
     {
         var result = await _audioService
@@ -63,7 +83,14 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .ConfigureAwait(false);
 
         if (result.IsSuccess)
+        {
+            // TODO Ensure volume is a reasonable value before returning the player
+            var currentVolume = result.Player.Volume;
+
+            System.Console.WriteLine("here");
+
             return result.Player;
+        }
 
         // Something went wrong
         string errorMessage = result.Status switch
