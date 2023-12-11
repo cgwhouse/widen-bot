@@ -47,6 +47,92 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
     }
 
+    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
+    public async Task Skip()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player == null)
+            return;
+
+        if (player.CurrentItem == null)
+        {
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.SkipAsync().ConfigureAwait(false);
+
+        var track = player.CurrentItem;
+
+        if (track != null)
+            await RespondAsync($"Skipped. Now playing: {track.Track!.Uri}").ConfigureAwait(false);
+        else
+            await RespondAsync("Skipped. Stopped playing because the queue is now empty.")
+                .ConfigureAwait(false);
+    }
+
+    [SlashCommand("pause", description: "Pauses the player.", runMode: RunMode.Async)]
+    public async Task PauseAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player == null)
+            return;
+
+        if (player.State == PlayerState.Paused)
+        {
+            await RespondAsync("Player is already paused.").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.PauseAsync().ConfigureAwait(false);
+
+        await RespondAsync("Paused.").ConfigureAwait(false);
+    }
+
+    [SlashCommand("resume", description: "Resumes the player.", runMode: RunMode.Async)]
+    public async Task ResumeAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player == null)
+            return;
+
+        if (player.State != PlayerState.Paused)
+        {
+            await RespondAsync("Player is not paused.").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.ResumeAsync().ConfigureAwait(false);
+
+        await RespondAsync("Resumed.").ConfigureAwait(false);
+    }
+
+    [SlashCommand("stop", description: "Stops the current track", runMode: RunMode.Async)]
+    public async Task Stop()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player == null)
+            return;
+
+        if (player.CurrentItem == null)
+        {
+            await RespondAsync("Nothing playing!").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.StopAsync().ConfigureAwait(false);
+
+        await RespondAsync("Stopped playing.").ConfigureAwait(false);
+    }
+
     private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
     {
         var result = await _audioService
@@ -63,7 +149,15 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .ConfigureAwait(false);
 
         if (result.IsSuccess)
-            return result.Player;
+        {
+            var player = result.Player;
+
+            // Ensure volume is a reasonable value before returning the player
+            if (player.Volume != 0.5f)
+                await player.SetVolumeAsync(0.5f).ConfigureAwait(false);
+
+            return player;
+        }
 
         // Something went wrong
         string errorMessage = result.Status switch

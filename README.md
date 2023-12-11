@@ -11,8 +11,8 @@ WidenBot is a private, self-hosted music bot for Discord.
 WidenBot consists of three components:
 
 - A discord bot, configured via the Discord developer portal
-- The server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
-- The client (WidenBot), a .NET service
+- The audio server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
+- The discord client (WidenBot), a .NET service
 
 ### Dependencies
 
@@ -74,8 +74,10 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ## TODO
 
-- More commands: skip, pause and resume
-- Better default volume on join
-- Leave when voice channel empty
+- Player preconditions
+- Add shuffle command
+- Add loop / mode command to update RepeatMode on player
+- Command to show current queue
 - Handle Spotify / other sources, handle playlists
 - SponsorBlock plugin
+- Document commands, high-level features, prior to setup guide
