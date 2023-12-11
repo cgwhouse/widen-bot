@@ -80,3 +80,4 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 - Add shuffle command
 - Handle Spotify / other sources, handle playlists
 - SponsorBlock plugin
+- Document commands, high-level features, prior to setup guide
