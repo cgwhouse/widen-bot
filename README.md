@@ -75,7 +75,6 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 ## TODO
 
 - Player preconditions
-- Add shuffle command
 - Add loop / mode command to update RepeatMode on player
 - Command to show current queue
 - Handle Spotify / other sources, handle playlists

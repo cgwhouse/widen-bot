@@ -114,7 +114,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand("stop", description: "Stops the current track", runMode: RunMode.Async)]
-    public async Task Stop()
+    public async Task StopAsync()
     {
         var player = await GetPlayerAsync(connectToVoiceChannel: false);
 
@@ -131,6 +131,20 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await player.StopAsync().ConfigureAwait(false);
 
         await RespondAsync("Stopped playing.").ConfigureAwait(false);
+    }
+
+    [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
+    public async Task ShuffleAsync()
+    {
+        var player = await GetPlayerAsync(connectToVoiceChannel: false);
+
+        if (player == null)
+            return;
+
+        player.Shuffle = !player.Shuffle;
+
+        await RespondAsync($"Shuffle has been {(player.Shuffle ? "enabled" : "disabled")}.")
+            .ConfigureAwait(false);
     }
 
     private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(bool connectToVoiceChannel = true)
