@@ -2,11 +2,11 @@
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
-WidenBot is a private, self-hosted music bot for Discord.
+WidenBot is a private music bot for Discord.
 
 ## Setup Guide
 
-**Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
+**Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you (but we recommend DigitalOcean!). A single instance of WidenBot cannot serve more than once server simultaneously.**
 
 WidenBot consists of three components:
 
