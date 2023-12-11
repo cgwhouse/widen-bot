@@ -65,13 +65,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player == null)
             return;
 
-        //if (player.CurrentItem == null)
-        //{
-        //    await RespondAsync("Nothing playing!").ConfigureAwait(false);
-
-        //    return;
-        //}
-
         await player.SkipAsync().ConfigureAwait(false);
 
         var track = player.CurrentItem;
@@ -95,13 +88,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player == null)
             return;
 
-        //if (player.State == PlayerState.Paused)
-        //{
-        //    await RespondAsync("Player is already paused.").ConfigureAwait(false);
-
-        //    return;
-        //}
-
         await player.PauseAsync().ConfigureAwait(false);
 
         await RespondAsync("Paused.").ConfigureAwait(false);
@@ -118,13 +104,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         if (player == null)
             return;
-
-        //if (player.State != PlayerState.Paused)
-        //{
-        //    await RespondAsync("Player is not paused.").ConfigureAwait(false);
-
-        //    return;
-        //}
 
         await player.ResumeAsync().ConfigureAwait(false);
 
@@ -147,13 +126,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player == null)
             return;
 
-        //if (player.CurrentItem == null)
-        //{
-        //    await RespondAsync("Nothing playing!").ConfigureAwait(false);
-
-        //    return;
-        //}
-
         await player.StopAsync().ConfigureAwait(false);
 
         await RespondAsync("Stopped playing.").ConfigureAwait(false);
@@ -174,6 +146,24 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         player.Shuffle = !player.Shuffle;
 
         await RespondAsync($"Shuffle has been {(player.Shuffle ? "enabled" : "disabled")}.")
+            .ConfigureAwait(false);
+    }
+
+    [SlashCommand("repeat", description: "Sets repeat mode of the player.", runMode: RunMode.Async)]
+    public async Task RepeatAsync(TrackRepeatMode repeatMode)
+    {
+        var player = await TryGetPlayerAsync(
+                allowConnect: false,
+                preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
+            )
+            .ConfigureAwait(false);
+
+        if (player == null)
+            return;
+
+        player.RepeatMode = repeatMode;
+
+        await RespondAsync($"Player repeat mode has been updated to {repeatMode}.")
             .ConfigureAwait(false);
     }
 

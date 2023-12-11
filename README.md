@@ -74,10 +74,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ## TODO
 
-- Player preconditions
-- Add loop / mode command to update RepeatMode on player
 - Command to show current queue, also show whether queue is shuffled
-- playtop / queue immediately command
 - Handle Spotify / other sources, handle playlists
 - SponsorBlock plugin
 - Creed command
