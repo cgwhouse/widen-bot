@@ -74,7 +74,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ## TODO
 
-- Command to show current queue, also show whether queue is shuffled
+- Improve show command after using the plugins
 - Handle Spotify / other sources, handle playlists
 - SponsorBlock plugin
 - Creed command
