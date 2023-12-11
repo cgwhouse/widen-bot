@@ -1,8 +1,12 @@
+using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Interactions;
 using Lavalink4NET;
+using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
+using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
 
@@ -19,7 +23,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
-    public async Task Play(string query)
+    public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
 
@@ -48,7 +52,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
-    public async Task Skip()
+    public async Task SkipAsync()
     {
         var player = await GetPlayerAsync(connectToVoiceChannel: false);
 
@@ -183,6 +187,54 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         };
 
         await FollowupAsync(errorMessage).ConfigureAwait(false);
+
+        return null;
+    }
+
+    private async ValueTask<QueuedLavalinkPlayer?> TryGetPlayerAsync(
+        bool allowConnect = false,
+        bool requireChannel = true,
+        ImmutableArray<IPlayerPrecondition> preconditions = default,
+        bool isDeferred = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var options = new PlayerRetrieveOptions(
+            ChannelBehavior: allowConnect ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None,
+            VoiceStateBehavior: requireChannel
+                ? MemberVoiceStateBehavior.RequireSame
+                : MemberVoiceStateBehavior.Ignore,
+            Preconditions: preconditions
+        );
+
+        var result = await _audioService
+            .Players
+            .RetrieveAsync(
+                Context,
+                playerFactory: PlayerFactory.Queued,
+                options,
+                cancellationToken: cancellationToken
+            )
+            .ConfigureAwait(false);
+
+        if (result.IsSuccess)
+        {
+            return result.Player;
+        }
+
+        // See the error handling section for more information
+        var errorMessage = CreateErrorEmbed(result);
+
+        if (isDeferred)
+        {
+            await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
+        }
+        else
+        {
+            await RespondAsync(embed: errorMessage).ConfigureAwait(false);
+        }
 
         return null;
     }
