@@ -153,8 +153,8 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             var player = result.Player;
 
             // Ensure volume is a reasonable value before returning the player
-            if (player.Volume != 0.5f)
-                await player.SetVolumeAsync(0.5f).ConfigureAwait(false);
+            if (player.Volume != 0.25f)
+                await player.SetVolumeAsync(0.25f).ConfigureAwait(false);
 
             return player;
         }
