@@ -175,26 +175,21 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task ShowAsync(TrackRepeatMode repeatMode)
     {
-        var player = await TryGetPlayerAsync(
-                allowConnect: false
-            //preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
-            )
-            .ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
             return;
 
-        var queueResult = "";
+        var result = string.Empty;
+
+        result += $"Shuffle: {player.Shuffle}\n";
+
+        result += $"Repeat: {player.RepeatMode}\n";
+
+        result += $"Queue:\n";
 
         foreach (var track in player.Queue)
-            queueResult += $"{track.Track?.Title ?? "Unknown title"}\n";
-
-        var result =
-            @$"
-Shuffle: {player.Shuffle}
-Repeat: {player.RepeatMode}
-Queue:
-{queueResult}";
+            result += $"{track.Track?.Title ?? "Unknown title"}\n";
 
         await RespondAsync(result).ConfigureAwait(false);
     }
