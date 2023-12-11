@@ -74,8 +74,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ## TODO
 
-- Improve show command after using the plugins
+- Creed command
 - Handle Spotify / other sources, handle playlists
 - SponsorBlock plugin
-- Creed command
 - Document commands, high-level features, prior to setup guide
