@@ -173,7 +173,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         description: "Prints the current queue and other player info.",
         runMode: RunMode.Async
     )]
-    public async Task ShowAsync(TrackRepeatMode repeatMode)
+    public async Task ShowAsync()
     {
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
@@ -188,8 +188,25 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         result += $"Queue:\n";
 
-        foreach (var track in player.Queue)
-            result += $"{track.Track?.Title ?? "Unknown title"}\n";
+        var queueEmpty = true;
+
+        if (player.CurrentItem != null)
+        {
+            queueEmpty = false;
+
+            result += $"{player.CurrentItem.Track?.Title ?? "Unknown title"}\n";
+        }
+
+        if (player.Queue.Any())
+        {
+            queueEmpty = false;
+
+            foreach (var track in player.Queue)
+                result += $"{track.Track?.Title ?? "Unknown title"}\n";
+        }
+
+        if (queueEmpty)
+            result += "Queue is empty.";
 
         await RespondAsync(result).ConfigureAwait(false);
     }
@@ -223,7 +240,15 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .ConfigureAwait(false);
 
         if (result.IsSuccess)
-            return result.Player;
+        {
+            var player = result.Player;
+
+            // Ensure reasonable volume
+            if (player.Volume != 0.25f)
+                await player.SetVolumeAsync(0.25f, cancellationToken);
+
+            return player;
+        }
 
         // See the error handling section for more information
         var errorMessage = CreateErrorEmbed(result);
