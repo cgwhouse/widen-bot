@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -165,6 +166,37 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         await RespondAsync($"Player repeat mode has been updated to {repeatMode}.")
             .ConfigureAwait(false);
+    }
+
+    [SlashCommand(
+        "show",
+        description: "Prints the current queue and other player info.",
+        runMode: RunMode.Async
+    )]
+    public async Task ShowAsync(TrackRepeatMode repeatMode)
+    {
+        var player = await TryGetPlayerAsync(
+                allowConnect: false
+            //preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
+            )
+            .ConfigureAwait(false);
+
+        if (player == null)
+            return;
+
+        var queueResult = "";
+
+        foreach (var track in player.Queue)
+            queueResult += $"{track.Track?.Title ?? "Unknown title"}\n";
+
+        var result =
+            @$"
+Shuffle: {player.Shuffle}
+Repeat: {player.RepeatMode}
+Queue:
+{queueResult}";
+
+        await RespondAsync(result).ConfigureAwait(false);
     }
 
     private async ValueTask<QueuedLavalinkPlayer?> TryGetPlayerAsync(
