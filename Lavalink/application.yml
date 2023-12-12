@@ -13,10 +13,10 @@ lavalink:
     password: "<LAVALINK_PASSWORD>"
     sources:
       youtube: true
-      bandcamp: true
+      bandcamp: false
       soundcloud: true
-      twitch: true
-      vimeo: true
+      twitch: false
+      vimeo: false
       http: true
       local: false
     filters:
