@@ -7,6 +7,9 @@ using Discord.Interactions;
 using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
+using Lavalink4NET.Integrations.Lavasearch;
+//using Lavalink4NET.Integrations.Lavasearch;
+using Lavalink4NET.Integrations.Lavasearch.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
@@ -24,6 +27,54 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _audioService = audioService;
     }
 
+    private static TrackSearchMode DetermineSearchMode(string query)
+    {
+        if (query.Contains("spotify"))
+            return TrackSearchMode.Spotify;
+
+        if (query.Contains("soundcloud"))
+            return TrackSearchMode.SoundCloud;
+
+        if (query.Contains("music.apple"))
+            return TrackSearchMode.AppleMusic;
+
+        if (query.Contains("music.youtube"))
+            return TrackSearchMode.YouTubeMusic;
+
+        return TrackSearchMode.YouTube;
+    }
+
+    private async Task<SearchResult?> PerformThoroughSearch(string query)
+    {
+        // Try to pick a good search mode based on query, may want something other than YouTube
+        var bestGuessSearchMode = DetermineSearchMode(query);
+
+        var searchResult = await _audioService
+            .Tracks
+            .SearchAsync(
+                query: query,
+                loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode),
+                categories: ImmutableArray.Create(SearchCategory.Track)
+            );
+
+        if (searchResult != null && searchResult.Tracks.Any())
+            return searchResult;
+
+        // If we already fell back on YouTube as our first best guess, bail now, otherwise search YouTube
+        if (bestGuessSearchMode == TrackSearchMode.YouTube)
+            return null;
+
+        searchResult = await _audioService
+            .Tracks
+            .SearchAsync(
+                query: query,
+                loadOptions: new TrackLoadOptions(SearchMode: TrackSearchMode.YouTube),
+                categories: ImmutableArray.Create(SearchCategory.Track)
+            );
+
+        return searchResult;
+    }
+
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
@@ -35,17 +86,21 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player == null)
             return;
 
-        var track = await _audioService
-            .Tracks
-            .LoadTrackAsync(query, TrackSearchMode.YouTube)
-            .ConfigureAwait(false);
+        var searchResult = await PerformThoroughSearch(query);
 
-        if (track == null)
+        if (searchResult == null || !searchResult.Tracks.Any())
         {
             await FollowupAsync("😖 No results.").ConfigureAwait(false);
 
             return;
         }
+
+        var track = searchResult.Tracks.First();
+
+        //var track = await _audioService
+        //    .Tracks
+        //    .LoadTrackAsync(query, TrackSearchMode.YouTube)
+        //    .ConfigureAwait(false);
 
         var position = await player.PlayAsync(track).ConfigureAwait(false);
 
