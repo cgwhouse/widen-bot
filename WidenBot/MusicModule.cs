@@ -55,7 +55,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 query: query,
                 loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode),
                 categories: ImmutableArray.Create(SearchCategory.Track)
-            );
+            ).ConfigureAwait(false);
 
         if (searchResult != null && searchResult.Tracks.Any())
             return searchResult;
@@ -70,7 +70,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 query: query,
                 loadOptions: new TrackLoadOptions(SearchMode: TrackSearchMode.YouTube),
                 categories: ImmutableArray.Create(SearchCategory.Track)
-            );
+            ).ConfigureAwait(false);
 
         return searchResult;
     }
@@ -86,7 +86,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player == null)
             return;
 
-        var searchResult = await PerformThoroughSearch(query);
+        var searchResult = await PerformThoroughSearch(query).ConfigureAwait(false);
 
         if (searchResult == null || !searchResult.Tracks.Any())
         {
