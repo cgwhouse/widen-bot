@@ -13,10 +13,10 @@ lavalink:
     password: "<LAVALINK_PASSWORD>"
     sources:
       youtube: true
-      bandcamp: false
+      bandcamp: true
       soundcloud: true
-      twitch: false
-      vimeo: false
+      twitch: true
+      vimeo: true
       http: true
       local: false
     filters:
@@ -56,6 +56,8 @@ sentry:
 
 logging:
   file:
+    max-history: 30
+    max-size: 1GB
     path: ./logs/
 
   level:
