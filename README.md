@@ -75,6 +75,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 ## TODO
 
 - Creed command
-- Handle Spotify / other sources, handle playlists
+- Handle playlists
 - SponsorBlock plugin
 - Document commands, high-level features, prior to setup guide
+- Document spotify portion of setup

@@ -24,20 +24,44 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _audioService = audioService;
     }
 
+    private static TrackSearchMode DetermineSearchMode(string query)
+    {
+        if (query.Contains("spotify"))
+            return TrackSearchMode.Spotify;
+
+        if (query.Contains("soundcloud"))
+            return TrackSearchMode.SoundCloud;
+
+        if (query.Contains("music.youtube"))
+            return TrackSearchMode.YouTubeMusic;
+
+        return TrackSearchMode.YouTube;
+    }
+
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var player = await TryGetPlayerAsync(allowConnect: true).ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: true, isDeferred: true)
+            .ConfigureAwait(false);
 
         if (player == null)
             return;
 
-        var track = await _audioService
-            .Tracks
-            .LoadTrackAsync(query, TrackSearchMode.YouTube)
-            .ConfigureAwait(false);
+        // Determine search mode we'll initially start with
+        var bestGuessSearchMode = DetermineSearchMode(query);
+
+        var track =
+            await _audioService
+                .Tracks
+                .LoadTrackAsync(query, bestGuessSearchMode)
+                .ConfigureAwait(false)
+            // If we didn't get anything, fall back to YouTube search
+            ?? await _audioService
+                .Tracks
+                .LoadTrackAsync(query, TrackSearchMode.YouTube)
+                .ConfigureAwait(false);
 
         if (track == null)
         {
@@ -184,7 +208,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         result += $"Shuffle: {player.Shuffle}\n";
 
-        result += $"Repeat: {player.RepeatMode}\n";
+        result += $"Repeat: {player.RepeatMode}\n\n";
 
         result += $"Queue:\n";
 

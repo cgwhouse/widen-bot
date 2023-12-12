@@ -34,6 +34,8 @@ def main():
     lavalink_password = "<LAVALINK_PASSWORD>"
     youtube_email = "<YOUTUBE_EMAIL>"
     youtube_password = "<YOUTUBE_PASSWORD>"
+    spotify_client_id = "<SPOTIFY_CLIENTID>"
+    spotify_client_secret = "<SPOTIFY_CLIENTSECRET>"
 
     # Handle .NET, inject values into Constants.cs
     dotnetRaw = get_file_contents("WidenBot/Constants.cs")
@@ -73,6 +75,8 @@ def main():
             lavalinkRaw.replace(youtube_email, user_config["YouTubeEmail"])
             .replace(youtube_password, user_config["YouTubePassword"])
             .replace(lavalink_password, user_config["LavalinkPassword"])
+            .replace(spotify_client_id, user_config["SpotifyClientID"])
+            .replace(spotify_client_secret, user_config["SpotifyClientSecret"])
         )
 
         write_file_contents("Lavalink/application.yml", lavalinkUpdated)
