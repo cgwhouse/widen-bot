@@ -29,7 +29,8 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var player = await TryGetPlayerAsync(allowConnect: true).ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: true, isDeferred: true)
+            .ConfigureAwait(false);
 
         if (player == null)
             return;
