@@ -12,6 +12,7 @@
     <PackageReference Include="Discord.Net" Version="3.13.0" />
     <PackageReference Include="Lavalink4NET.Discord.NET" Version="4.0.0" />
     <PackageReference Include="Lavalink4NET.InactivityTracking" Version="4.0.0" />
+    <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
