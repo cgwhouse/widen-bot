@@ -32,6 +32,7 @@ builder
         config.Passphrase = Constants.LavalinkPassword;
     })
     // Lavalink inactivity tracking general settings
+    .AddInactivityTracking()
     .ConfigureInactivityTracking(options =>
     {
         options.DefaultTimeout = TimeSpan.FromSeconds(30); // Timeout before player is disconnected from voice channel
