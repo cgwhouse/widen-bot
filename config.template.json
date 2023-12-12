@@ -3,5 +3,7 @@
   "DiscordServerID": "",
   "LavalinkPassword": "",
   "YouTubeEmail": "",
-  "YouTubePassword": ""
+  "YouTubePassword": "",
+  "SpotifyClientID": "",
+  "SpotifyClientSecret": ""
 }

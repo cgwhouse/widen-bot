@@ -14,8 +14,8 @@ plugins:
       flowerytts: false # Enable Flowery TTs source
       youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
     spotify:
-      clientId: "055f94ec8d2b4e9ea2b678f93b8ff718"
-      clientSecret: "bdcf026a13ec4a3a87249985c4e33956"
+      clientId: "<SPOTIFY_CLIENTID>"
+      clientSecret: "<SPOTIFY_CLIENTSECRET>"
       countryCode: "US" # the country code you want to use for filtering the artists top tracks. See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
       playlistLoadLimit: 6 # The number of pages at 100 tracks each
       albumLoadLimit: 6 # The number of pages at 50 tracks each
