@@ -28,60 +28,14 @@ def main():
     # Download Lavalink if needed
     handle_lavalink_binary()
 
-    # Placeholders to search for
-    discord_bot_token = "<DISCORD_BOT_TOKEN>"
-    discord_server_id = "<DISCORD_SERVER_ID>"
-    lavalink_password = "<LAVALINK_PASSWORD>"
-    youtube_email = "<YOUTUBE_EMAIL>"
-    youtube_password = "<YOUTUBE_PASSWORD>"
-    spotify_client_id = "<SPOTIFY_CLIENTID>"
-    spotify_client_secret = "<SPOTIFY_CLIENTSECRET>"
+    # This password needs to be injected in both places
+    lavalink_password_placeholder = "<LAVALINK_PASSWORD>"
 
-    # Handle .NET, inject values into Constants.cs
-    dotnetRaw = get_file_contents("WidenBot/Constants.cs")
+    # Handle audio server, inject values into application.yml
+    handle_lavalink_injection(user_config, lavalink_password_placeholder)
 
-    if (
-        not discord_bot_token in dotnetRaw
-        or not discord_server_id in dotnetRaw
-        or not lavalink_password in dotnetRaw
-    ):
-        print("Constants.cs has already been updated, skipping...")
-    else:
-        print("Injecting config values into Constants.cs...")
-
-        dotnetUpdated = (
-            dotnetRaw.replace(discord_bot_token, user_config["DiscordBotToken"])
-            .replace(discord_server_id, user_config["DiscordServerID"])
-            .replace(lavalink_password, user_config["LavalinkPassword"])
-        )
-
-        write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
-
-        print("Constants.cs has been updated...")
-
-    # Handle Lavalink, inject values into application.yml
-    lavalinkRaw = get_file_contents("Lavalink/application.yml")
-
-    if (
-        not youtube_email in lavalinkRaw
-        or not youtube_password in lavalinkRaw
-        or not lavalink_password in dotnetRaw
-    ):
-        print("application.yml has already been updated, skipping...")
-    else:
-        print("Injecting config values into application.yml...")
-
-        lavalinkUpdated = (
-            lavalinkRaw.replace(youtube_email, user_config["YouTubeEmail"])
-            .replace(youtube_password, user_config["YouTubePassword"])
-            .replace(lavalink_password, user_config["LavalinkPassword"])
-            .replace(spotify_client_id, user_config["SpotifyClientID"])
-            .replace(spotify_client_secret, user_config["SpotifyClientSecret"])
-        )
-
-        write_file_contents("Lavalink/application.yml", lavalinkUpdated)
-
-        print("application.yml has been updated...")
+    # Handle bot client, inject values into Constants.cs
+    handle_dotnet_injection(user_config, lavalink_password_placeholder)
 
     print("Done!")
 
@@ -111,6 +65,64 @@ def handle_lavalink_binary():
         print("Lavalink binary successfully downloaded...")
     else:
         print("Lavalink binary already exists, skipping download...")
+
+
+def handle_dotnet_injection(user_config, lavalink_password_placeholder):
+    discord_bot_token_placeholder = "<DISCORD_BOT_TOKEN>"
+    discord_server_id_placeholder = "<DISCORD_SERVER_ID>"
+
+    dotnetRaw = get_file_contents("WidenBot/Constants.cs")
+
+    if (
+        not discord_bot_token_placeholder in dotnetRaw
+        or not discord_server_id_placeholder in dotnetRaw
+        or not lavalink_password_placeholder in dotnetRaw
+    ):
+        print("Constants.cs has already been updated, skipping...")
+        return
+
+    dotnetUpdated = (
+        dotnetRaw.replace(discord_bot_token_placeholder, user_config["DiscordBotToken"])
+        .replace(discord_server_id_placeholder, user_config["DiscordServerID"])
+        .replace(lavalink_password_placeholder, user_config["LavalinkPassword"])
+    )
+
+    write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
+
+    print("Constants.cs has been updated...")
+
+    return
+
+
+def handle_lavalink_injection(user_config, lavalink_password_placeholder):
+    youtube_email_placeholder = "<YOUTUBE_EMAIL>"
+    youtube_password_placeholder = "<YOUTUBE_PASSWORD>"
+    spotify_client_id_placeholder = "<SPOTIFY_CLIENTID>"
+    spotify_client_secret_placeholder = "<SPOTIFY_CLIENTSECRET>"
+
+    lavalinkRaw = get_file_contents("Lavalink/application.yml")
+
+    if (
+        not youtube_email_placeholder in lavalinkRaw
+        or not youtube_password_placeholder in lavalinkRaw
+        or not spotify_client_id_placeholder in lavalinkRaw
+        or not spotify_client_secret_placeholder in lavalinkRaw
+        or not lavalink_password_placeholder in lavalinkRaw
+    ):
+        print("application.yml has already been updated, skipping...")
+        return
+
+    lavalinkUpdated = (
+        lavalinkRaw.replace(youtube_email_placeholder, user_config["YouTubeEmail"])
+        .replace(youtube_password_placeholder, user_config["YouTubePassword"])
+        .replace(spotify_client_id_placeholder, user_config["SpotifyClientID"])
+        .replace(spotify_client_secret_placeholder, user_config["SpotifyClientSecret"])
+        .replace(lavalink_password_placeholder, user_config["LavalinkPassword"])
+    )
+
+    write_file_contents("Lavalink/application.yml", lavalinkUpdated)
+
+    print("application.yml has been updated...")
 
 
 main()
