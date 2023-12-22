@@ -54,13 +54,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         var track =
             await _audioService
-                .Tracks
-                .LoadTrackAsync(query, bestGuessSearchMode)
+                .Tracks.LoadTrackAsync(query, bestGuessSearchMode)
                 .ConfigureAwait(false)
             // If we didn't get anything, fall back to YouTube search
             ?? await _audioService
-                .Tracks
-                .LoadTrackAsync(query, TrackSearchMode.YouTube)
+                .Tracks.LoadTrackAsync(query, TrackSearchMode.YouTube)
                 .ConfigureAwait(false);
 
         if (track == null)
@@ -254,8 +252,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         );
 
         var result = await _audioService
-            .Players
-            .RetrieveAsync(
+            .Players.RetrieveAsync(
                 Context,
                 playerFactory: PlayerFactory.Queued,
                 options,
