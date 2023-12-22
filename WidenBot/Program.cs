@@ -6,6 +6,7 @@ using Lavalink4NET.InactivityTracking;
 using Lavalink4NET.InactivityTracking.Extensions;
 using Lavalink4NET.InactivityTracking.Trackers.Idle;
 using Lavalink4NET.InactivityTracking.Trackers.Users;
+using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -54,4 +55,9 @@ builder
         config.Label = "WidenBotIdleInactivityTracker";
     });
 
-builder.Build().Run();
+var app = builder.Build();
+
+// Required for SponsorBlock integration
+app.UseSponsorBlock();
+
+await app.RunAsync();
