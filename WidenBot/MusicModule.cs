@@ -24,6 +24,39 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _audioService = audioService;
     }
 
+    [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
+    public async Task PlayAsync()
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var player = await TryGetPlayerAsync(allowConnect: true, isDeferred: true)
+            .ConfigureAwait(false);
+
+        if (player == null)
+            return;
+
+        // Stop the player (stops current music and clears queue)
+        await player.StopAsync().ConfigureAwait(false);
+
+        // Repeat song after it finishes
+        player.RepeatMode = TrackRepeatMode.Track;
+
+        var track = await _audioService
+            .Tracks.LoadTrackAsync("One Last Breath Creed", TrackSearchMode.YouTube)
+            .ConfigureAwait(false);
+
+        if (track == null)
+        {
+            await FollowupAsync("😖 No results.").ConfigureAwait(false);
+
+            return;
+        }
+
+        await player.PlayAsync(track).ConfigureAwait(false);
+
+        await FollowupAsync("Good choice. Give the boys my best.").ConfigureAwait(false);
+    }
+
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
@@ -62,7 +95,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
     }
 
-    [SlashCommand("skip", description: "Skips the current track.", runMode: RunMode.Async)]
+    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
     public async Task SkipAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -85,7 +118,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 .ConfigureAwait(false);
     }
 
-    [SlashCommand("pause", description: "Pauses the player.", runMode: RunMode.Async)]
+    [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
     public async Task PauseAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -102,7 +135,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Paused.").ConfigureAwait(false);
     }
 
-    [SlashCommand("resume", description: "Resumes the player.", runMode: RunMode.Async)]
+    [SlashCommand("resume", description: "Resumes the player", runMode: RunMode.Async)]
     public async Task ResumeAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -121,7 +154,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
     [SlashCommand(
         "stop",
-        description: "Stops the current track and clears the queue.",
+        description: "Stops the current track and clears the queue",
         runMode: RunMode.Async
     )]
     public async Task StopAsync()
@@ -140,7 +173,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Stopped playing.").ConfigureAwait(false);
     }
 
-    [SlashCommand("shuffle", description: "Toggles shuffle mode.", runMode: RunMode.Async)]
+    [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
     public async Task ShuffleAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -158,7 +191,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .ConfigureAwait(false);
     }
 
-    [SlashCommand("repeat", description: "Sets repeat mode of the player.", runMode: RunMode.Async)]
+    [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
         var player = await TryGetPlayerAsync(
@@ -178,7 +211,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
     [SlashCommand(
         "show",
-        description: "Prints the current queue and other player info.",
+        description: "Prints the current queue and other player info",
         runMode: RunMode.Async
     )]
     public async Task ShowAsync()
@@ -219,7 +252,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync(result).ConfigureAwait(false);
     }
 
-    private async ValueTask<QueuedLavalinkPlayer?> TryGetPlayerAsync(
+    private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
         bool allowConnect = false,
         bool requireChannel = true,
         ImmutableArray<IPlayerPrecondition> preconditions = default,
