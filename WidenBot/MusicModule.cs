@@ -24,20 +24,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _audioService = audioService;
     }
 
-    private static TrackSearchMode DetermineSearchMode(string query)
-    {
-        if (query.Contains("spotify"))
-            return TrackSearchMode.Spotify;
-
-        if (query.Contains("soundcloud"))
-            return TrackSearchMode.SoundCloud;
-
-        if (query.Contains("music.youtube"))
-            return TrackSearchMode.YouTubeMusic;
-
-        return TrackSearchMode.YouTube;
-    }
-
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
@@ -307,5 +293,19 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         };
 
         return new EmbedBuilder().WithTitle(title).Build();
+    }
+
+    private static TrackSearchMode DetermineSearchMode(string query)
+    {
+        if (query.Contains("spotify"))
+            return TrackSearchMode.Spotify;
+
+        if (query.Contains("soundcloud"))
+            return TrackSearchMode.SoundCloud;
+
+        if (query.Contains("music.youtube"))
+            return TrackSearchMode.YouTubeMusic;
+
+        return TrackSearchMode.YouTube;
     }
 }
