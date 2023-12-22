@@ -35,7 +35,7 @@ builder
     {
         options.DefaultTimeout = TimeSpan.FromSeconds(30); // Timeout before player is disconnected from voice channel
         options.DefaultPollInterval = TimeSpan.FromSeconds(5); // Increase this to use less resources, sets how often the tracker(s) are checked
-        options.TrackingMode = InactivityTrackingMode.All; // If any inactivity tracker reports inactivity, it counts as inactive
+        options.TrackingMode = InactivityTrackingMode.All; // All inactivity trackers must report inactivity for it to count as inactive
         options.UseDefaultTrackers = true;
         options.TimeoutBehavior = InactivityTrackingTimeoutBehavior.Lowest; // Lowest timeout of all trackers will be used
         options.InactivityBehavior = PlayerInactivityBehavior.None; // Don't try to interpret / change the player's behavior during a period of temp perceived inactivity
