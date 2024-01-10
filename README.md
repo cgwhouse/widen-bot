@@ -74,8 +74,8 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ## TODO
 
-- Creed command
-- Handle playlists
-- SponsorBlock plugin
+- Tell the dev channel about the new stuff
+- Handle playlists / albums, i.e. queuing multiple things at once
 - Document commands, high-level features, prior to setup guide
 - Document spotify portion of setup
+- Refactor secret injection / usage of config.json so that contents of config.json are the sole source of truth, and setup script doesn't have to be re-run if a secret changes. It's a bit confusing the way it is currently
