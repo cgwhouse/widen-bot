@@ -4,7 +4,7 @@ setup.py
 Script to inject all the sensitive info needed to connect and run the bot.
 Before executing, ensure that values for all properties in config.json have been provided.
 
-Cristian W.
+WidenBot Team
 """
 
 import json, os, urllib.request
@@ -15,7 +15,7 @@ def main():
 
     # Get config.json and validate
     try:
-        user_config = json.loads(get_file_contents("config.json"))
+        user_config = json.loads(get_file_contents("WidenBot/config.json"))
     except FileNotFoundError:
         print("ERROR: config.json was not found. Exiting")
         return
@@ -35,7 +35,7 @@ def main():
     handle_lavalink_injection(user_config, lavalink_password_placeholder)
 
     # Handle bot client, inject values into Constants.cs
-    handle_dotnet_injection(user_config, lavalink_password_placeholder)
+    #handle_dotnet_injection(user_config, lavalink_password_placeholder)
 
     print("Done!")
 
@@ -67,31 +67,31 @@ def handle_lavalink_binary():
         print("Lavalink binary already exists, skipping download...")
 
 
-def handle_dotnet_injection(user_config, lavalink_password_placeholder):
-    discord_bot_token_placeholder = "<DISCORD_BOT_TOKEN>"
-    discord_server_id_placeholder = "<DISCORD_SERVER_ID>"
-
-    dotnetRaw = get_file_contents("WidenBot/Constants.cs")
-
-    if (
-        not discord_bot_token_placeholder in dotnetRaw
-        or not discord_server_id_placeholder in dotnetRaw
-        or not lavalink_password_placeholder in dotnetRaw
-    ):
-        print("Constants.cs has already been updated, skipping...")
-        return
-
-    dotnetUpdated = (
-        dotnetRaw.replace(discord_bot_token_placeholder, user_config["DiscordBotToken"])
-        .replace(discord_server_id_placeholder, user_config["DiscordServerID"])
-        .replace(lavalink_password_placeholder, user_config["LavalinkPassword"])
-    )
-
-    write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
-
-    print("Constants.cs has been updated...")
-
-    return
+#def handle_dotnet_injection(user_config, lavalink_password_placeholder):
+#    discord_bot_token_placeholder = "<DISCORD_BOT_TOKEN>"
+#    discord_server_id_placeholder = "<DISCORD_SERVER_ID>"
+#
+#    dotnetRaw = get_file_contents("WidenBot/Constants.cs")
+#
+#    if (
+#        not discord_bot_token_placeholder in dotnetRaw
+#        or not discord_server_id_placeholder in dotnetRaw
+#        or not lavalink_password_placeholder in dotnetRaw
+#    ):
+#        print("Constants.cs has already been updated, skipping...")
+#        return
+#
+#    dotnetUpdated = (
+#        dotnetRaw.replace(discord_bot_token_placeholder, user_config["DiscordBotToken"])
+#        .replace(discord_server_id_placeholder, user_config["DiscordServerID"])
+#        .replace(lavalink_password_placeholder, user_config["LavalinkPassword"])
+#    )
+#
+#    write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
+#
+#    print("Constants.cs has been updated...")
+#
+#    return
 
 
 def handle_lavalink_injection(user_config, lavalink_password_placeholder):
