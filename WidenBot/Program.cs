@@ -21,6 +21,7 @@ builder
     .AddMemoryCache()
     .AddSingleton<DiscordSocketClient>()
     .AddSingleton<InteractionService>()
+    .AddSingleton<Secrets>()
     .AddHostedService<DiscordClientHost>()
     // Lavalink general settings
     .AddLavalink()
@@ -28,7 +29,7 @@ builder
     {
         config.ReadyTimeout = TimeSpan.FromSeconds(10);
         config.Label = "WidenBot";
-        config.Passphrase = Constants.LavalinkPassword;
+        config.Passphrase = new Secrets().LavalinkPassword;
     })
     // Lavalink inactivity tracking general settings
     .AddInactivityTracking()
@@ -57,7 +58,6 @@ builder
 
 var app = builder.Build();
 
-// Required for SponsorBlock integration
 app.UseSponsorBlock();
 
 await app.RunAsync();
