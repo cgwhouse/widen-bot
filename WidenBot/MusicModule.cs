@@ -102,9 +102,10 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
     public async Task SkipAsync()
     {
+        // TODO
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
+                preconditions: ImmutableArray.Create(PlayerPrecondition.QueueNotEmpty)
             )
             .ConfigureAwait(false);
 
@@ -125,6 +126,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
     public async Task PauseAsync()
     {
+        // TODO
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
                 preconditions: ImmutableArray.Create(PlayerPrecondition.NotPaused)
@@ -142,6 +144,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("resume", description: "Resumes the player", runMode: RunMode.Async)]
     public async Task ResumeAsync()
     {
+        // TODO
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
                 preconditions: ImmutableArray.Create(PlayerPrecondition.Paused)
@@ -163,6 +166,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task StopAsync()
     {
+        // TODO
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
                 preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
@@ -180,6 +184,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
     public async Task ShuffleAsync()
     {
+        // TODO
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
                 preconditions: ImmutableArray.Create(PlayerPrecondition.QueueNotEmpty)
@@ -198,6 +203,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
+        // TODO
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
                 preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
