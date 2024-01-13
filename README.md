@@ -7,7 +7,6 @@ WidenBot is a private music bot for Discord.
 - Tell the dev channel about the new stuff
 - Handle playlists / albums, i.e. queuing multiple things at once
 - Document commands, high-level features, prior to setup guide
-- Document spotify portion of setup
 
 ### Contributing
 
