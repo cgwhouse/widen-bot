@@ -1,7 +1,7 @@
 """
-setup.py
+run.py
 
-Script to inject all the sensitive info needed to connect and run the bot.
+Script to inject all the sensitive info needed to connect and run the bot, then run it.
 Before executing, ensure that values for all properties in config.json have been provided.
 
 WidenBot Team
@@ -28,13 +28,17 @@ def main():
     # Download Lavalink if needed
     handle_lavalink_binary()
 
-    # Handle audio server, create fresh copy of application.yml with injected secrets
+    # Create fresh copy of application.yml with injected secrets for Lavalink server
     handle_lavalink_config(user_config)
 
-    # Run the .NET client
-    #subprocess.run(["dotnet", "run", "-c", "Release", "--project", "WidenBot"])
+    # Run the .NET client and suppress output
+    subprocess.Popen(
+        ["dotnet", "run", "-c", "Release", "--project", "WidenBot"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+    )
 
-    # Run the Lavalink server and print output
+    # Run the Lavalink server and print output, mainly because user may need to OAuth with Google
     lavalink_cmd = ["java", "-jar", "Lavalink/Lavalink.jar"]
 
     for lavalink_output in execute_and_print_output(lavalink_cmd):
@@ -42,16 +46,15 @@ def main():
 
 
 def execute_and_print_output(cmd):
-
     popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
-
-    # this is dumb
     assert popen.stdout is not None
 
     for stdout_line in iter(popen.stdout.readline, ""):
         yield stdout_line
+
     popen.stdout.close()
     return_code = popen.wait()
+
     if return_code:
         raise subprocess.CalledProcessError(return_code, cmd)
 
@@ -100,7 +103,7 @@ def handle_lavalink_config(user_config):
         .replace(lavalink_password_placeholder, user_config["LavalinkPassword"])
     )
 
-    write_file_contents("Lavalink/application.yml", lavalinkUpdated)
+    write_file_contents("application.yml", lavalinkUpdated)
 
     print("application.yml has been created / overwritten...")
 
