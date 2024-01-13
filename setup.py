@@ -7,7 +7,7 @@ Before executing, ensure that values for all properties in config.json have been
 WidenBot Team
 """
 
-import json, os, urllib.request
+import json, os, subprocess, urllib.request
 
 
 def main():
@@ -28,16 +28,32 @@ def main():
     # Download Lavalink if needed
     handle_lavalink_binary()
 
-    # This password needs to be injected in both places
-    lavalink_password_placeholder = "<LAVALINK_PASSWORD>"
+    # Handle audio server, create fresh copy of application.yml with injected secrets
+    handle_lavalink_config(user_config)
 
-    # Handle audio server, inject values into application.yml
-    handle_lavalink_injection(user_config, lavalink_password_placeholder)
+    # Run the .NET client
+    #subprocess.run(["dotnet", "run", "-c", "Release", "--project", "WidenBot"])
 
-    # Handle bot client, inject values into Constants.cs
-    #handle_dotnet_injection(user_config, lavalink_password_placeholder)
+    # Run the Lavalink server and print output
+    lavalink_cmd = ["java", "-jar", "Lavalink/Lavalink.jar"]
 
-    print("Done!")
+    for lavalink_output in execute_and_print_output(lavalink_cmd):
+        print(lavalink_output, end="")
+
+
+def execute_and_print_output(cmd):
+
+    popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+
+    # this is dumb
+    assert popen.stdout is not None
+
+    for stdout_line in iter(popen.stdout.readline, ""):
+        yield stdout_line
+    popen.stdout.close()
+    return_code = popen.wait()
+    if return_code:
+        raise subprocess.CalledProcessError(return_code, cmd)
 
 
 def get_file_contents(path):
@@ -67,50 +83,14 @@ def handle_lavalink_binary():
         print("Lavalink binary already exists, skipping download...")
 
 
-#def handle_dotnet_injection(user_config, lavalink_password_placeholder):
-#    discord_bot_token_placeholder = "<DISCORD_BOT_TOKEN>"
-#    discord_server_id_placeholder = "<DISCORD_SERVER_ID>"
-#
-#    dotnetRaw = get_file_contents("WidenBot/Constants.cs")
-#
-#    if (
-#        not discord_bot_token_placeholder in dotnetRaw
-#        or not discord_server_id_placeholder in dotnetRaw
-#        or not lavalink_password_placeholder in dotnetRaw
-#    ):
-#        print("Constants.cs has already been updated, skipping...")
-#        return
-#
-#    dotnetUpdated = (
-#        dotnetRaw.replace(discord_bot_token_placeholder, user_config["DiscordBotToken"])
-#        .replace(discord_server_id_placeholder, user_config["DiscordServerID"])
-#        .replace(lavalink_password_placeholder, user_config["LavalinkPassword"])
-#    )
-#
-#    write_file_contents("WidenBot/Constants.cs", dotnetUpdated)
-#
-#    print("Constants.cs has been updated...")
-#
-#    return
-
-
-def handle_lavalink_injection(user_config, lavalink_password_placeholder):
+def handle_lavalink_config(user_config):
     youtube_email_placeholder = "<YOUTUBE_EMAIL>"
     youtube_password_placeholder = "<YOUTUBE_PASSWORD>"
     spotify_client_id_placeholder = "<SPOTIFY_CLIENTID>"
     spotify_client_secret_placeholder = "<SPOTIFY_CLIENTSECRET>"
+    lavalink_password_placeholder = "<LAVALINK_PASSWORD>"
 
-    lavalinkRaw = get_file_contents("Lavalink/application.yml")
-
-    if (
-        not youtube_email_placeholder in lavalinkRaw
-        or not youtube_password_placeholder in lavalinkRaw
-        or not spotify_client_id_placeholder in lavalinkRaw
-        or not spotify_client_secret_placeholder in lavalinkRaw
-        or not lavalink_password_placeholder in lavalinkRaw
-    ):
-        print("application.yml has already been updated, skipping...")
-        return
+    lavalinkRaw = get_file_contents("Lavalink/application.template.yml")
 
     lavalinkUpdated = (
         lavalinkRaw.replace(youtube_email_placeholder, user_config["YouTubeEmail"])
@@ -122,7 +102,7 @@ def handle_lavalink_injection(user_config, lavalink_password_placeholder):
 
     write_file_contents("Lavalink/application.yml", lavalinkUpdated)
 
-    print("application.yml has been updated...")
+    print("application.yml has been created / overwritten...")
 
 
 main()
