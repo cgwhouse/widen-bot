@@ -2,8 +2,8 @@
   "DiscordBotToken": "",
   "DiscordServerID": "",
   "LavalinkPassword": "",
-  "YouTubeEmail": "",
-  "YouTubePassword": "",
   "SpotifyClientID": "",
-  "SpotifyClientSecret": ""
+  "SpotifyClientSecret": "",
+  "YouTubeEmail": "",
+  "YouTubePassword": ""
 }

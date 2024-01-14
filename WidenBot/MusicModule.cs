@@ -58,7 +58,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         await player.PlayAsync(track).ConfigureAwait(false);
 
-        await FollowupAsync("Good choice. Give the boys my best.").ConfigureAwait(false);
+        await FollowupAsync("Good choice.").ConfigureAwait(false);
     }
 
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
@@ -102,14 +102,16 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
     public async Task SkipAsync()
     {
-        var player = await TryGetPlayerAsync(
-                allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
-            )
-            .ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
             return;
+
+        if (player.CurrentItem == null)
+        {
+            await RespondAsync("Nothing to skip.").ConfigureAwait(false);
+            return;
+        }
 
         await player.SkipAsync().ConfigureAwait(false);
 
@@ -127,7 +129,10 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.NotPaused)
+                preconditions: ImmutableArray.Create(
+                    PlayerPrecondition.NotPaused,
+                    PlayerPrecondition.Playing
+                )
             )
             .ConfigureAwait(false);
 
@@ -163,14 +168,16 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task StopAsync()
     {
-        var player = await TryGetPlayerAsync(
-                allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
-            )
-            .ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
             return;
+
+        if (player.CurrentItem == null)
+        {
+            await RespondAsync("Nothing to stop.").ConfigureAwait(false);
+            return;
+        }
 
         await player.StopAsync().ConfigureAwait(false);
 
@@ -198,11 +205,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
-        var player = await TryGetPlayerAsync(
-                allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.Playing)
-            )
-            .ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
             return;

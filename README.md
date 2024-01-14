@@ -1,12 +1,19 @@
 # WidenBot
 
-[![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
-
 WidenBot is a private music bot for Discord.
+
+## TODO
+
+- Tell the dev channel about the new stuff
+- Handle playlists / albums, i.e. queuing multiple things at once
+
+### Contributing
+
+Contributions are welcome! Please format .NET code using [CSharpier](https://csharpier.com/).
 
 ## Setup Guide
 
-**Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you (but we recommend DigitalOcean!). A single instance of WidenBot cannot serve more than once server simultaneously.**
+**Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
 
 WidenBot consists of three components:
 
@@ -17,7 +24,7 @@ WidenBot consists of three components:
 ### Dependencies
 
 - Python 3
-- .NET SDK 7 or newer
+- .NET SDK 8 or newer
 - JRE 17 or newer (OpenJDK recommended)
 
 Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --version` each look correct before continuing.
@@ -25,14 +32,13 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 ### Discord Developer Portal
 
 1. Go to the Discord Developer Portal, login as the Discord account should own the bot, and create a new application
-
 2. Within the Bot settings:
 
    a. Disable "Public Bot" (optional, but recommended)
 
    b. Enable "Server Members Intent" and "Message Content Intent"
 
-   c. Click the "Reset Token" button and save the resulting token for later
+   c. Click the "Reset Token" button and **save the resulting token for later**
 
 3. Within the OAuth settings:
 
@@ -43,39 +49,43 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
    - Read Messages/View Channels
    - Send Messages
    - Manage Messages
-   - Add Reactions
    - Use Slash Commands
    - Connect
    - Speak
 
 4. Use the generated URL to invite the bot to a server of your choice
 
-5. In Discord, right-click on the server you invited the bot to, select "Copy Server ID", and paste the server ID somewhere for later
+### Spotify
 
-### WidenBot
+1. Go to the [Spotify developer dashboard](https://developer.spotify.com/dashboard) and sign in with whatever Spotify account you want to use
+
+2. Create a new app (Development mode, other defaults should be sufficient), and save the client ID and secret for later
+
+### WidenBot Config
 
 1. Clone this repository
+2. Copy the contents of `WidenBot/config.template.json` into a new file called `WidenBot/config.json`, and provide values as follows:
 
-2. Copy the contents of `config.template.json` into a new file called `config.json`
+   ```json
+   {
+     "DiscordBotToken": "Bot token from Discord Developer Portal",
+     "DiscordServerID": "Right-click on the server you invited the bot to, select 'Copy Server ID'",
+     "LavalinkPassword": "An arbitrary alphanumeric passphrase, anything you want",
+     "SpotifyClientID": "Client ID from Spotify developer dashboard",
+     "SpotifyClientSecret": "Client secret from Spotify developer dashboard",
+     "YouTubeEmail": "Email for a Google account you have access to",
+     "YouTubePassword": "Password for the Google account"
+   }
+   ```
 
-3. Provide the bot token from step 2c above as the value for `DiscordBotToken`
+### Running the Bot
 
-4. Provide the server ID from step 6 above as the value for `DiscordServerID`
+1. From the root of the repository, execute `python3 run.py server`.
 
-5. Using a Google account that you have access to, enter the email + password combo into `YoutubeEmail` and `YouTubePassword` respectively
+   **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
-6. From the root of the repository, execute `python3 setup.py`
+2. Without closing or interrupting the server command, open another terminal and execute `python3 run.py client`.
 
-7. Change to the `Lavalink` directory and execute `java -jar Lavalink.jar`. On first run, inspect the output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.
+The bot should be able to be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it pretty easy to set up a server, feel free to use the referral badge below which apparently provides a $200 credit:
 
-8. Once the Lavalink output looks good, open another terminal window in the `WidenBot` directory, and execute `dotnet run -c Release`.
-
-9. Done! The bot user you invited should now be online, and slash commands should be available.
-
-## TODO
-
-- Tell the dev channel about the new stuff
-- Handle playlists / albums, i.e. queuing multiple things at once
-- Document commands, high-level features, prior to setup guide
-- Document spotify portion of setup
-- Refactor secret injection / usage of config.json so that contents of config.json are the sole source of truth, and setup script doesn't have to be re-run if a secret changes. It's a bit confusing the way it is currently
+[![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
