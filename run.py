@@ -34,41 +34,43 @@ def main():
     handle_lavalink_config(user_config)
 
     # TODO not sure why but try checking for lavalink plugins and running the client to download them?
-    if not os.path.isdir("plugins"):
-        print(
-            "No plugins detected, running the server for a sec in a dedicated thread so they download faster..."
-        )
+    #if not os.path.isdir("plugins"):
+    #    print(
+    #        "No plugins detected, running the server for a sec in a dedicated thread so they download faster..."
+    #    )
 
-        signal.signal(signal.SIGALRM, handler)
-        signal.alarm(60)
+    #    signal.signal(signal.SIGALRM, handler)
+    #    signal.alarm(60)
 
-        try:
-            run_lavalink_server_dedicated()
-        except:
-            print("done")
+    #    try:
+    #        run_lavalink_server_dedicated()
+    #    except:
+    #        print("done")
 
-        # subprocess.run(["java", "-jar", "Lavalink/Lavalink.jar"])
+    #    # subprocess.run(["java", "-jar", "Lavalink/Lavalink.jar"])
 
-        print("done process")
+    #    print("done process")
 
-        # p = multiprocessing.Process(
-        #    target=start_lavalink_and_yield_output, name="Lavalink"
-        # )
-        # p.start()
+    #    # p = multiprocessing.Process(
+    #    #    target=start_lavalink_and_yield_output, name="Lavalink"
+    #    # )
+    #    # p.start()
 
-        # time.sleep(60)
+    #    # time.sleep(60)
 
-        # p.terminate()
-        # p.join()
-    else:
-        print("test plugins")
+    #    # p.terminate()
+    #    # p.join()
+    #else:
+    #    print("test plugins")
 
     # .NET client start
     build_and_run_dotnet_client()
 
+    run_lavalink_server_dedicated()
+
     # Run the Lavalink server and print output, because user may need to OAuth with Google and needs to see the url
-    for lavalink_output in start_lavalink_and_yield_output():
-        print(lavalink_output, end="")
+    #for lavalink_output in start_lavalink_and_yield_output():
+    #    print(lavalink_output, end="")
 
 
 def handler(signum, frame):
