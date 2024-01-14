@@ -16,6 +16,12 @@ import urllib.request
 
 
 def main():
+    if len(sys.argv) < 2:
+        print(
+            "Usage: python3 run.py run_target, where run_target = 'client' or 'server'"
+        )
+        return
+
     # Get config.json and validate
     try:
         user_config = json.loads(get_file_contents("WidenBot/config.json"))
@@ -82,10 +88,10 @@ def main():
 
     # .NET client start
     # build_and_run_dotnet_client()
-    #prepare_dotnet_client()
+    # prepare_dotnet_client()
 
     # run_lavalink_server_dedicated()
-    #threading_test()
+    # threading_test()
 
     # Run the Lavalink server and print output, because user may need to OAuth with Google and needs to see the url
     # for lavalink_output in start_lavalink_and_yield_output():
@@ -96,44 +102,44 @@ def main():
 #    raise Exception("Timeout")
 
 
-def threading_test():
-    pool = multiprocessing.Pool()
-
-    pool.map(
-        run_command,
-        [
-            "java -jar Lavalink/Lavalink.jar",
-            "dotnet run -c  Release --project WidenBot",
-        ],
-    )
-
-
-def run_command(command):
-    if "dotnet" in command:
-        subprocess.Popen(
-            command,
-            shell=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT,
-        )
-    else:
-        subprocess.Popen(command, shell=True)
+#def threading_test():
+#    pool = multiprocessing.Pool()
+#
+#    pool.map(
+#        run_command,
+#        [
+#            "java -jar Lavalink/Lavalink.jar",
+#            "dotnet run -c  Release --project WidenBot",
+#        ],
+#    )
 
 
-def prepare_dotnet_client():
-    subprocess.run(
-        ["dotnet", "restore", "WidenBot"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-    )
-    print("...Packages restored successfully")
+#def run_command(command):
+#    if "dotnet" in command:
+#        subprocess.Popen(
+#            command,
+#            shell=True,
+#            stdout=subprocess.DEVNULL,
+#            stderr=subprocess.STDOUT,
+#        )
+#    else:
+#        subprocess.Popen(command, shell=True)
 
-    subprocess.run(
-        ["dotnet", "clean", "-c", "Release", "WidenBot"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-    )
-    print("...Project cleaned successfully")
+
+#def prepare_dotnet_client():
+#    subprocess.run(
+#        ["dotnet", "restore", "WidenBot"],
+#        stdout=subprocess.DEVNULL,
+#        stderr=subprocess.STDOUT,
+#    )
+#    print("...Packages restored successfully")
+#
+#    subprocess.run(
+#        ["dotnet", "clean", "-c", "Release", "WidenBot"],
+#        stdout=subprocess.DEVNULL,
+#        stderr=subprocess.STDOUT,
+#    )
+#    print("...Project cleaned successfully")
 
 
 def run_lavalink_server_dedicated():
@@ -197,7 +203,7 @@ def build_and_run_dotnet_client():
     print("...Project cleaned successfully")
 
     # Run the client (without blocking)
-    subprocess.Popen(
+    subprocess.run(
         ["dotnet", "run", "-c", "Release", "--project", "WidenBot"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
@@ -205,21 +211,21 @@ def build_and_run_dotnet_client():
     print("...Client has been started")
 
 
-def start_lavalink_and_yield_output():
-    print("Starting Lavalink server...")
-
-    cmd = ["java", "-jar", "Lavalink/Lavalink.jar"]
-    popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
-    assert popen.stdout is not None
-
-    for stdout_line in iter(popen.stdout.readline, ""):
-        yield stdout_line
-
-    popen.stdout.close()
-    return_code = popen.wait()
-
-    if return_code:
-        raise subprocess.CalledProcessError(return_code, cmd)
+#def start_lavalink_and_yield_output():
+#    print("Starting Lavalink server...")
+#
+#    cmd = ["java", "-jar", "Lavalink/Lavalink.jar"]
+#    popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True)
+#    assert popen.stdout is not None
+#
+#    for stdout_line in iter(popen.stdout.readline, ""):
+#        yield stdout_line
+#
+#    popen.stdout.close()
+#    return_code = popen.wait()
+#
+#    if return_code:
+#        raise subprocess.CalledProcessError(return_code, cmd)
 
 
 def get_file_contents(path):
