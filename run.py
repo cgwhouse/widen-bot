@@ -46,6 +46,8 @@ def handle_script_arg():
     if run_target not in ["client", "server"]:
         return None
 
+    return run_target
+
 
 def handle_user_config():
     try:
