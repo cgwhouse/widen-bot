@@ -6,11 +6,10 @@ WidenBot is a private music bot for Discord.
 
 - Tell the dev channel about the new stuff
 - Handle playlists / albums, i.e. queuing multiple things at once
-- Document commands, high-level features, prior to setup guide
 
 ### Contributing
 
-Contributions are welcome! Please autoformat any .NET code using [CSharpier](https://csharpier.com/).
+Contributions are welcome! Please format .NET code using [CSharpier](https://csharpier.com/).
 
 ## Setup Guide
 
@@ -81,10 +80,12 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ### Running the Bot
 
-From the root of the repository, execute `python3 run.py`.
+1. From the root of the repository, execute `python3 run.py server`.
 
-**NOTE: On first run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
+   **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
-The bot should be able to be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it pretty easy to set up a server, feel free to use the referral badge below, which apparently provides a $200 credit:
+2. Without closing or interrupting the server command, open another terminal and execute `python3 run.py client`.
+
+The bot should be able to be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it pretty easy to set up a server, feel free to use the referral badge below which apparently provides a $200 credit:
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
