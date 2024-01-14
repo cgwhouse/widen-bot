@@ -9,7 +9,7 @@ import json, os, subprocess, urllib.request
 
 
 def main():
-    print("Performing WidenBot setup...")
+    print("Starting WidenBot...")
 
     # Get config.json and validate
     try:
