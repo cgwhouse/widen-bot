@@ -9,8 +9,6 @@ import json, os, subprocess, urllib.request
 
 
 def main():
-    print("Starting WidenBot...")
-
     # Get config.json and validate
     try:
         user_config = json.loads(get_file_contents("WidenBot/config.json"))
@@ -73,7 +71,7 @@ def handle_lavalink_config(user_config):
 
     write_file_contents("application.yml", lavalinkUpdated)
 
-    print("Application.yml has been created / overwritten...")
+    print("application.yml has been created / overwritten...")
 
 
 def build_and_run_dotnet_client():
