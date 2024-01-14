@@ -31,7 +31,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ### Discord Developer Portal
 
-1. Go to the Discord Developer Portal, login as the Discord account should own the bot, and create a new application
+1. Go to the Discord Developer Portal, login as the Discord account that should own the bot, and create a new application
 2. Within the Bot settings:
 
    a. Disable "Public Bot" (optional, but recommended)
