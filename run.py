@@ -40,7 +40,7 @@ def main():
         )
 
         signal.signal(signal.SIGALRM, handler)
-        signal.alarm(30)
+        signal.alarm(60)
 
         try:
             run_lavalink_server_dedicated()
