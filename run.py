@@ -34,7 +34,7 @@ def main():
     handle_lavalink_config(user_config)
 
     # TODO not sure why but try checking for lavalink plugins and running the client to download them?
-    #if not os.path.isdir("plugins"):
+    # if not os.path.isdir("plugins"):
     #    print(
     #        "No plugins detected, running the server for a sec in a dedicated thread so they download faster..."
     #    )
@@ -60,21 +60,63 @@ def main():
 
     #    # p.terminate()
     #    # p.join()
-    #else:
+    # else:
     #    print("test plugins")
 
     # .NET client start
-    build_and_run_dotnet_client()
+    # build_and_run_dotnet_client()
+    prepare_dotnet_client()
 
-    run_lavalink_server_dedicated()
+    # run_lavalink_server_dedicated()
+    threading_test()
 
     # Run the Lavalink server and print output, because user may need to OAuth with Google and needs to see the url
-    #for lavalink_output in start_lavalink_and_yield_output():
+    # for lavalink_output in start_lavalink_and_yield_output():
     #    print(lavalink_output, end="")
 
 
-def handler(signum, frame):
-    raise Exception("Timeout")
+# def handler(signum, frame):
+#    raise Exception("Timeout")
+
+
+def threading_test():
+    pool = multiprocessing.Pool()
+
+    pool.map(
+        run_command,
+        [
+            "java -jar Lavalink/Lavalink.jar",
+            "dotnet run -c  Release --project WidenBot",
+        ],
+    )
+
+
+def run_command(command):
+    if "dotnet" in command:
+        subprocess.Popen(
+            command,
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+        )
+    else:
+        subprocess.Popen(command, shell=True)
+
+
+def prepare_dotnet_client():
+    subprocess.run(
+        ["dotnet", "restore", "WidenBot"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+    )
+    print("...Packages restored successfully")
+
+    subprocess.run(
+        ["dotnet", "clean", "-c", "Release", "WidenBot"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+    )
+    print("...Project cleaned successfully")
 
 
 def run_lavalink_server_dedicated():
