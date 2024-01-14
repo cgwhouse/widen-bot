@@ -5,7 +5,13 @@ Script to inject all the sensitive info needed to connect and run the bot, then 
 Before executing, ensure that values for all properties in config.json have been provided.
 """
 
-import json, os, subprocess, urllib.request
+import json
+import multiprocessing
+import os
+import signal
+import subprocess
+import time
+import urllib.request
 
 
 def main():
@@ -27,12 +33,50 @@ def main():
     # Create fresh copy of application.yml, with injected secrets for Lavalink server
     handle_lavalink_config(user_config)
 
+    # TODO not sure why but try checking for lavalink plugins and running the client to download them?
+    if not os.path.isdir("plugins"):
+        print(
+            "No plugins detected, running the server for a sec in a dedicated thread so they download faster..."
+        )
+
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(15)
+
+        try:
+            run_lavalink_server_dedicated()
+        except:
+            print("done")
+
+        # subprocess.run(["java", "-jar", "Lavalink/Lavalink.jar"])
+
+        print("done process")
+
+        # p = multiprocessing.Process(
+        #    target=start_lavalink_and_yield_output, name="Lavalink"
+        # )
+        # p.start()
+
+        # time.sleep(60)
+
+        # p.terminate()
+        # p.join()
+    else:
+        print("test plugins")
+
     # .NET client start
     build_and_run_dotnet_client()
 
     # Run the Lavalink server and print output, because user may need to OAuth with Google and needs to see the url
     for lavalink_output in start_lavalink_and_yield_output():
         print(lavalink_output, end="")
+
+
+def handler(signum, frame):
+    raise Exception("Timeout")
+
+
+def run_lavalink_server_dedicated():
+    subprocess.run(["java", "-jar", "Lavalink/Lavalink.jar"])
 
 
 def handle_lavalink_binary():
