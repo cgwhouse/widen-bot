@@ -10,6 +10,7 @@ import multiprocessing
 import os
 import signal
 import subprocess
+import sys
 import time
 import urllib.request
 
@@ -26,6 +27,22 @@ def main():
         if user_config[key] == "":
             print("ERROR: All values must be supplied in config.json. Exiting")
             return
+
+    run_target = sys.argv[1]
+
+    if run_target == "client":
+        build_and_run_dotnet_client()
+    elif run_target == "server":
+        # Download Lavalink if needed
+        handle_lavalink_binary()
+
+        # Create fresh copy of application.yml, with injected secrets for Lavalink server
+        handle_lavalink_config(user_config)
+
+        run_lavalink_server_dedicated()
+    else:
+        print("fuck you")
+        return
 
     # Download Lavalink if needed
     handle_lavalink_binary()
@@ -65,10 +82,10 @@ def main():
 
     # .NET client start
     # build_and_run_dotnet_client()
-    prepare_dotnet_client()
+    #prepare_dotnet_client()
 
     # run_lavalink_server_dedicated()
-    threading_test()
+    #threading_test()
 
     # Run the Lavalink server and print output, because user may need to OAuth with Google and needs to see the url
     # for lavalink_output in start_lavalink_and_yield_output():
