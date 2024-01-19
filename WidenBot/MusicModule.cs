@@ -9,6 +9,8 @@ using Discord.Interactions;
 using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
+using Lavalink4NET.Integrations.Lavasearch;
+using Lavalink4NET.Integrations.Lavasearch.Extensions;
 using Lavalink4NET.Integrations.SponsorBlock;
 using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Lavalink4NET.Players;
@@ -78,16 +80,23 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         var multiItemCheck = IsMultiItem(query, bestGuessSearchMode);
 
         // Couldn't determine that we needed to queue multiple things, do standard approach
-        if (bestGuessSearchMode == null)
+        if (!multiItemCheck)
         {
             await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
             return;
         }
 
         var success = await HandleMultiItemQuery(player, query, bestGuessSearchMode);
+
+        if (!success)
+            await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
     }
 
-    private async Task HandleTrackQuery(QueuedLavalinkPlayer player, string query, TrackSearchMode bestGuessSearchMode)
+    private async Task HandleTrackQuery(
+        QueuedLavalinkPlayer player,
+        string query,
+        TrackSearchMode bestGuessSearchMode
+    )
     {
         var track =
             await _audioService
@@ -113,11 +122,27 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
     }
 
-    private async Task<bool> HandleMultiItemQuery(QueuedLavalinkPlayer player, string query, TrackSearchMode bestGuessSearchMode)
+    private async Task<bool> HandleMultiItemQuery(
+        QueuedLavalinkPlayer player,
+        string query,
+        TrackSearchMode bestGuessSearchMode
+    )
     {
-        // TODO
-        await Task.FromResult(0);
-        return false;
+        var searchResult = await _audioService
+            .Tracks.SearchAsync(
+                query,
+                loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode),
+                categories: ImmutableArray.Create(SearchCategory.Playlist) // also Album
+            )
+            .ConfigureAwait(false);
+
+        if (searchResult == null)
+            return false;
+
+        foreach (var track in searchResult.Tracks)
+            await player.PlayAsync(track).ConfigureAwait(false);
+
+        return true;
     }
 
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
@@ -410,12 +435,12 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             SegmentCategory.Filler
         );
 
-    private static TrackSearchMode? IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
+    private static bool IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
     {
         // Reject if not a direct link. We should only queue multiple things
         // at once if we know they meant to do it
         if (!query.Contains("https"))
-            return null;
+            return false;
 
         if (
             // Spotify playlist and albums
@@ -428,8 +453,8 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             // SoundCloud playlists and albums
             || (bestGuessSearchMode == TrackSearchMode.SoundCloud && query.Contains("/sets/"))
         )
-            return bestGuessSearchMode;
+            return true;
 
-        return null;
+        return false;
     }
 }
