@@ -75,6 +75,20 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         // Determine search mode we'll initially start with
         var bestGuessSearchMode = DetermineSearchMode(query);
 
+        var multiItemCheck = IsMultiItem(query, bestGuessSearchMode);
+
+        // Couldn't determine that we needed to queue multiple things, do standard approach
+        if (bestGuessSearchMode == null)
+        {
+            await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+            return;
+        }
+
+        var success = await HandleMultiItemQuery(player, query, bestGuessSearchMode);
+    }
+
+    private async Task HandleTrackQuery(QueuedLavalinkPlayer player, string query, TrackSearchMode bestGuessSearchMode)
+    {
         var track =
             await _audioService
                 .Tracks.LoadTrackAsync(query, bestGuessSearchMode)
@@ -97,6 +111,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
         else
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
+    }
+
+    private async Task<bool> HandleMultiItemQuery(QueuedLavalinkPlayer player, string query, TrackSearchMode bestGuessSearchMode)
+    {
+        // TODO
+        await Task.FromResult(0);
+        return false;
     }
 
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
@@ -365,13 +386,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
     private static TrackSearchMode DetermineSearchMode(string query)
     {
-        if (query.Contains("spotify"))
+        if (query.ToLower().Contains("spotify"))
             return TrackSearchMode.Spotify;
 
-        if (query.Contains("soundcloud"))
+        if (query.ToLower().Contains("soundcloud"))
             return TrackSearchMode.SoundCloud;
 
-        if (query.Contains("music.youtube"))
+        if (query.ToLower().Contains("music.youtube"))
             return TrackSearchMode.YouTubeMusic;
 
         return TrackSearchMode.YouTube;
@@ -388,4 +409,27 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             SegmentCategory.OfftopicMusic,
             SegmentCategory.Filler
         );
+
+    private static TrackSearchMode? IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
+    {
+        // Reject if not a direct link. We should only queue multiple things
+        // at once if we know they meant to do it
+        if (!query.Contains("https"))
+            return null;
+
+        if (
+            // Spotify playlist and albums
+            (
+                bestGuessSearchMode == TrackSearchMode.Spotify
+                && (query.Contains("playlist") || query.Contains("album"))
+            )
+            // Youtube playlists
+            || (bestGuessSearchMode == TrackSearchMode.YouTube && query.Contains("list="))
+            // SoundCloud playlists and albums
+            || (bestGuessSearchMode == TrackSearchMode.SoundCloud && query.Contains("/sets/"))
+        )
+            return bestGuessSearchMode;
+
+        return null;
+    }
 }
