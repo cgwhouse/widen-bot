@@ -110,7 +110,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (track == null)
         {
             await FollowupAsync("😖 No results.").ConfigureAwait(false);
-
             return;
         }
 
@@ -128,21 +127,33 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         TrackSearchMode bestGuessSearchMode
     )
     {
-        var searchResult = await _audioService
-            .Tracks.SearchAsync(
-                query,
-                loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode),
-                categories: ImmutableArray.Create(SearchCategory.Playlist) // also Album
-            )
-            .ConfigureAwait(false);
+        try
+        {
+            var searchResult = await _audioService
+                .Tracks.LoadTracksAsync(
+                    query,
+                    loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode)
+                )
+                .ConfigureAwait(false);
 
-        if (searchResult == null)
-            return false;
+            if (!searchResult.Tracks.Any() || searchResult.Playlist == null)
+                return false;
 
-        foreach (var track in searchResult.Tracks)
-            await player.PlayAsync(track).ConfigureAwait(false);
+            // Queue the tracks
+            foreach (var track in searchResult.Tracks)
+                await player.PlayAsync(track).ConfigureAwait(false);
 
-        return true;
+            // TODO see if we can do the playlist uri too instead of just the name
+            await FollowupAsync($"🔈 Added to queue: {searchResult.Playlist.Name}")
+                .ConfigureAwait(false);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            throw;
+        }
     }
 
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
@@ -159,12 +170,16 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
+        // Peek at the next thing so we can write a message about it
+        var queueCopy = player.Queue;
+        var newCurrentItemUri = queueCopy.ElementAt(1).Track?.Uri;
+
         await player.SkipAsync().ConfigureAwait(false);
 
-        var track = player.CurrentItem;
+        // var track = player.CurrentItem;
 
-        if (track != null)
-            await RespondAsync($"Skipped. Now playing: {track.Track!.Uri}").ConfigureAwait(false);
+        if (newCurrentItemUri != null)
+            await RespondAsync($"Skipped. Now playing: {newCurrentItemUri}").ConfigureAwait(false);
         else
             await RespondAsync("Skipped. Stopped playing because the queue is now empty.")
                 .ConfigureAwait(false);
