@@ -407,12 +407,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         TrackSearchMode bestGuessSearchMode
     )
     {
-        var track =
-            await _audioService
-                .Tracks.LoadTrackAsync(query, bestGuessSearchMode)
-                .ConfigureAwait(false)
-            // If we didn't get anything, fall back to YouTube search
-            ?? await _audioService
+        var track = await _audioService
+            .Tracks.LoadTrackAsync(query, bestGuessSearchMode)
+            .ConfigureAwait(false);
+
+        // If we didn't get anything, fall back to YouTube search
+        if (track == null && bestGuessSearchMode != TrackSearchMode.YouTube)
+            track = await _audioService
                 .Tracks.LoadTrackAsync(query, TrackSearchMode.YouTube)
                 .ConfigureAwait(false);
 
