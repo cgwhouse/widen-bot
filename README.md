@@ -5,11 +5,6 @@ WidenBot is a private music bot for Discord.
 ## TODO
 
 - Tell the dev channel about the new stuff
-- Handle playlists / albums, i.e. queuing multiple things at once
-
-### Contributing
-
-Contributions are welcome! Please format .NET code using [CSharpier](https://csharpier.com/).
 
 ## Setup Guide
 
