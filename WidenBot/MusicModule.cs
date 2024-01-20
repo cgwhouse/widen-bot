@@ -54,7 +54,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (track == null)
         {
             await FollowupAsync("😖 No results.").ConfigureAwait(false);
-
             return;
         }
 
@@ -79,17 +78,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         var multiItemCheck = IsMultiItem(query, bestGuessSearchMode);
 
-        // Couldn't determine that we needed to queue multiple things, do standard approach
-        if (!multiItemCheck)
+        if (multiItemCheck)
         {
-            await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+            await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
             return;
         }
 
-        var success = await HandleMultiItemQuery(player, query, bestGuessSearchMode);
-
-        if (!success)
-            await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+        await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
     }
 
     private async Task HandleTrackQuery(
@@ -463,8 +458,8 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 bestGuessSearchMode == TrackSearchMode.Spotify
                 && (query.Contains("playlist") || query.Contains("album"))
             )
-            // Youtube playlists
-            || (bestGuessSearchMode == TrackSearchMode.YouTube && query.Contains("list="))
+            // Youtube playlists, need to ensure that it's a link to the playlist itself, and not just a single item from within a playlist
+            || (bestGuessSearchMode == TrackSearchMode.YouTube && query.Contains("list=") && !query.Contains("index="))
             // SoundCloud playlists and albums
             || (bestGuessSearchMode == TrackSearchMode.SoundCloud && query.Contains("/sets/"))
         )
