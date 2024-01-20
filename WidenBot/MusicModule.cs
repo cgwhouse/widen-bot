@@ -138,9 +138,25 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             foreach (var track in searchResult.Tracks)
                 await player.PlayAsync(track).ConfigureAwait(false);
 
-            // TODO see if we can do the playlist uri too instead of just the name
-            await FollowupAsync($"🔈 Added to queue: {searchResult.Playlist.Name}")
-                .ConfigureAwait(false);
+            // Display the url for the playlist we got back, fallback to name
+            string displayText;
+
+            try
+            {
+                var playlistUri = searchResult
+                    .Playlist.AdditionalInformation.FirstOrDefault(x => x.Key == "url")
+                    .Value.GetString();
+
+                displayText = string.IsNullOrEmpty(playlistUri)
+                    ? searchResult.Playlist.Name
+                    : playlistUri;
+            }
+            catch (InvalidOperationException)
+            {
+                displayText = searchResult.Playlist.Name;
+            }
+
+            await FollowupAsync($"🔈 Added to queue: {displayText}").ConfigureAwait(false);
 
             return true;
         }
@@ -167,11 +183,9 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         // Peek at the next thing so we can write a message about it
         var queueCopy = player.Queue;
-        var newCurrentItemUri = queueCopy.ElementAt(1).Track?.Uri;
+        var newCurrentItemUri = queueCopy.Peek()?.Track?.Uri;
 
         await player.SkipAsync().ConfigureAwait(false);
-
-        // var track = player.CurrentItem;
 
         if (newCurrentItemUri != null)
             await RespondAsync($"Skipped. Now playing: {newCurrentItemUri}").ConfigureAwait(false);
@@ -185,10 +199,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
-                preconditions: ImmutableArray.Create(
-                    PlayerPrecondition.NotPaused,
-                    PlayerPrecondition.Playing
-                )
+                preconditions: [PlayerPrecondition.NotPaused, PlayerPrecondition.Playing]
             )
             .ConfigureAwait(false);
 
@@ -205,7 +216,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.Paused)
+                preconditions: [PlayerPrecondition.Paused]
             )
             .ConfigureAwait(false);
 
@@ -245,7 +256,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         var player = await TryGetPlayerAsync(
                 allowConnect: false,
-                preconditions: ImmutableArray.Create(PlayerPrecondition.QueueNotEmpty)
+                preconditions: [PlayerPrecondition.QueueNotEmpty]
             )
             .ConfigureAwait(false);
 
@@ -434,16 +445,16 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
-        ImmutableArray.Create(
-            SegmentCategory.Sponsor,
-            SegmentCategory.SelfPromotion,
-            SegmentCategory.Interaction,
-            SegmentCategory.Intro,
-            SegmentCategory.Outro,
-            SegmentCategory.Preview,
-            SegmentCategory.OfftopicMusic,
-            SegmentCategory.Filler
-        );
+    [
+        SegmentCategory.Sponsor,
+        SegmentCategory.SelfPromotion,
+        SegmentCategory.Interaction,
+        SegmentCategory.Intro,
+        SegmentCategory.Outro,
+        SegmentCategory.Preview,
+        SegmentCategory.OfftopicMusic,
+        SegmentCategory.Filler,
+    ];
 
     private static bool IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
     {
@@ -459,7 +470,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 && (query.Contains("playlist") || query.Contains("album"))
             )
             // Youtube playlists, need to ensure that it's a link to the playlist itself, and not just a single item from within a playlist
-            || (bestGuessSearchMode == TrackSearchMode.YouTube && query.Contains("list=") && !query.Contains("index="))
+            || (
+                bestGuessSearchMode == TrackSearchMode.YouTube
+                && query.Contains("list=")
+                && !query.Contains("index=")
+            )
             // SoundCloud playlists and albums
             || (bestGuessSearchMode == TrackSearchMode.SoundCloud && query.Contains("/sets/"))
         )
