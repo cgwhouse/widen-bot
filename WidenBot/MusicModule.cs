@@ -116,55 +116,48 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
     }
 
-    private async Task<bool> HandleMultiItemQuery(
+    private async Task HandleMultiItemQuery(
         QueuedLavalinkPlayer player,
         string query,
         TrackSearchMode bestGuessSearchMode
     )
     {
+        var searchResult = await _audioService
+            .Tracks.LoadTracksAsync(
+                query,
+                loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode)
+            )
+            .ConfigureAwait(false);
+
+        if (!searchResult.Tracks.Any() || searchResult.Playlist == null)
+        {
+            await FollowupAsync("😖 No results.").ConfigureAwait(false);
+            return;
+        }
+
+        // Queue the tracks
+        foreach (var track in searchResult.Tracks)
+            await player.PlayAsync(track).ConfigureAwait(false);
+
+        // Display the url for the playlist we got back, fallback to name
+        string displayText;
+
         try
         {
-            var searchResult = await _audioService
-                .Tracks.LoadTracksAsync(
-                    query,
-                    loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode)
-                )
-                .ConfigureAwait(false);
+            var playlistUri = searchResult
+                .Playlist.AdditionalInformation.FirstOrDefault(x => x.Key == "url")
+                .Value.GetString();
 
-            if (!searchResult.Tracks.Any() || searchResult.Playlist == null)
-                return false;
-
-            // Queue the tracks
-            foreach (var track in searchResult.Tracks)
-                await player.PlayAsync(track).ConfigureAwait(false);
-
-            // Display the url for the playlist we got back, fallback to name
-            string displayText;
-
-            try
-            {
-                var playlistUri = searchResult
-                    .Playlist.AdditionalInformation.FirstOrDefault(x => x.Key == "url")
-                    .Value.GetString();
-
-                displayText = string.IsNullOrEmpty(playlistUri)
-                    ? searchResult.Playlist.Name
-                    : playlistUri;
-            }
-            catch (InvalidOperationException)
-            {
-                displayText = searchResult.Playlist.Name;
-            }
-
-            await FollowupAsync($"🔈 Added to queue: {displayText}").ConfigureAwait(false);
-
-            return true;
+            displayText = string.IsNullOrEmpty(playlistUri)
+                ? searchResult.Playlist.Name
+                : playlistUri;
         }
-        catch (Exception ex)
+        catch (InvalidOperationException)
         {
-            Console.WriteLine(ex);
-            throw;
+            displayText = searchResult.Playlist.Name;
         }
+
+        await FollowupAsync($"🔈 Added to queue: {displayText}").ConfigureAwait(false);
     }
 
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
