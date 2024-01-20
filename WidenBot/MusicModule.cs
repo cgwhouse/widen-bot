@@ -9,8 +9,6 @@ using Discord.Interactions;
 using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
-using Lavalink4NET.Integrations.Lavasearch;
-using Lavalink4NET.Integrations.Lavasearch.Extensions;
 using Lavalink4NET.Integrations.SponsorBlock;
 using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Lavalink4NET.Players;
