@@ -2,10 +2,6 @@
 
 WidenBot is a private music bot for Discord.
 
-## TODO
-
-- Tell the dev channel about the new stuff
-
 ## Setup Guide
 
 **Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
@@ -33,7 +29,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
    b. Enable "Server Members Intent" and "Message Content Intent"
 
-   c. Click the "Reset Token" button and **save the resulting token for later**
+   c. Click the "Reset Token" button and save the resulting token for later
 
 3. Within the OAuth settings:
 
@@ -75,12 +71,20 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 ### Running the Bot
 
-1. From the root of the repository, execute `python3 run.py server`.
+1. From the root of the repository, execute:
+
+   ```bash
+   python3 run.py server
+   ```
 
    **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
-2. Without closing or interrupting the server command, open another terminal and execute `python3 run.py client`.
+2. Without closing or interrupting the server command, open another terminal and execute:
 
-The bot should be able to be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it pretty easy to set up a server, feel free to use the referral badge below which apparently provides a $200 credit:
+   ```bash
+   python3 run.py client
+   ```
+
+The bot can be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it easy to set up a server, feel free to use the referral badge below which apparently provides a credit:
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
