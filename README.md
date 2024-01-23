@@ -29,7 +29,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
    b. Enable "Server Members Intent" and "Message Content Intent"
 
-   c. Click the "Reset Token" button and **save the resulting token for later**
+   c. Click the "Reset Token" button and save the resulting token for later
 
 3. Within the OAuth settings:
 
@@ -85,6 +85,6 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
    python3 run.py client
    ```
 
-The bot should be able to be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it pretty easy to set up a server, feel free to use the referral badge below which apparently provides a $200 credit:
+The bot can be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it easy to set up a server, feel free to use the referral badge below which apparently provides a credit:
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
