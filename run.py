@@ -144,4 +144,5 @@ def write_file_contents(path, contents):
     f.close()
 
 
-main()
+if __name__ == "__main__":
+    main()
