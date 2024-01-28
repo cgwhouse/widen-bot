@@ -440,7 +440,10 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         var searchResult = await _audioService
             .Tracks.LoadTracksAsync(
                 query,
-                loadOptions: new TrackLoadOptions(SearchMode: bestGuessSearchMode)
+                loadOptions: new TrackLoadOptions(
+                    SearchMode: bestGuessSearchMode,
+                    SearchBehavior: StrictSearchBehavior.Passthrough
+                )
             )
             .ConfigureAwait(false);
 
