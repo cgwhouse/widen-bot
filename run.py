@@ -13,8 +13,9 @@ import urllib.request
 
 
 def main():
-    # Get command line arg and validate
-    run_target = handle_script_arg()
+    # Get command line args and validate
+    run_target = handle_client_server_arg()
+    debug = handle_debug_arg()
 
     if run_target == None:
         print(
@@ -32,12 +33,12 @@ def main():
         return
 
     if run_target == "client":
-        handle_client()
+        handle_client(debug)
     else:
         handle_server(user_config)
 
 
-def handle_script_arg():
+def handle_client_server_arg():
     if len(sys.argv) < 2:
         return None
 
@@ -47,6 +48,18 @@ def handle_script_arg():
         return None
 
     return run_target
+
+
+def handle_debug_arg():
+    if len(sys.argv) < 3:
+        return False
+
+    debug = sys.argv[2]
+
+    if debug != "--debug":
+        return False
+
+    return True
 
 
 def handle_user_config():
@@ -62,7 +75,7 @@ def handle_user_config():
     return user_config
 
 
-def handle_client():
+def handle_client(debug):
     print("Building and running WidenBot client...")
 
     subprocess.run(
@@ -72,14 +85,16 @@ def handle_client():
     )
     print("...Packages restored successfully")
 
+    run_config = "Debug" if debug else "Release"
+
     subprocess.run(
-        ["dotnet", "clean", "-c", "Release", "WidenBot"],
+        ["dotnet", "clean", "-c", run_config, "WidenBot"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
     )
     print("...Project cleaned successfully")
 
-    subprocess.run(["dotnet", "run", "-c", "Release", "--project", "WidenBot"])
+    subprocess.run(["dotnet", "run", "-c", run_config, "--project", "WidenBot"])
 
 
 def handle_server(user_config):
