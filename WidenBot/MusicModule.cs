@@ -274,9 +274,9 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
 
-        result += $"Shuffle: {player.Shuffle}\n";
+        result += $"\nShuffle: {player.Shuffle}\n";
 
-        result += $"Repeat: {player.RepeatMode}\n\n";
+        result += $"Repeat: {player.RepeatMode}\n";
 
         if (player.CurrentItem?.Track != null)
             result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
