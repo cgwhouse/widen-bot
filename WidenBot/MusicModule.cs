@@ -22,13 +22,19 @@ namespace WidenBot;
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
+    private readonly Secrets _secrets;
 
-    public MusicModule(IAudioService audioService)
+    public MusicModule(IAudioService audioService, Secrets secrets)
     {
         _audioService = audioService;
+        _secrets = secrets;
     }
 
-    [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}creed",
+        description: "Hold me down",
+        runMode: RunMode.Async
+    )]
     public async Task PlayAsync()
     {
         await DeferAsync().ConfigureAwait(false);
@@ -60,7 +66,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync("Good choice.").ConfigureAwait(false);
     }
 
-    [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}play",
+        description: "Plays music",
+        runMode: RunMode.Async
+    )]
     public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
@@ -85,7 +95,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
     }
 
-    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}skip",
+        description: "Skips the current track",
+        runMode: RunMode.Async
+    )]
     public async Task SkipAsync()
     {
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
@@ -112,7 +126,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 .ConfigureAwait(false);
     }
 
-    [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}pause",
+        description: "Pauses the player",
+        runMode: RunMode.Async
+    )]
     public async Task PauseAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -129,7 +147,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Paused.").ConfigureAwait(false);
     }
 
-    [SlashCommand("resume", description: "Resumes the player", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}resume",
+        description: "Resumes the player",
+        runMode: RunMode.Async
+    )]
     public async Task ResumeAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -147,7 +169,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        "stop",
+        $"{Secrets.CommandPrefix}stop",
         description: "Stops the current track and clears the queue",
         runMode: RunMode.Async
     )]
@@ -170,7 +192,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        "disconnect",
+        $"{Secrets.CommandPrefix}disconnect",
         description: "Disconnects the bot from the voice channel",
         runMode: RunMode.Async
     )]
@@ -186,7 +208,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Disconnected from voice channel.").ConfigureAwait(false);
     }
 
-    [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}shuffle",
+        description: "Toggles shuffle mode",
+        runMode: RunMode.Async
+    )]
     public async Task ShuffleAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -204,7 +230,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .ConfigureAwait(false);
     }
 
-    [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{Secrets.CommandPrefix}repeat",
+        description: "Sets repeat mode of the player",
+        runMode: RunMode.Async
+    )]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
@@ -219,7 +249,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        "show",
+        $"{Secrets.CommandPrefix}show",
         description: "Prints the current queue and other player info",
         runMode: RunMode.Async
     )]
