@@ -23,12 +23,14 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 {
     private readonly IAudioService _audioService;
 
+    private const string CommandPrefix = "";
+
     public MusicModule(IAudioService audioService)
     {
         _audioService = audioService;
     }
 
-    [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
+    [SlashCommand($"{CommandPrefix}creed", description: "Hold me down", runMode: RunMode.Async)]
     public async Task PlayAsync()
     {
         await DeferAsync().ConfigureAwait(false);
@@ -60,7 +62,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync("Good choice.").ConfigureAwait(false);
     }
 
-    [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
+    [SlashCommand($"{CommandPrefix}play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
@@ -85,7 +87,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
     }
 
-    [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{CommandPrefix}skip",
+        description: "Skips the current track",
+        runMode: RunMode.Async
+    )]
     public async Task SkipAsync()
     {
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
@@ -112,7 +118,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 .ConfigureAwait(false);
     }
 
-    [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{CommandPrefix}pause",
+        description: "Pauses the player",
+        runMode: RunMode.Async
+    )]
     public async Task PauseAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -129,7 +139,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Paused.").ConfigureAwait(false);
     }
 
-    [SlashCommand("resume", description: "Resumes the player", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{CommandPrefix}resume",
+        description: "Resumes the player",
+        runMode: RunMode.Async
+    )]
     public async Task ResumeAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -147,7 +161,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        "stop",
+        $"{CommandPrefix}stop",
         description: "Stops the current track and clears the queue",
         runMode: RunMode.Async
     )]
@@ -169,7 +183,28 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Stopped playing.").ConfigureAwait(false);
     }
 
-    [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{CommandPrefix}disconnect",
+        description: "Disconnects the bot from the voice channel",
+        runMode: RunMode.Async
+    )]
+    public async Task DisconnectAsync()
+    {
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+
+        if (player == null)
+            return;
+
+        await player.DisconnectAsync().ConfigureAwait(false);
+
+        await RespondAsync("Disconnected from voice channel.").ConfigureAwait(false);
+    }
+
+    [SlashCommand(
+        $"{CommandPrefix}shuffle",
+        description: "Toggles shuffle mode",
+        runMode: RunMode.Async
+    )]
     public async Task ShuffleAsync()
     {
         var player = await TryGetPlayerAsync(
@@ -187,7 +222,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .ConfigureAwait(false);
     }
 
-    [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
+    [SlashCommand(
+        $"{CommandPrefix}repeat",
+        description: "Sets repeat mode of the player",
+        runMode: RunMode.Async
+    )]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
@@ -202,7 +241,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        "show",
+        $"{CommandPrefix}show",
         description: "Prints the current queue and other player info",
         runMode: RunMode.Async
     )]
@@ -211,35 +250,30 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
+        {
+            await RespondAsync("No player.").ConfigureAwait(false);
             return;
+        }
 
         var result = string.Empty;
 
-        result += $"Shuffle: {player.Shuffle}\n";
-
-        result += $"Repeat: {player.RepeatMode}\n\n";
-
+        // Queue
         result += $"Queue:\n";
 
-        var queueEmpty = true;
-
-        if (player.CurrentItem != null)
+        if (!player.Queue.Any())
+            result += "Queue is empty.";
+        else
         {
-            queueEmpty = false;
-
-            result += $"{player.CurrentItem.Track?.Title ?? "Unknown title"}\n";
-        }
-
-        if (player.Queue.Any())
-        {
-            queueEmpty = false;
-
             foreach (var track in player.Queue)
                 result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
 
-        if (queueEmpty)
-            result += "Queue is empty.";
+        result += $"\nShuffle: {player.Shuffle}\n";
+
+        result += $"Repeat: {player.RepeatMode}\n";
+
+        if (player.CurrentItem?.Track != null)
+            result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
 
         await RespondAsync(result).ConfigureAwait(false);
     }
