@@ -5,12 +5,11 @@ using System.Text.Json;
 
 namespace WidenBot;
 
-public class Secrets
+internal class Secrets
 {
     public readonly string DiscordBotToken;
     public readonly string DiscordServerID;
     public readonly string LavalinkPassword;
-    public const string CommandPrefix = "";
 
     private record Config(string DiscordBotToken, string DiscordServerID, string LavalinkPassword);
 

@@ -23,16 +23,14 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 {
     private readonly IAudioService _audioService;
 
+    private const string CommandPrefix = "";
+
     public MusicModule(IAudioService audioService)
     {
         _audioService = audioService;
     }
 
-    [SlashCommand(
-        $"{Secrets.CommandPrefix}creed",
-        description: "Hold me down",
-        runMode: RunMode.Async
-    )]
+    [SlashCommand($"{CommandPrefix}creed", description: "Hold me down", runMode: RunMode.Async)]
     public async Task PlayAsync()
     {
         await DeferAsync().ConfigureAwait(false);
@@ -64,11 +62,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync("Good choice.").ConfigureAwait(false);
     }
 
-    [SlashCommand(
-        $"{Secrets.CommandPrefix}play",
-        description: "Plays music",
-        runMode: RunMode.Async
-    )]
+    [SlashCommand($"{CommandPrefix}play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
@@ -94,7 +88,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}skip",
+        $"{CommandPrefix}skip",
         description: "Skips the current track",
         runMode: RunMode.Async
     )]
@@ -125,7 +119,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}pause",
+        $"{CommandPrefix}pause",
         description: "Pauses the player",
         runMode: RunMode.Async
     )]
@@ -146,7 +140,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}resume",
+        $"{CommandPrefix}resume",
         description: "Resumes the player",
         runMode: RunMode.Async
     )]
@@ -167,7 +161,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}stop",
+        $"{CommandPrefix}stop",
         description: "Stops the current track and clears the queue",
         runMode: RunMode.Async
     )]
@@ -190,7 +184,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}disconnect",
+        $"{CommandPrefix}disconnect",
         description: "Disconnects the bot from the voice channel",
         runMode: RunMode.Async
     )]
@@ -207,7 +201,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}shuffle",
+        $"{CommandPrefix}shuffle",
         description: "Toggles shuffle mode",
         runMode: RunMode.Async
     )]
@@ -229,7 +223,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}repeat",
+        $"{CommandPrefix}repeat",
         description: "Sets repeat mode of the player",
         runMode: RunMode.Async
     )]
@@ -247,7 +241,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand(
-        $"{Secrets.CommandPrefix}show",
+        $"{CommandPrefix}show",
         description: "Prints the current queue and other player info",
         runMode: RunMode.Async
     )]
