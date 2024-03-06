@@ -169,6 +169,23 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync("Stopped playing.").ConfigureAwait(false);
     }
 
+    [SlashCommand(
+        "disconnect",
+        description: "Disconnects the bot from the voice channel",
+        runMode: RunMode.Async
+    )]
+    public async Task DisconnectAsync()
+    {
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+
+        if (player == null)
+            return;
+
+        await player.DisconnectAsync().ConfigureAwait(false);
+
+        await RespondAsync("Disconnected from voice channel.").ConfigureAwait(false);
+    }
+
     [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
     public async Task ShuffleAsync()
     {
