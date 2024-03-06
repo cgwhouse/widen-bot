@@ -228,35 +228,30 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
+        {
+            await RespondAsync("No player.").ConfigureAwait(false);
             return;
+        }
 
         var result = string.Empty;
+
+        // Queue
+        result += $"Queue:\n";
+
+        if (!player.Queue.Any())
+            result += "Queue is empty.";
+        else
+        {
+            foreach (var track in player.Queue)
+                result += $"{track.Track?.Title ?? "Unknown title"}\n";
+        }
 
         result += $"Shuffle: {player.Shuffle}\n";
 
         result += $"Repeat: {player.RepeatMode}\n\n";
 
-        result += $"Queue:\n";
-
-        var queueEmpty = true;
-
-        if (player.CurrentItem != null)
-        {
-            queueEmpty = false;
-
-            result += $"{player.CurrentItem.Track?.Title ?? "Unknown title"}\n";
-        }
-
-        if (player.Queue.Any())
-        {
-            queueEmpty = false;
-
-            foreach (var track in player.Queue)
-                result += $"{track.Track?.Title ?? "Unknown title"}\n";
-        }
-
-        if (queueEmpty)
-            result += "Queue is empty.";
+        if (player.CurrentItem?.Track != null)
+            result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
 
         await RespondAsync(result).ConfigureAwait(false);
     }
