@@ -10,7 +10,7 @@ public class Secrets
     public readonly string DiscordBotToken;
     public readonly string DiscordServerID;
     public readonly string LavalinkPassword;
-    public const string CommandPrefix = "dev";
+    public const string CommandPrefix = "";
 
     private record Config(
         string DiscordBotToken,
