@@ -12,12 +12,7 @@ public class Secrets
     public readonly string LavalinkPassword;
     public const string CommandPrefix = "";
 
-    private record Config(
-        string DiscordBotToken,
-        string DiscordServerID,
-        string LavalinkPassword,
-        string CommandPrefix
-    );
+    private record Config(string DiscordBotToken, string DiscordServerID, string LavalinkPassword);
 
     public Secrets()
     {
