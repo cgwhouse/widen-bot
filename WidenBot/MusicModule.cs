@@ -22,12 +22,10 @@ namespace WidenBot;
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
-    private readonly Secrets _secrets;
 
-    public MusicModule(IAudioService audioService, Secrets secrets)
+    public MusicModule(IAudioService audioService)
     {
         _audioService = audioService;
-        _secrets = secrets;
     }
 
     [SlashCommand(
