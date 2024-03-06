@@ -14,10 +14,19 @@ using WidenBot;
 
 var builder = new HostApplicationBuilder(args);
 
+// Determine log level based on build configuration
+#if DEBUG
+var logLevel = LogLevel.Trace;
+Console.WriteLine("log level is trace");
+#else
+var logLevel = LogLevel.Warning;
+Console.WriteLine("log level is warning");
+#endif
+
 builder
     .Services
     // .NET stuff
-    .AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Trace))
+    .AddLogging(x => x.AddConsole().SetMinimumLevel(logLevel))
     .AddMemoryCache()
     .AddSingleton<DiscordSocketClient>()
     .AddSingleton<InteractionService>()
