@@ -18,7 +18,7 @@ WidenBot consists of three components:
 - Docker Engine
 - Docker Compose
 
-Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing.
+Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing. Most OSes come with Python, see [Docker Engine install](https://docs.docker.com/engine/install/) and [Docker Compose install](https://docs.docker.com/compose/install/) for documentation on installing Docker.
 
 ### Discord Developer Portal
 
