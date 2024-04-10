@@ -12,4 +12,4 @@ config.json
 Server/application.yml
 Server/docker-compose.yaml
 Server/logs
-Server/plugins/*
+Server/plugins/*.jar
