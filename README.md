@@ -1,6 +1,6 @@
 # WidenBot
 
-WidenBot is a private music bot for Discord.
+WidenBot is your private music bot for Discord.
 
 ## Setup Guide
 
@@ -15,10 +15,10 @@ WidenBot consists of three components:
 ### Dependencies
 
 - Python 3
-- .NET SDK 8 or newer
-- JRE 17 or newer (OpenJDK recommended)
+- Docker
+- Docker Compose
 
-Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --version` each look correct before continuing.
+Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing.
 
 ### Discord Developer Portal
 
@@ -55,7 +55,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 ### WidenBot Config
 
 1. Clone this repository
-2. Copy the contents of `WidenBot/config.template.json` into a new file called `WidenBot/config.json`, and provide values as follows:
+2. Copy the contents of `config.template.json` into a new file called `config.json`, and provide values as follows:
 
    ```json
    {
@@ -88,3 +88,8 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 The bot can be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it easy to set up a server, feel free to use the referral badge below which apparently provides a credit:
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
+## TODO
+
+- update README
+- manually test the docker commands before running through python
