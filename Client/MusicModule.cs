@@ -384,13 +384,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
     private static TrackSearchMode DetermineSearchMode(string query)
     {
-        if (query.ToLower().Contains("spotify"))
+        if (query.Contains("spotify", StringComparison.CurrentCultureIgnoreCase))
             return TrackSearchMode.Spotify;
 
-        if (query.ToLower().Contains("soundcloud"))
+        if (query.Contains("soundcloud", StringComparison.CurrentCultureIgnoreCase))
             return TrackSearchMode.SoundCloud;
 
-        if (query.ToLower().Contains("music.youtube"))
+        if (query.Contains("music.youtube", StringComparison.CurrentCultureIgnoreCase))
             return TrackSearchMode.YouTubeMusic;
 
         return TrackSearchMode.YouTube;
