@@ -15,7 +15,7 @@ WidenBot consists of three components:
 ### Dependencies
 
 - Python 3
-- Docker
+- Docker Engine
 - Docker Compose
 
 Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing.
@@ -79,7 +79,7 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
 
    **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
-2. Without closing or interrupting the server command, open another terminal and execute:
+2. Without interrupting the running server command, open another terminal and execute:
 
    ```bash
    python3 run.py client
@@ -91,5 +91,6 @@ The bot can be hosted from any machine that can install the [dependencies](#depe
 
 ## TODO
 
-- update README
 - manually test the docker commands before running through python
+- update dependencies, test
+- do we really need a top level setup guide heading?
