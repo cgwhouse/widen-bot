@@ -22,9 +22,10 @@ services:
     expose:
       # Expose port 2333 for the client
       - 2333
+    # Uncomment this to make the server accessible from outside of Docker (e.g. local debugging)
     #ports:
-      #  # you only need this if you want to make your lavalink accessible from outside of containers
-      #- "2333:2333"
+    #  - 2333:2333
+
 networks:
   # Create network so the client can talk to the server
   lavalink:
