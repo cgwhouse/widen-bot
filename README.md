@@ -1,8 +1,6 @@
 # WidenBot
 
-WidenBot is a private music bot for Discord.
-
-## Setup Guide
+WidenBot is your private music bot for Discord.
 
 **Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
 
@@ -12,15 +10,15 @@ WidenBot consists of three components:
 - The audio server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
 - The discord client (WidenBot), a .NET service
 
-### Dependencies
+## Dependencies
 
 - Python 3
-- .NET SDK 8 or newer
-- JRE 17 or newer (OpenJDK recommended)
+- Docker Engine
+- Docker Compose
 
-Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --version` each look correct before continuing.
+Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing. Most OSes come with Python, see [Docker Engine install](https://docs.docker.com/engine/install/) and [Docker Compose install](https://docs.docker.com/compose/install/) for documentation on installing Docker.
 
-### Discord Developer Portal
+## Discord Developer Portal
 
 1. Go to the Discord Developer Portal, login as the Discord account that should own the bot, and create a new application
 2. Within the Bot settings:
@@ -35,7 +33,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
    a. Add a redirect for `https://discord.com` (Under "General" sub-category)
 
-   b. Generate an invite URL with the `bot` scope, and the following permissions:
+   b. Generate an invite URL with the `application.commands` and `bot` scopes, and the following permissions:
 
    - Read Messages/View Channels
    - Send Messages
@@ -46,16 +44,16 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
 4. Use the generated URL to invite the bot to a server of your choice
 
-### Spotify
+## Spotify
 
 1. Go to the [Spotify developer dashboard](https://developer.spotify.com/dashboard) and sign in with whatever Spotify account you want to use
 
 2. Create a new app (Development mode, other defaults should be sufficient), and save the client ID and secret for later
 
-### WidenBot Config
+## WidenBot Config
 
 1. Clone this repository
-2. Copy the contents of `WidenBot/config.template.json` into a new file called `WidenBot/config.json`, and provide values as follows:
+2. Copy the contents of `config.template.json` into a new file called `config.json`, and provide values as follows:
 
    ```json
    {
@@ -69,7 +67,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
    }
    ```
 
-### Running the Bot
+## Running the Bot
 
 1. From the root of the repository, execute:
 
@@ -79,7 +77,7 @@ Make sure the outputs of `python3 --version`, `dotnet --list-sdks`, and `java --
 
    **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
-2. Without closing or interrupting the server command, open another terminal and execute:
+2. Without interrupting the running server command, open another terminal and execute:
 
    ```bash
    python3 run.py client

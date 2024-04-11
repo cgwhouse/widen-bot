@@ -1,0 +1,13 @@
+services:
+  client:
+    container_name: widenbot-client
+    build: .
+    ports:
+      - 80:80
+    networks:
+      - lavalink
+
+networks:
+  lavalink:
+    name: lavalink
+    external: true

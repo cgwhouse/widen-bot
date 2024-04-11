@@ -7,15 +7,13 @@ Before executing, ensure that values for all properties in config.json have been
 
 import json
 import os
+import shutil
 import subprocess
 import sys
-import urllib.request
 
 
 def main():
-    # Get command line args and validate
     run_target = handle_client_server_arg()
-    debug = handle_debug_arg()
 
     if run_target == None:
         print(
@@ -23,19 +21,18 @@ def main():
         )
         return
 
-    # Get config.json and validate
     user_config = handle_user_config()
 
     if user_config == None:
         print(
-            "config.json must exist in WidenBot directory, and must be fully specified"
+            "config.json must exist in main directory (same as this script), and must be fully specified. See README.md"
         )
         return
 
     if run_target == "client":
-        handle_client(debug)
+        run_client()
     else:
-        handle_server(user_config)
+        run_server(user_config)
 
 
 def handle_client_server_arg():
@@ -50,21 +47,9 @@ def handle_client_server_arg():
     return run_target
 
 
-def handle_debug_arg():
-    if len(sys.argv) < 3:
-        return False
-
-    debug = sys.argv[2]
-
-    if debug != "--debug":
-        return False
-
-    return True
-
-
 def handle_user_config():
     try:
-        user_config = json.loads(get_file_contents("WidenBot/config.json"))
+        user_config = json.loads(get_file_contents("config.json"))
     except FileNotFoundError:
         return None
 
@@ -75,75 +60,56 @@ def handle_user_config():
     return user_config
 
 
-def handle_client(debug):
+def run_client():
+    # Copy config.json to the client working directory
+    shutil.copyfile("./config.json", "Client/config.json")
+
+    # Change current working directory to client
+    os.chdir("./Client")
+
     print("Building and running WidenBot client...")
 
-    subprocess.run(
-        ["dotnet", "restore", "WidenBot"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-    )
-    print("...Packages restored successfully")
-
-    run_config = "Debug" if debug else "Release"
-
-    subprocess.run(
-        ["dotnet", "clean", "-c", run_config, "WidenBot"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT,
-    )
-    print("...Project cleaned successfully")
-
-    subprocess.run(["dotnet", "run", "-c", run_config, "--project", "WidenBot"])
+    # Run container
+    subprocess.run(["docker", "compose", "up", "--build"])
 
 
-def handle_server(user_config):
-    # Download Lavalink if needed
-    handle_lavalink_binary()
+def run_server(user_config):
+    # Change current working directory to server
+    os.chdir("./Server")
 
-    # Create fresh copy of application.yml, with injected secrets for Lavalink server
-    handle_lavalink_config(user_config)
-
-    subprocess.run(["java", "-jar", "Lavalink/Lavalink.jar"])
-
-
-def handle_lavalink_binary():
-    print("Handling Lavalink binary...")
-
-    if os.path.isfile("Lavalink/Lavalink.jar"):
-        print("...Lavalink binary already exists, skipping download")
-        return
-
-    print("...Downloading jar")
-
-    urllib.request.urlretrieve(
-        "https://github.com/lavalink-devs/Lavalink/releases/latest/download/Lavalink.jar",
-        "Lavalink/Lavalink.jar",
-    )
-
-    print("...Lavalink binary successfully downloaded")
-
-
-def handle_lavalink_config(user_config):
+    # Create application.yml and docker-compose.yaml with injected secrets from config
     lavalink_password = "<LAVALINK_PASSWORD>"
     spotify_client_id = "<SPOTIFY_CLIENTID>"
     spotify_client_secret = "<SPOTIFY_CLIENTSECRET>"
     youtube_email = "<YOUTUBE_EMAIL>"
     youtube_password = "<YOUTUBE_PASSWORD>"
 
-    lavalinkRaw = get_file_contents("Lavalink/application.template.yml")
+    lavalinkConfigRaw = get_file_contents("application.template.yml")
 
-    lavalinkUpdated = (
-        lavalinkRaw.replace(lavalink_password, user_config["LavalinkPassword"])
+    lavalinkConfigUpdated = (
+        lavalinkConfigRaw.replace(lavalink_password, user_config["LavalinkPassword"])
         .replace(spotify_client_id, user_config["SpotifyClientID"])
         .replace(spotify_client_secret, user_config["SpotifyClientSecret"])
         .replace(youtube_email, user_config["YouTubeEmail"])
         .replace(youtube_password, user_config["YouTubePassword"])
     )
 
-    write_file_contents("application.yml", lavalinkUpdated)
+    write_file_contents("application.yml", lavalinkConfigUpdated)
 
     print("application.yml has been created / overwritten...")
+
+    dockerComposeRaw = get_file_contents("docker-compose.template.yaml")
+
+    dockerComposeUpdated = dockerComposeRaw.replace(
+        lavalink_password, user_config["LavalinkPassword"]
+    )
+
+    write_file_contents("docker-compose.yaml", dockerComposeUpdated)
+
+    print("docker-compose.yaml has been created / overwritten...")
+
+    # Run container
+    subprocess.run(["docker", "compose", "up", "--build"])
 
 
 def get_file_contents(path):

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>WidenBot</RootNamespace>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>enable</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.14.1" />
+    <PackageReference Include="Lavalink4NET.Discord.NET" Version="4.0.18" />
+    <PackageReference Include="Lavalink4NET.InactivityTracking" Version="4.0.18" />
+    <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.0.18" />
+    <PackageReference Include="Lavalink4NET.Integrations.Lavasrc" Version="4.0.18" />
+    <PackageReference Include="Lavalink4NET.Integrations.SponsorBlock" Version="4.0.18" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
