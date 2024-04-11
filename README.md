@@ -33,7 +33,7 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
 
    a. Add a redirect for `https://discord.com` (Under "General" sub-category)
 
-   b. Generate an invite URL with the `bot` scope, and the following permissions:
+   b. Generate an invite URL with the `application.commands` and `bot` scopes, and the following permissions:
 
    - Read Messages/View Channels
    - Send Messages

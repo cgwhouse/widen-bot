@@ -11,8 +11,6 @@ import shutil
 import subprocess
 import sys
 
-# import urllib.request
-
 
 def main():
     run_target = handle_client_server_arg()
@@ -32,17 +30,8 @@ def main():
         return
 
     if run_target == "client":
-        # Copy config.json to the client working directory
-        shutil.copyfile("./config.json", "Client/config.json")
-
-        # Change current working directory to client
-        os.chdir("./Client")
-
         run_client()
     else:
-        # Change current working directory to server
-        os.chdir("./Server")
-
         run_server(user_config)
 
 
@@ -72,6 +61,12 @@ def handle_user_config():
 
 
 def run_client():
+    # Copy config.json to the client working directory
+    shutil.copyfile("./config.json", "Client/config.json")
+
+    # Change current working directory to client
+    os.chdir("./Client")
+
     print("Building and running WidenBot client...")
 
     # Run container
@@ -79,6 +74,9 @@ def run_client():
 
 
 def run_server(user_config):
+    # Change current working directory to server
+    os.chdir("./Server")
+
     # Create application.yml and docker-compose.yaml with injected secrets from config
     lavalink_password = "<LAVALINK_PASSWORD>"
     spotify_client_id = "<SPOTIFY_CLIENTID>"
