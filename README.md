@@ -91,3 +91,4 @@ The bot can be hosted from any machine that can install the [dependencies](#depe
 
 - make note about plugins dir permissions
 - make note about general fragility
+- rename the dev-widen-bot, possibly grab the same pfp and description though
