@@ -27,7 +27,8 @@ builder
     .AddLavalink()
     .ConfigureLavalink(config =>
     {
-        config.BaseAddress = new Uri("http://lavalink:2333");
+        // Comment out to debug against a locally running Lavalink server
+        config.BaseAddress = new Uri("http://widenbot-server:2333");
         config.ReadyTimeout = TimeSpan.FromSeconds(10);
         config.Label = "WidenBot";
         config.Passphrase = new Secrets().LavalinkPassword;
