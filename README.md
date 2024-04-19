@@ -4,7 +4,7 @@ WidenBot is your private music bot for Discord.
 
 **Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
 
-WidenBot consists of three components:
+A WidenBot instance consists of three components:
 
 - A discord bot, configured via the Discord developer portal
 - The audio server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
@@ -13,10 +13,9 @@ WidenBot consists of three components:
 ## Dependencies
 
 - Python 3
-- Docker Engine
-- Docker Compose
+- Docker
 
-Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing. Most OSes come with Python, see [Docker Engine install](https://docs.docker.com/engine/install/) and [Docker Compose install](https://docs.docker.com/compose/install/) for documentation on installing Docker.
+Make sure the outputs of `python3 --version`, `docker version`, and `docker compose version` each look correct before continuing. Most OSes come with Python, see [Docker install](https://docs.docker.com/engine/install/) for instructions on installing Docker.
 
 ## Discord Developer Portal
 
@@ -91,5 +90,3 @@ The bot can be hosted from any machine that can install the [dependencies](#depe
 
 - make note about plugins dir permissions
 - make note about general fragility
-- rename the dev-widen-bot, possibly grab the same pfp and description though
-- "A WidenBot" instead of WidenBot in the intro
