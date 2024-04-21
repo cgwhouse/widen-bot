@@ -2,7 +2,11 @@
 
 WidenBot is your private music bot for Discord.
 
-**Disclaimer: This project is not intended to be a plug-and-play music bot that can be added to a server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you. A single instance of WidenBot cannot serve more than once server simultaneously.**
+**Disclaimers:**
+
+- **This project is not intended to be a plug-and-play music bot that can be added to a Discord server in a couple of clicks. It requires a bit of manual setup, and hosting is up to you.**
+- **A single instance of WidenBot cannot serve more than once server simultaneously.**
+- **Due to the nature of what a music bot is trying to accomplish, it can be prone to occasional breakage.**
 
 A WidenBot instance consists of three components:
 
@@ -68,7 +72,9 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
 
 ## Running the Bot
 
-1. From the root of the repository, execute:
+1. If on a Linux host, ensure the `Server/plugins` directory has at least 322 permissions.
+
+2. From the root of the repository, execute:
 
    ```bash
    python3 run.py server
@@ -76,7 +82,7 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
 
    **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
-2. Without interrupting the running server command, open another terminal and execute:
+3. Without interrupting the running server command, open another terminal and execute:
 
    ```bash
    python3 run.py client
@@ -86,7 +92,3 @@ The bot can be hosted from any machine that can install the [dependencies](#depe
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 
-## TODO
-
-- make note about plugins dir permissions
-- make note about general fragility
