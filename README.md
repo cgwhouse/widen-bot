@@ -91,4 +91,3 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
 The bot can be hosted from any machine that can install the [dependencies](#dependencies). If you need a hosting platform, DigitalOcean makes it easy to set up a server, feel free to use the referral badge below which apparently provides a credit:
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
-
