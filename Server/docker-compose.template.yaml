@@ -1,7 +1,7 @@
 services:
   server:
     # Lavalink v4
-    image: ghcr.io/lavalink-devs/lavalink:v4-update-lp
+    image: ghcr.io/lavalink-devs/lavalink:4
     container_name: widenbot-server
     restart: unless-stopped
     environment:
