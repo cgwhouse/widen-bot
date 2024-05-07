@@ -81,8 +81,6 @@ def run_server(user_config):
     lavalink_password = "<LAVALINK_PASSWORD>"
     spotify_client_id = "<SPOTIFY_CLIENTID>"
     spotify_client_secret = "<SPOTIFY_CLIENTSECRET>"
-    youtube_email = "<YOUTUBE_EMAIL>"
-    youtube_password = "<YOUTUBE_PASSWORD>"
 
     lavalinkConfigRaw = get_file_contents("application.template.yml")
 
@@ -90,8 +88,6 @@ def run_server(user_config):
         lavalinkConfigRaw.replace(lavalink_password, user_config["LavalinkPassword"])
         .replace(spotify_client_id, user_config["SpotifyClientID"])
         .replace(spotify_client_secret, user_config["SpotifyClientSecret"])
-        .replace(youtube_email, user_config["YouTubeEmail"])
-        .replace(youtube_password, user_config["YouTubePassword"])
     )
 
     write_file_contents("application.yml", lavalinkConfigUpdated)

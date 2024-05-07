@@ -12,7 +12,7 @@ A WidenBot instance consists of three components:
 
 - A discord bot, configured via the Discord developer portal
 - The audio server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a standalone Java application
-- The discord client (WidenBot), a .NET service
+- The client, a .NET service
 
 ## Dependencies
 
@@ -64,9 +64,7 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
      "DiscordServerID": "Right-click on the server you invited the bot to, select 'Copy Server ID'",
      "LavalinkPassword": "An arbitrary alphanumeric passphrase, anything you want",
      "SpotifyClientID": "Client ID from Spotify developer dashboard",
-     "SpotifyClientSecret": "Client secret from Spotify developer dashboard",
-     "YouTubeEmail": "Email for a Google account you have access to",
-     "YouTubePassword": "Password for the Google account"
+     "SpotifyClientSecret": "Client secret from Spotify developer dashboard"
    }
    ```
 
@@ -79,8 +77,6 @@ Make sure the outputs of `python3 --version`, `docker version`, and `docker comp
    ```bash
    python3 run.py server
    ```
-
-   **NOTE: On first server run, inspect the Lavalink output. If you see any log messages about failing OAuth to Google / Youtube, follow the instructions in the log message, you may need to grant permissions to YouTube. This OAuth portion should be a one-time step per WidenBot setup.**
 
 3. Without interrupting the running server command, open another terminal and execute:
 
