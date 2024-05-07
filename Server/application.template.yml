@@ -66,9 +66,6 @@ lavalink:
     youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
     gc-warnings: true
-    #youtubeConfig:
-    #  email: "<YOUTUBE_EMAIL>"
-    #  password: "<YOUTUBE_PASSWORD>"
 
 metrics:
   prometheus:
