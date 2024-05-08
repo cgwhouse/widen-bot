@@ -13,8 +13,3 @@ Server/application.yml
 Server/docker-compose.yaml
 Server/logs
 Server/plugins/*.jar
-
-# For patched Lavalink server, run directly without docker
-LocalServer/application.yml
-LocalServer/logs
-LocalServer/plugins
