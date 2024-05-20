@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 using Lavalink4NET.Extensions;
@@ -32,6 +33,7 @@ internal class Program
             .AddSingleton<IRestClientProvider>(x =>
                 (IRestClientProvider)x.GetRequiredService<DiscordSocketClient>()
             )
+            .AddSingleton<InteractionService>()
             .AddHostedService<DiscordClientHost>()
             // Lavalink general settings
             .AddLavalink()
