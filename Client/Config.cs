@@ -27,7 +27,7 @@ public class Config
 
         var userConfig =
             JsonSerializer.Deserialize<UserConfig>(
-                File.ReadAllText(Path.Combine(binFolder, "userConfig.json"))
+                File.ReadAllText(Path.Combine(binFolder, "config.json"))
             ) ?? throw new Exception("userConfig is null after deserializing");
 
         DiscordBotToken = userConfig.DiscordBotToken;
