@@ -25,7 +25,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
     private const string CommandPrefix = "";
 
-    public MusicModule(IAudioService audioService, Config config)
+    public MusicModule(IAudioService audioService)
     {
         _audioService = audioService;
     }

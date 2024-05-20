@@ -20,9 +20,9 @@ internal class Program
     {
         var builder = new HostApplicationBuilder(args);
 
-        // Inject the Config object early so we can use it below
-        builder.Services.AddSingleton<Config>();
-        var botConfig = new Config();
+        // Inject the Secrets object early so we can use it below
+        builder.Services.AddSingleton<Secrets>();
+        var botSecrets = new Secrets();
 
         builder
             .Services
@@ -45,7 +45,7 @@ internal class Program
                 config.BaseAddress = new Uri("http://widenbot-server:2333");
                 config.ReadyTimeout = TimeSpan.FromSeconds(10);
                 config.Label = "WidenBot";
-                config.Passphrase = botConfig.LavalinkPassword;
+                config.Passphrase = botSecrets.LavalinkPassword;
             })
             // Lavalink inactivity tracking general settings
             .AddInactivityTracking()
