@@ -305,54 +305,55 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             )
             .ConfigureAwait(false);
 
-        if (result.IsSuccess)
+        if (!result.IsSuccess)
         {
-            var player = result.Player;
+            // See the error handling section for more information
+            var errorMessage = CreateErrorEmbed(result);
 
-            // Ensure reasonable volume
-            if (player.Volume != 0.25f)
-                await player
-                    .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+            if (isDeferred)
+                await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
+            else
+                await RespondAsync(embed: errorMessage).ConfigureAwait(false);
 
-            // Ensure SponsorBlock
-            try
-            {
-                var categories = await player
-                    .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+            return null;
+        }
 
-                if (!categories.SequenceEqual(sponsorBlockCategories))
-                    await player
-                        .UpdateSponsorBlockCategoriesAsync(
-                            sponsorBlockCategories,
-                            cancellationToken: cancellationToken
-                        )
-                        .ConfigureAwait(false);
-            }
-            catch (HttpRequestException)
-            {
-                // Endpoint returns 404 when no SponsorBlock categories are set yet
+        var player = result.Player;
+
+        // Ensure reasonable volume
+        if (player.Volume != 0.25f)
+            await player
+                .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+        // Ensure SponsorBlock
+
+        try
+        {
+            var categories = await player
+                .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!categories.SequenceEqual(sponsorBlockCategories))
                 await player
                     .UpdateSponsorBlockCategoriesAsync(
                         sponsorBlockCategories,
                         cancellationToken: cancellationToken
                     )
                     .ConfigureAwait(false);
-            }
-
-            return player;
+        }
+        catch (HttpRequestException)
+        {
+            // Endpoint returns 404 when no SponsorBlock categories are set yet
+            await player
+                .UpdateSponsorBlockCategoriesAsync(
+                    sponsorBlockCategories,
+                    cancellationToken: cancellationToken
+                )
+                .ConfigureAwait(false);
         }
 
-        // See the error handling section for more information
-        var errorMessage = CreateErrorEmbed(result);
-
-        if (isDeferred)
-            await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
-        else
-            await RespondAsync(embed: errorMessage).ConfigureAwait(false);
-
-        return null;
+        return player;
     }
 
     private static Embed CreateErrorEmbed(PlayerResult<QueuedLavalinkPlayer> result)
