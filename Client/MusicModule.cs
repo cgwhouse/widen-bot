@@ -22,12 +22,14 @@ namespace WidenBot;
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
+    private readonly Config _config;
 
     private const string CommandPrefix = "";
 
-    public MusicModule(IAudioService audioService)
+    public MusicModule(IAudioService audioService, Config config)
     {
         _audioService = audioService;
+        _config = config;
     }
 
     [SlashCommand($"{CommandPrefix}creed", description: "Hold me down", runMode: RunMode.Async)]
@@ -305,17 +307,30 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             )
             .ConfigureAwait(false);
 
-        if (result.IsSuccess)
+        if (!result.IsSuccess)
         {
-            var player = result.Player;
+            // See the error handling section for more information
+            var errorMessage = CreateErrorEmbed(result);
 
-            // Ensure reasonable volume
-            if (player.Volume != 0.25f)
-                await player
-                    .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+            if (isDeferred)
+                await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
+            else
+                await RespondAsync(embed: errorMessage).ConfigureAwait(false);
 
-            // Ensure SponsorBlock
+            return null;
+        }
+
+        var player = result.Player;
+
+        // Ensure reasonable volume
+        if (player.Volume != 0.25f)
+            await player
+                .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+        // Ensure SponsorBlock
+        if (_config.UseSponsorBlockIntegration)
+        {
             try
             {
                 var categories = await player
@@ -340,19 +355,9 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                     )
                     .ConfigureAwait(false);
             }
-
-            return player;
         }
 
-        // See the error handling section for more information
-        var errorMessage = CreateErrorEmbed(result);
-
-        if (isDeferred)
-            await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
-        else
-            await RespondAsync(embed: errorMessage).ConfigureAwait(false);
-
-        return null;
+        return player;
     }
 
     private static Embed CreateErrorEmbed(PlayerResult<QueuedLavalinkPlayer> result)

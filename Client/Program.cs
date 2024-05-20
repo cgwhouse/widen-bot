@@ -19,6 +19,10 @@ internal class Program
     {
         var builder = new HostApplicationBuilder(args);
 
+        // Inject the Config object early so we can use it below
+        builder.Services.AddSingleton<Config>();
+        var botConfig = new Config();
+
         builder
             .Services
             // .NET stuff
@@ -28,7 +32,6 @@ internal class Program
             .AddSingleton<IRestClientProvider>(x =>
                 (IRestClientProvider)x.GetRequiredService<DiscordSocketClient>()
             )
-            .AddSingleton<Secrets>()
             .AddHostedService<DiscordClientHost>()
             // Lavalink general settings
             .AddLavalink()
@@ -38,7 +41,7 @@ internal class Program
                 config.BaseAddress = new Uri("http://widenbot-server:2333");
                 config.ReadyTimeout = TimeSpan.FromSeconds(10);
                 config.Label = "WidenBot";
-                config.Passphrase = new Secrets().LavalinkPassword;
+                config.Passphrase = botConfig.LavalinkPassword;
             })
             // Lavalink inactivity tracking general settings
             .AddInactivityTracking()
@@ -67,7 +70,8 @@ internal class Program
 
         var app = builder.Build();
 
-        app.UseSponsorBlock();
+        if (botConfig.UseSponsorBlockIntegration)
+            app.UseSponsorBlock();
 
         await app.RunAsync();
     }

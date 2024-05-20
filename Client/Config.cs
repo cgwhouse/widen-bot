@@ -5,27 +5,33 @@ using System.Text.Json;
 
 namespace WidenBot;
 
-internal class Secrets
+public class Config
 {
     public readonly string DiscordBotToken;
     public readonly string DiscordServerID;
     public readonly string LavalinkPassword;
 
-    private record Config(string DiscordBotToken, string DiscordServerID, string LavalinkPassword);
+    public readonly bool UseSponsorBlockIntegration = false;
 
-    public Secrets()
+    private record UserConfig(
+        string DiscordBotToken,
+        string DiscordServerID,
+        string LavalinkPassword
+    );
+
+    public Config()
     {
         var binFolder =
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
             ?? throw new Exception("binFolder is null");
 
-        var config =
-            JsonSerializer.Deserialize<Config>(
-                File.ReadAllText(Path.Combine(binFolder, "config.json"))
-            ) ?? throw new Exception("config is null after deserializing");
+        var userConfig =
+            JsonSerializer.Deserialize<UserConfig>(
+                File.ReadAllText(Path.Combine(binFolder, "userConfig.json"))
+            ) ?? throw new Exception("userConfig is null after deserializing");
 
-        DiscordBotToken = config.DiscordBotToken;
-        DiscordServerID = config.DiscordServerID;
-        LavalinkPassword = config.LavalinkPassword;
+        DiscordBotToken = userConfig.DiscordBotToken;
+        DiscordServerID = userConfig.DiscordServerID;
+        LavalinkPassword = userConfig.LavalinkPassword;
     }
 }

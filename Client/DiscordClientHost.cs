@@ -14,19 +14,19 @@ internal sealed class DiscordClientHost : IHostedService
     private readonly DiscordSocketClient _discordSocketClient;
     private readonly InteractionService _interactionService;
     private readonly IServiceProvider _serviceProvider;
-    private readonly Secrets _secrets;
+    private readonly Config _config;
 
     public DiscordClientHost(
         DiscordSocketClient discordSocketClient,
         InteractionService interactionService,
         IServiceProvider serviceProvider,
-        Secrets secrets
+        Config config
     )
     {
         _discordSocketClient = discordSocketClient;
         _interactionService = interactionService;
         _serviceProvider = serviceProvider;
-        _secrets = secrets;
+        _config = config;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ internal sealed class DiscordClientHost : IHostedService
         _discordSocketClient.Ready += ClientReady;
 
         await _discordSocketClient
-            .LoginAsync(TokenType.Bot, _secrets.DiscordBotToken)
+            .LoginAsync(TokenType.Bot, _config.DiscordBotToken)
             .ConfigureAwait(false);
 
         await _discordSocketClient.StartAsync().ConfigureAwait(false);
@@ -63,7 +63,7 @@ internal sealed class DiscordClientHost : IHostedService
             .ConfigureAwait(false);
 
         await _interactionService
-            .RegisterCommandsToGuildAsync(ulong.Parse(_secrets.DiscordServerID))
+            .RegisterCommandsToGuildAsync(ulong.Parse(_config.DiscordServerID))
             .ConfigureAwait(false);
     }
 }
