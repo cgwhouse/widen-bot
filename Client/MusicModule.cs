@@ -22,14 +22,12 @@ namespace WidenBot;
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
-    private readonly Config _config;
 
     private const string CommandPrefix = "";
 
     public MusicModule(IAudioService audioService, Config config)
     {
         _audioService = audioService;
-        _config = config;
     }
 
     [SlashCommand($"{CommandPrefix}creed", description: "Hold me down", runMode: RunMode.Async)]
@@ -329,32 +327,30 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 .ConfigureAwait(false);
 
         // Ensure SponsorBlock
-        if (_config.UseSponsorBlockIntegration)
-        {
-            try
-            {
-                var categories = await player
-                    .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
 
-                if (!categories.SequenceEqual(sponsorBlockCategories))
-                    await player
-                        .UpdateSponsorBlockCategoriesAsync(
-                            sponsorBlockCategories,
-                            cancellationToken: cancellationToken
-                        )
-                        .ConfigureAwait(false);
-            }
-            catch (HttpRequestException)
-            {
-                // Endpoint returns 404 when no SponsorBlock categories are set yet
+        try
+        {
+            var categories = await player
+                .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!categories.SequenceEqual(sponsorBlockCategories))
                 await player
                     .UpdateSponsorBlockCategoriesAsync(
                         sponsorBlockCategories,
                         cancellationToken: cancellationToken
                     )
                     .ConfigureAwait(false);
-            }
+        }
+        catch (HttpRequestException)
+        {
+            // Endpoint returns 404 when no SponsorBlock categories are set yet
+            await player
+                .UpdateSponsorBlockCategoriesAsync(
+                    sponsorBlockCategories,
+                    cancellationToken: cancellationToken
+                )
+                .ConfigureAwait(false);
         }
 
         return player;

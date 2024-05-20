@@ -72,8 +72,7 @@ internal class Program
 
         var app = builder.Build();
 
-        if (botConfig.UseSponsorBlockIntegration)
-            app.UseSponsorBlock();
+        app.UseSponsorBlock();
 
         await app.RunAsync();
     }

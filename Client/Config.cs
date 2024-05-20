@@ -11,8 +11,6 @@ public class Config
     public readonly string DiscordServerID;
     public readonly string LavalinkPassword;
 
-    public readonly bool UseSponsorBlockIntegration = false;
-
     private record UserConfig(
         string DiscordBotToken,
         string DiscordServerID,
