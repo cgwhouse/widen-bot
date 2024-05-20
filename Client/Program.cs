@@ -30,6 +30,8 @@ internal class Program
             .AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Information))
             .AddMemoryCache()
             .AddSingleton<DiscordSocketClient>()
+            // NOTE: below DI is required as of Discord.Net 3.15.0, unintended break that will probably
+            // be fixed in the future
             .AddSingleton<IRestClientProvider>(x =>
                 (IRestClientProvider)x.GetRequiredService<DiscordSocketClient>()
             )
