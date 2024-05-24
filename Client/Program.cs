@@ -12,7 +12,8 @@ using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using WidenBot;
+
+namespace WidenBot;
 
 internal class Program
 {
