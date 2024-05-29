@@ -1,0 +1,13 @@
+services:
+  client:
+    container_name: <INSTANCE_LABEL>-client
+    build: .
+    ports:
+      - 80:80
+    networks:
+      - <INSTANCE_LABEL>-lavalink
+
+networks:
+  lavalink:
+    name: <INSTANCE_LABEL>-lavalink
+    external: true
