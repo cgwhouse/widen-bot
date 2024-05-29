@@ -52,6 +52,7 @@ def handle_user_config():
     try:
         user_config = json.loads(get_file_contents("config.json"))
 
+        # Validate config contents
         if user_config["label"] == "" or not user_config["label"].isalnum():
             return None
 
