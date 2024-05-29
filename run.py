@@ -40,7 +40,7 @@ def handle_client_server_arg():
     if len(sys.argv) < 2:
         return None
 
-    run_target = sys.argv[1]
+    run_target = sys.argv[1].lower()
 
     if run_target not in ["client", "server"]:
         return None
