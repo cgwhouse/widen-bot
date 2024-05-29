@@ -82,16 +82,16 @@ def handle_user_config(run_target):
             # Generate password and add to config
             user_config["password"] = create_password()
         else:
-            # Get password from server application.yml
+            # Extract password from server application.yml
             server_config = get_file_contents_as_lines("Server/application.yml")
 
-            for test in server_config:
-                if ("password" in test):
-                    print(test)
-                    print(test.replace("password: ", "").strip())
+            for line in server_config:
+                if "password: " in line:
+                    password = line.replace("password: ", "").replace('"', "").strip()
+                    print(password)
+                    break
 
             return None
-
 
         return user_config
     except (FileNotFoundError, KeyError):
@@ -175,10 +175,12 @@ def get_file_contents(path):
         raw = f.read()
         return raw
 
+
 def get_file_contents_as_lines(path):
     with open(path, "r") as f:
         raw = f.readlines()
         return raw
+
 
 def write_file_contents(path, contents, is_json=False):
     with open(path, "w") as f:
