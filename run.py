@@ -109,7 +109,7 @@ def run_client(user_config):
     print("Building and running WidenBot client...")
 
     # Run container
-    subprocess.run(["docker", "compose", "up", "--build"])
+    subprocess.run(["docker", "compose", "up", "--build", "--force-recreate"])
 
 
 def run_server(user_config):
@@ -145,7 +145,7 @@ def run_server(user_config):
     print("docker-compose.yaml has been created / overwritten...")
 
     # Run container
-    subprocess.run(["docker", "compose", "up", "--build"])
+    subprocess.run(["docker", "compose", "up", "--build", "--force-recreate"])
 
 
 def get_file_contents(path):
