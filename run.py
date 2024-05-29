@@ -33,7 +33,7 @@ def main():
     if run_target == "client":
         # Ensure server running first
         if (
-            subprocess.check_output(
+            subprocess.run(
                 [
                     "docker",
                     "container",
