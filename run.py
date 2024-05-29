@@ -22,7 +22,7 @@ def main():
         )
         return
 
-    user_config = handle_user_config()
+    user_config = handle_user_config(run_target)
 
     if user_config is None:
         print(
@@ -33,30 +33,16 @@ def main():
     if run_target == "client":
         # Ensure server running first
         serverCheck = subprocess.run(
-            [
-                "docker",
-                "container",
-                "ls",
-                # "|",
-                # "grep",
-                # f"{user_config['label']}-server",
-            ],
-            capture_output=True,
-            text=True
+            ["docker", "container", "ls"], capture_output=True, text=True
         )
 
-        print(serverCheck.stdout.find(f"{user_config['label']}-server"))
-
-        print(serverCheck.stdout)
-        print(serverCheck.stderr)
-
-        return
-        if serverCheck:
-            print("need server first")
+        if serverCheck.stdout.find(f"{user_config['label']}-server") == -1:
+            print("Server must be running first")
             return
 
         run_client(user_config)
     else:
+        # TODO: if client is already running, kill it
         run_server(user_config)
 
 
@@ -72,7 +58,7 @@ def handle_client_server_arg():
     return run_target
 
 
-def handle_user_config():
+def handle_user_config(run_target):
     try:
         user_config = json.loads(get_file_contents("config.json"))
 
@@ -92,10 +78,21 @@ def handle_user_config():
         ):
             return None
 
-        # TODO: only generate password if server, if client then retrieve password from server files
+        if run_target == "server":
+            # Generate password and add to config
+            user_config["password"] = create_password()
+        else:
+            # Get password from server application.yml
+            server_config = get_file_contents_as_lines("Server/application.yml")
 
-        # Generate password and add to config
-        user_config["password"] = create_password()
+            for test in server_config:
+                if ("password" in test):
+                    print(test)
+                    print(test.replace("password: ", "").strip())
+                print(test)
+
+            return None
+
 
         return user_config
     except (FileNotFoundError, KeyError):
@@ -179,6 +176,10 @@ def get_file_contents(path):
         raw = f.read()
         return raw
 
+def get_file_contents_as_lines(path):
+    with open(path, "r") as f:
+        raw = f.readlines()
+        return raw
 
 def write_file_contents(path, contents, is_json=False):
     with open(path, "w") as f:
