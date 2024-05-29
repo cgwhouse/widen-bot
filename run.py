@@ -89,8 +89,7 @@ def create_password():
 
 
 def run_client(user_config):
-    with open("Client/config.json", "w") as f:
-        json.dump(user_config, f)
+    write_file_contents("Client/config.json", user_config, is_json=True)
 
     # Change current working directory to client
     os.chdir("./Client")
@@ -150,16 +149,17 @@ def run_server(user_config):
 
 
 def get_file_contents(path):
-    f = open(path, "r")
-    raw = f.read()
-    f.close()
-    return raw
+    with open(path, "r") as f:
+        raw = f.read()
+        return raw
 
 
-def write_file_contents(path, contents):
-    f = open(path, "w")
-    f.write(contents)
-    f.close()
+def write_file_contents(path, contents, is_json=False):
+    with open(path, "w") as f:
+        if is_json:
+            json.dump(contents, f)
+        else:
+            f.write(contents)
 
 
 if __name__ == "__main__":
