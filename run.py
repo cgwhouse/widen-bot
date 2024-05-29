@@ -7,7 +7,8 @@ Before executing, ensure that values for all properties in config.json have been
 
 import json
 import os
-import shutil
+import random
+import string
 import subprocess
 import sys
 
@@ -15,7 +16,7 @@ import sys
 def main():
     run_target = handle_client_server_arg()
 
-    if run_target == None:
+    if run_target is None:
         print(
             "Usage: python3 run.py run_target, where run_target = 'client' or 'server'"
         )
@@ -23,14 +24,14 @@ def main():
 
     user_config = handle_user_config()
 
-    if user_config == None:
+    if user_config is None:
         print(
             "config.json must exist in main directory (same as this script), and must be fully specified. See README.md"
         )
         return
 
     if run_target == "client":
-        run_client()
+        run_client(user_config)
     else:
         run_server(user_config)
 
@@ -50,19 +51,45 @@ def handle_client_server_arg():
 def handle_user_config():
     try:
         user_config = json.loads(get_file_contents("config.json"))
-    except FileNotFoundError:
-        return None
 
-    for key in user_config:
-        if user_config[key] == "":
+        if user_config["label"] == "" or not user_config["label"].isalnum():
             return None
 
-    return user_config
+        if (
+            user_config["discord"]["serverID"] == ""
+            or user_config["discord"]["botToken"] == ""
+        ):
+            return None
+
+        if (
+            user_config["spotify"]["clientID"] == ""
+            or user_config["spotify"]["clientSecret"] == ""
+        ):
+            return None
+
+        # Generate password and add to config
+        user_config["password"] = create_password()
+
+        return user_config
+    except (FileNotFoundError, KeyError):
+        return None
 
 
-def run_client():
-    # Copy config.json to the client working directory
-    shutil.copyfile("./config.json", "Client/config.json")
+def create_password():
+    alphanumerics = list(
+        string.ascii_lowercase + string.ascii_uppercase + string.digits
+    )
+
+    password = ""
+    for _ in range(15):
+        password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+
+    return password
+
+
+def run_client(user_config):
+    with open("Client/config.json", "w") as f:
+        json.dump(user_config, f)
 
     # Change current working directory to client
     os.chdir("./Client")
@@ -85,9 +112,9 @@ def run_server(user_config):
     lavalinkConfigRaw = get_file_contents("application.template.yml")
 
     lavalinkConfigUpdated = (
-        lavalinkConfigRaw.replace(lavalink_password, user_config["LavalinkPassword"])
-        .replace(spotify_client_id, user_config["SpotifyClientID"])
-        .replace(spotify_client_secret, user_config["SpotifyClientSecret"])
+        lavalinkConfigRaw.replace(lavalink_password, user_config["password"])
+        .replace(spotify_client_id, user_config["spotify"]["clientID"])
+        .replace(spotify_client_secret, user_config["spotify"]["clientSecret"])
     )
 
     write_file_contents("application.yml", lavalinkConfigUpdated)
@@ -97,7 +124,7 @@ def run_server(user_config):
     dockerComposeRaw = get_file_contents("docker-compose.template.yaml")
 
     dockerComposeUpdated = dockerComposeRaw.replace(
-        lavalink_password, user_config["LavalinkPassword"]
+        lavalink_password, user_config["password"]
     )
 
     write_file_contents("docker-compose.yaml", dockerComposeUpdated)
