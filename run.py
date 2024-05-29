@@ -37,9 +37,9 @@ def main():
                 "docker",
                 "container",
                 "ls",
-                "|",
-                "grep",
-                f"{user_config['label']}-server",
+                #"|",
+                #"grep",
+                #f"{user_config['label']}-server",
             ]
         )
 
