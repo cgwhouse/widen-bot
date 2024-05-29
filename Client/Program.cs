@@ -43,7 +43,7 @@ internal class Program
             .ConfigureLavalink(config =>
             {
                 // Comment out to debug against a locally running Lavalink server
-                config.BaseAddress = new Uri("http://widenbot-server:2333");
+                config.BaseAddress = new Uri($"http://{botSecrets.Label}:2333");
                 config.ReadyTimeout = TimeSpan.FromSeconds(10);
                 config.Label = "WidenBot";
                 config.Passphrase = botSecrets.LavalinkPassword;
