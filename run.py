@@ -32,7 +32,19 @@ def main():
 
     if run_target == "client":
         # Ensure server running first
-        if subprocess.check_output(["docker", "container", "ls", "|", "grep", f"{user_config["label"]}-server"]) == "":
+        if (
+            subprocess.check_output(
+                [
+                    "docker",
+                    "container",
+                    "ls",
+                    "|",
+                    "grep",
+                    f"{user_config['label']}-server",
+                ]
+            )
+            == ""
+        ):
             print("need server first")
             return
 
