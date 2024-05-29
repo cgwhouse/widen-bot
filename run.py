@@ -37,11 +37,15 @@ def main():
                 "docker",
                 "container",
                 "ls",
-                #"|",
-                #"grep",
-                #f"{user_config['label']}-server",
-            ]
+                # "|",
+                # "grep",
+                # f"{user_config['label']}-server",
+            ],
+            capture_output=True,
+            text=True
         )
+
+        print(serverCheck.stdout.find(f"{user_config['label']}-server"))
 
         print(serverCheck.stdout)
         print(serverCheck.stderr)
