@@ -89,7 +89,6 @@ def handle_user_config(run_target):
                 if ("password" in test):
                     print(test)
                     print(test.replace("password: ", "").strip())
-                print(test)
 
             return None
 
