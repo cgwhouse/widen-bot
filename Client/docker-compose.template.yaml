@@ -5,9 +5,9 @@ services:
     ports:
       - 80:80
     networks:
-      - <INSTANCE_LABEL>-lavalink
+      - <INSTANCE_LABEL>-net
 
 networks:
-  lavalink:
-    name: <INSTANCE_LABEL>-lavalink
+  <INSTANCE_LABEL>-net:
+    name: <INSTANCE_LABEL>-net
     external: true

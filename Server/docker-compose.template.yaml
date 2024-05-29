@@ -17,8 +17,8 @@ services:
       # Persist plugins between restarts
       - ./plugins/:/opt/Lavalink/plugins/
     networks:
-      # Use the lavalink network defined below so client container can see it
-      - <INSTANCE_LABEL>-lavalink
+      # Use the network defined below so client container can see it
+      - <INSTANCE_LABEL>-net
     expose:
       # Expose port 2333 for the client
       - 2333
@@ -28,5 +28,5 @@ services:
 
 # Create network so the client can talk to the server
 networks:
-  lavalink:
-    name: <INSTANCE_LABEL>-lavalink
+  <INSTANCE_LABEL>-net:
+    name: <INSTANCE_LABEL>-net

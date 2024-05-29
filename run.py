@@ -31,6 +31,11 @@ def main():
         return
 
     if run_target == "client":
+        # Ensure server running first
+        if subprocess.check_output(["docker", "container", "ls", "|", "grep", f"{user_config["label"]}-server"]) == "":
+            print("need server first")
+            return
+
         run_client(user_config)
     else:
         run_server(user_config)
@@ -67,6 +72,8 @@ def handle_user_config():
             or user_config["spotify"]["clientSecret"] == ""
         ):
             return None
+
+        # TODO: only generate password if server, if client then retrieve password from server files
 
         # Generate password and add to config
         user_config["password"] = create_password()
