@@ -2,7 +2,7 @@ services:
   server:
     # Lavalink v4
     image: ghcr.io/lavalink-devs/lavalink:4
-    container_name: widenbot-server
+    container_name: <INSTANCE_LABEL>-server
     restart: unless-stopped
     environment:
       # Java options
@@ -18,7 +18,7 @@ services:
       - ./plugins/:/opt/Lavalink/plugins/
     networks:
       # Use the lavalink network defined below so client container can see it
-      - lavalink
+      - <INSTANCE_LABEL>-lavalink
     expose:
       # Expose port 2333 for the client
       - 2333
@@ -29,4 +29,4 @@ services:
 # Create network so the client can talk to the server
 networks:
   lavalink:
-    name: lavalink
+    name: <INSTANCE_LABEL>-lavalink
