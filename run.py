@@ -95,6 +95,18 @@ def run_client(user_config):
     # Change current working directory to client
     os.chdir("./Client")
 
+    instance_label = "<INSTANCE_LABEL>"
+
+    dockerComposeRaw = get_file_contents("docker-compose.template.yaml")
+
+    dockerComposeUpdated = dockerComposeRaw.replace(
+        instance_label, user_config["label"]
+    )
+
+    write_file_contents("docker-compose.yaml", dockerComposeUpdated)
+
+    print("docker-compose.yaml has been created / overwritten...")
+
     print("Building and running WidenBot client...")
 
     # Run container
@@ -109,6 +121,7 @@ def run_server(user_config):
     lavalink_password = "<LAVALINK_PASSWORD>"
     spotify_client_id = "<SPOTIFY_CLIENTID>"
     spotify_client_secret = "<SPOTIFY_CLIENTSECRET>"
+    instance_label = "<INSTANCE_LABEL>"
 
     lavalinkConfigRaw = get_file_contents("application.template.yml")
 
@@ -126,7 +139,7 @@ def run_server(user_config):
 
     dockerComposeUpdated = dockerComposeRaw.replace(
         lavalink_password, user_config["password"]
-    )
+    ).replace(instance_label, user_config["label"])
 
     write_file_contents("docker-compose.yaml", dockerComposeUpdated)
 
