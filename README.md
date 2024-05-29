@@ -2,10 +2,6 @@
 
 ## TODO
 
-- support naming of the instance, would need to validate what was provided
-- hard validate label no spaces alphanumeric only
-- generate password randomly for every run? heck why not
-
 WidenBot is your private music bot for Discord.
 
 **Disclaimers:**
