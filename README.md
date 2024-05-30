@@ -2,6 +2,10 @@
 
 ## TODO
 
+- replace angle brackets in tokens I am replacing
+- figure out how to detect what port to use
+- update readme with port instructions
+
 WidenBot is your private music bot for Discord.
 
 **Disclaimers:**
