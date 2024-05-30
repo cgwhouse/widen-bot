@@ -1,5 +1,5 @@
 services:
-  client:
+  <INSTANCE_LABEL>-client:
     container_name: <INSTANCE_LABEL>-client
     build: .
     ports:

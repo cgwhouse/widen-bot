@@ -1,5 +1,5 @@
 services:
-  server:
+  <INSTANCE_LABEL>-server:
     # Lavalink v4
     image: ghcr.io/lavalink-devs/lavalink:4
     container_name: <INSTANCE_LABEL>-server
