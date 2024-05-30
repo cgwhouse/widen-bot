@@ -1,13 +1,13 @@
 services:
-  <INSTANCE_LABEL>-client:
-    container_name: <INSTANCE_LABEL>-client
+  INSTANCE_LABEL-client:
+    container_name: INSTANCE_LABEL-client
     build: .
     ports:
-      - 80:80
+      - CLIENT_PORT:CLIENT_PORT
     networks:
-      - <INSTANCE_LABEL>-net
+      - INSTANCE_LABEL-net
 
 networks:
-  <INSTANCE_LABEL>-net:
-    name: <INSTANCE_LABEL>-net
+  INSTANCE_LABEL-net:
+    name: INSTANCE_LABEL-net
     external: true
