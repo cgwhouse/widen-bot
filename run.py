@@ -42,7 +42,7 @@ def main():
 
         run_client(user_config)
     else:
-        # TODO: if client is already running, kill it
+        kill_client_if_running(user_config)
         run_server(user_config)
 
 
@@ -78,34 +78,38 @@ def handle_user_config(run_target):
         ):
             return None
 
-        if run_target == "server":
-            # Generate password and add to config
-            user_config["password"] = create_password()
-        else:
-            # Extract password from server application.yml
-            server_config = get_file_contents_as_lines("Server/application.yml")
+        password = handle_password(run_target)
 
-            for line in server_config:
-                if "password: " in line:
-                    password = line.replace("password: ", "").replace('"', "").strip()
-                    print(password)
-                    break
-
+        if password == "":
             return None
+
+        user_config["password"] = password
 
         return user_config
     except (FileNotFoundError, KeyError):
         return None
 
 
-def create_password():
-    alphanumerics = list(
-        string.ascii_lowercase + string.ascii_uppercase + string.digits
-    )
-
+def handle_password(run_target):
     password = ""
-    for _ in range(15):
-        password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+
+    # If server, generate new password
+    if run_target == "server":
+        alphanumerics = list(
+            string.ascii_lowercase + string.ascii_uppercase + string.digits
+        )
+
+        for _ in range(15):
+            password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+
+    # If client, extract password from running server
+    else:
+        server_config = get_file_contents_as_lines("Server/application.yml")
+
+        for line in server_config:
+            if "password: " in line:
+                password = line.replace("password: ", "").replace('"', "").strip()
+                break
 
     return password
 
@@ -168,6 +172,25 @@ def run_server(user_config):
 
     # Run container
     subprocess.run(["docker", "compose", "up", "--build", "--force-recreate"])
+
+
+def kill_client_if_running(user_config):
+    # Check for client
+    serverCheck = subprocess.run(
+        ["docker", "container", "ls"], capture_output=True, text=True
+    )
+
+    if serverCheck.stdout.find(f"{user_config['label']}-client") == -1:
+        return
+
+    print("Killing currently running client...")
+
+    subprocess.run(
+        ["docker", "container", "kill", f"{user_config['label']}-client"],
+        capture_output=True,
+    )
+
+    print("Old client has been killed...")
 
 
 def get_file_contents(path):
