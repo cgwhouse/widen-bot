@@ -36,7 +36,7 @@ def main():
             ["docker", "container", "ls"], capture_output=True, text=True
         )
 
-        if serverCheck.stdout.find(f"{user_config['label']}-server") == -1:
+        if serverCheck.stdout.find(f"{user_config['label']}-widenbot-server") == -1:
             print("Server must be running first")
             return
 
