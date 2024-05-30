@@ -8,8 +8,10 @@ obj
 # Contains user secrets, manually managed
 config.json
 
+# Auto-generated for both Client and Server
+docker-compose.yaml
+
 # Lavalink server
 Server/application.yml
-Server/docker-compose.yaml
 Server/logs
 Server/plugins/*.jar

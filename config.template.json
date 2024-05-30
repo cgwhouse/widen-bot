@@ -1,7 +1,12 @@
 {
-  "DiscordBotToken": "",
-  "DiscordServerID": "",
-  "LavalinkPassword": "",
-  "SpotifyClientID": "",
-  "SpotifyClientSecret": ""
+  "clientPort": "",
+  "label": "",
+  "discord": {
+    "serverID": "",
+    "botToken": ""
+  },
+  "spotify": {
+    "clientID": "",
+    "clientSecret": ""
+  }
 }
