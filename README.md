@@ -1,11 +1,5 @@
 # WidenBot
 
-## TODO
-
-- replace angle brackets in tokens I am replacing
-- figure out how to detect what port to use
-- update readme with port instructions
-
 WidenBot is your private music bot for Discord.
 
 **Disclaimers:**
@@ -78,6 +72,8 @@ instructions on installing Docker.
 
    ```json
    {
+     "clientPort": "Start with 80 for this, and for each instance of WidenBot
+     hosted on the same machine, increment by 1"
      "label": "An arbitrary label for this instance of WidenBot",
      "discord": {
        "serverID": "Right-click on the server you invited the bot to, select
