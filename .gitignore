@@ -9,7 +9,8 @@ obj
 config.json
 
 # Auto-generated for both Client and Server
-docker-compose.yaml
+#docker-compose.yaml
+.env
 
 # Lavalink server
 Server/application.yml
