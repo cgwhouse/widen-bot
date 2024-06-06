@@ -192,11 +192,11 @@ def run_server(user_config):
         [
             "docker",
             "compose",
+            "-p",
+            user_config["label"],
             "up",
             "--build",
             "--force-recreate",
-            "-p",
-            user_config["label"],
         ]
     )
 
