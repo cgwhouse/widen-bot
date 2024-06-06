@@ -136,7 +136,17 @@ def run_client(user_config):
     print("Building and running WidenBot client...")
 
     # Run container
-    subprocess.run(["docker", "compose", "up", "--build", "--force-recreate"])
+    subprocess.run(
+        [
+            "docker",
+            "compose",
+            "up",
+            "--build",
+            "--force-recreate",
+            "-p",
+            user_config["label"],
+        ]
+    )
 
 
 def run_server(user_config):
@@ -202,6 +212,7 @@ def kill_client_if_running(user_config):
 
     print("Killing currently running client...")
 
+    # TODO: make sure this is still right
     subprocess.run(
         ["docker", "container", "kill", f"{user_config['label']}-client"],
         capture_output=True,
