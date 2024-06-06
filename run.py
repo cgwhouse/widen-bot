@@ -92,6 +92,7 @@ def handle_password(run_target):
             password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
 
     # If client, extract password from running server
+    # TODO: this is wrong I'm sure
     else:
         server_config = get_file_contents_as_lines("Server/application.yml")
 

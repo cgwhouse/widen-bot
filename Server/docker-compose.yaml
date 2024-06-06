@@ -3,7 +3,7 @@ services:
     env_file: ../.env
     # Lavalink v4
     image: ghcr.io/lavalink-devs/lavalink:4
-    container_name: widenbot-server
+    container_name: ${INSTANCE_LABEL}-widenbot-server
     restart: unless-stopped
     environment:
       # Java options
@@ -30,4 +30,4 @@ services:
 # Create network so the client can talk to the server
 networks:
   widenbot-net:
-    name: widenbot-net
+    name: ${INSTANCE_LABEL}-widenbot-net
