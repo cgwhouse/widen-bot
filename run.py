@@ -208,14 +208,14 @@ def kill_client_if_running(user_config):
         ["docker", "container", "ls"], capture_output=True, text=True
     )
 
-    if serverCheck.stdout.find(f"{user_config['label']}-client") == -1:
+    if serverCheck.stdout.find(f"{user_config['label']}-widenbot-client") == -1:
         return
 
     print("Killing currently running client...")
 
     # TODO: make sure this is still right
     subprocess.run(
-        ["docker", "container", "kill", f"{user_config['label']}-client"],
+        ["docker", "container", "kill", f"{user_config['label']}-widenbot-client"],
         capture_output=True,
     )
 
@@ -236,6 +236,8 @@ def write_env_file(user_config):
     env_file_contents += (
         f"SPOTIFY_CLIENT_SECRET={user_config['spotify']['clientSecret']}\n"
     )
+
+    env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
     write_file_contents(".env", env_file_contents)
 

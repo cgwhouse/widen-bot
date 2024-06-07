@@ -1,8 +1,6 @@
 services:
   widenbot-server:
-    env_file: 
-      - path: ../.env
-        required: true
+    #env_file: ../.env
     # Lavalink v4
     image: ghcr.io/lavalink-devs/lavalink:4
     container_name: ${INSTANCE_LABEL}-widenbot-server
