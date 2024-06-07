@@ -94,11 +94,11 @@ def handle_password(run_target):
     # If client, extract password from running server
     # TODO: this is wrong I'm sure
     else:
-        server_config = get_file_contents_as_lines("Server/application.yml")
+        server_config = get_file_contents_as_lines("Server/.env")
 
         for line in server_config:
-            if "password: " in line:
-                password = line.replace("password: ", "").replace('"', "").strip()
+            if "LAVALINK_PASSWORD" in line:
+                password = line.replace("LAVALINK_PASSWORD=", "").strip()
                 break
 
     return password
