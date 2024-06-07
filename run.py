@@ -197,8 +197,8 @@ def write_env_file(user_config):
 
     env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
-    write_file_contents("Server/.env", env_file_contents)
-    write_file_contents("Client/.env", env_file_contents)
+    write_file_contents(".env", env_file_contents)
+    write_file_contents("../Client/.env", env_file_contents)
 
 
 def get_file_contents(path):
