@@ -1,0 +1,18 @@
+services:
+  widenbot-client:
+    container_name: ${INSTANCE_LABEL}-widenbot-client
+    build: .
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+    networks:
+      - widenbot-net
+    environment:
+      - INSTANCE_LABEL=${INSTANCE_LABEL}
+      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD}
+      - DISCORD_SERVER_ID=${DISCORD_SERVER_ID}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+
+networks:
+  widenbot-net:
+    name: ${INSTANCE_LABEL}-widenbot-net
+    external: true

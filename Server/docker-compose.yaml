@@ -1,8 +1,8 @@
 services:
-  INSTANCE_LABEL-widenbot-server:
+  widenbot-server:
     # Lavalink v4
     image: ghcr.io/lavalink-devs/lavalink:4
-    container_name: INSTANCE_LABEL-widenbot-server
+    container_name: ${INSTANCE_LABEL}-widenbot-server
     restart: unless-stopped
     environment:
       # Java options
@@ -10,7 +10,7 @@ services:
       # Lavalink server port
       - SERVER_PORT=2333
       # Lavalink password
-      - LAVALINK_SERVER_PASSWORD=LAVALINK_PASSWORD
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
     volumes:
       # Mount application.yml from the same directory
       - ./application.yml:/opt/Lavalink/application.yml
@@ -18,7 +18,7 @@ services:
       - ./plugins/:/opt/Lavalink/plugins/
     networks:
       # Use the network defined below so client container can see it
-      - INSTANCE_LABEL-widenbot-net
+      - widenbot-net
     expose:
       # Expose port 2333 for the client
       - 2333
@@ -28,5 +28,5 @@ services:
 
 # Create network so the client can talk to the server
 networks:
-  INSTANCE_LABEL-widenbot-net:
-    name: INSTANCE_LABEL-widenbot-net
+  widenbot-net:
+    name: ${INSTANCE_LABEL}-widenbot-net
