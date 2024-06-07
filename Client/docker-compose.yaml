@@ -1,6 +1,5 @@
 services:
   widenbot-client:
-    env_file: ../.env
     container_name: ${INSTANCE_LABEL}-widenbot-client
     build: .
     ports:

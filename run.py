@@ -14,9 +14,6 @@ import sys
 
 
 def main():
-    # if len(sys.argv) < 2:
-    #    return None
-
     # Handle run target
     try:
         run_target = sys.argv[1].lower()
@@ -30,7 +27,7 @@ def main():
         return
 
     # Extract config.json
-    user_config = handle_user_config(run_target)
+    user_config = handle_user_config()
 
     if user_config is None:
         print(
@@ -38,13 +35,21 @@ def main():
         )
         return
 
+    password = handle_password(run_target)
+
+    if password == "":
+        print("Unauthorized")
+        return
+
+    user_config["password"] = password
+
     if run_target == "client":
         run_client(user_config)
     else:
         run_server(user_config)
 
 
-def handle_user_config(run_target):
+def handle_user_config():
     try:
         user_config = json.loads(get_file_contents("config.json"))
 
@@ -67,13 +72,6 @@ def handle_user_config(run_target):
         ):
             return None
 
-        password = handle_password(run_target)
-
-        if password == "":
-            return None
-
-        user_config["password"] = password
-
         return user_config
     except (FileNotFoundError, KeyError, ValueError):
         return None
@@ -92,7 +90,6 @@ def handle_password(run_target):
             password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
 
     # If client, extract password from running server
-    # TODO: this is wrong I'm sure
     else:
         server_config = get_file_contents_as_lines("Server/.env")
 
@@ -116,25 +113,8 @@ def run_client(user_config):
         )
         return
 
-    # write_file_contents("Client/config.json", user_config, is_json=True)
-
     # Change current working directory to client
     os.chdir("./Client")
-
-    # instance_label = "INSTANCE_LABEL"
-    # client_port = "CLIENT_PORT"
-
-    # dockerComposeRaw = get_file_contents("docker-compose.template.yaml")
-
-    # dockerComposeUpdated = dockerComposeRaw.replace(
-    #    instance_label, user_config["label"]
-    # ).replace(client_port, user_config["clientPort"])
-
-    # write_file_contents("docker-compose.yaml", dockerComposeUpdated)
-
-    # print("docker-compose.yaml has been created / overwritten...")
-
-    print("Building and running WidenBot client...")
 
     # Run container
     subprocess.run(
@@ -151,42 +131,29 @@ def run_client(user_config):
 
 
 def run_server(user_config):
-    kill_client_if_running(user_config)
-
-    # Write config.json contents to .env file
-    write_env_file(user_config)
 
     # Change current working directory to server
     os.chdir("./Server")
 
-    # Create application.yml and docker-compose.yaml with injected secrets from config
-    # lavalink_password = "LAVALINK_PASSWORD"
-    spotify_client_id = "SPOTIFY_CLIENTID"
-    spotify_client_secret = "SPOTIFY_CLIENTSECRET"
-    # instance_label = "INSTANCE_LABEL"
+    # Create application.yml with injected Spotify secrets from config
+    spotify_client_id = "SPOTIFY_CLIENT_ID"
+    spotify_client_secret = "SPOTIFY_CLIENT_SECRET"
 
     lavalinkConfigRaw = get_file_contents("application.template.yml")
 
-    lavalinkConfigUpdated = (
-        # lavalinkConfigRaw.replace(lavalink_password, user_config["password"])
-        lavalinkConfigRaw.replace(
-            spotify_client_id, user_config["spotify"]["clientID"]
-        ).replace(spotify_client_secret, user_config["spotify"]["clientSecret"])
-    )
+    lavalinkConfigUpdated = lavalinkConfigRaw.replace(
+        spotify_client_id, user_config["spotify"]["clientID"]
+    ).replace(spotify_client_secret, user_config["spotify"]["clientSecret"])
 
     write_file_contents("application.yml", lavalinkConfigUpdated)
 
-    print("application.yml has been created / overwritten with Spotify credentials...")
+    # Ensure client no longer running if one is currently
+    # Since this is a new server run, the password will have changed
+    # and the old client session is no longer valid
+    kill_client_if_running(user_config)
 
-    # dockerComposeRaw = get_file_contents("docker-compose.template.yaml")
-
-    # dockerComposeUpdated = dockerComposeRaw.replace(
-    #    lavalink_password, user_config["password"]
-    # ).replace(instance_label, user_config["label"])
-
-    # write_file_contents("docker-compose.yaml", dockerComposeUpdated)
-
-    # print("docker-compose.yaml has been created / overwritten...")
+    # Write user config contents to .env file
+    write_env_file(user_config)
 
     # Run container
     subprocess.run(
@@ -208,18 +175,17 @@ def kill_client_if_running(user_config):
         ["docker", "container", "ls"], capture_output=True, text=True
     )
 
-    if serverCheck.stdout.find(f"{user_config['label']}-widenbot-client") == -1:
+    clientName = f"{user_config['label']}-widenbot-client"
+
+    if serverCheck.stdout.find(clientName) == -1:
         return
 
-    print("Killing currently running client...")
-
-    # TODO: make sure this is still right
     subprocess.run(
-        ["docker", "container", "kill", f"{user_config['label']}-widenbot-client"],
+        ["docker", "container", "kill", clientName],
         capture_output=True,
     )
 
-    print("Old client has been killed...")
+    print("Currently running client has been killed...")
 
 
 def write_env_file(user_config):
@@ -229,17 +195,10 @@ def write_env_file(user_config):
     env_file_contents += f"DISCORD_SERVER_ID={user_config['discord']['serverID']}\n"
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
 
-    env_file_contents += f"SPOTIFY_CLIENT_ID={user_config['spotify']['clientID']}\n"
-    env_file_contents += (
-        f"SPOTIFY_CLIENT_SECRET={user_config['spotify']['clientSecret']}\n"
-    )
-
     env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
     write_file_contents("Server/.env", env_file_contents)
     write_file_contents("Client/.env", env_file_contents)
-
-    print(".env file has been created / overwritten...")
 
 
 def get_file_contents(path):
@@ -254,12 +213,9 @@ def get_file_contents_as_lines(path):
         return raw
 
 
-def write_file_contents(path, contents, is_json=False):
+def write_file_contents(path, contents):
     with open(path, "w") as f:
-        if is_json:
-            json.dump(contents, f)
-        else:
-            f.write(contents)
+        f.write(contents)
 
 
 if __name__ == "__main__":

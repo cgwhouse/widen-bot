@@ -21,8 +21,4 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
   </ItemGroup>
 
-  <!--<ItemGroup>
-    <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>-->
-
 </Project>
