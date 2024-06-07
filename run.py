@@ -223,10 +223,7 @@ def kill_client_if_running(user_config):
 
 
 def write_env_file(user_config):
-
-    env_file_contents = ""
-
-    env_file_contents += f"CLIENT_PORT={user_config['clientPort']}\n"
+    env_file_contents = f"CLIENT_PORT={user_config['clientPort']}\n"
     env_file_contents += f"INSTANCE_LABEL={user_config['label']}\n"
 
     env_file_contents += f"DISCORD_SERVER_ID={user_config['discord']['serverID']}\n"
@@ -239,7 +236,8 @@ def write_env_file(user_config):
 
     env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
-    write_file_contents(".env", env_file_contents)
+    write_file_contents("Server/.env", env_file_contents)
+    write_file_contents("Client/.env", env_file_contents)
 
     print(".env file has been created / overwritten...")
 
