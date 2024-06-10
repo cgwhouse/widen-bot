@@ -1,0 +1,44 @@
+services:
+  widenbot-server:
+    # Lavalink v4
+    image: ghcr.io/lavalink-devs/lavalink:4
+    container_name: ${INSTANCE_LABEL}-widenbot-server
+    restart: unless-stopped
+    environment:
+      # Java options
+      - _JAVA_OPTIONS=-Xmx6G
+      # Lavalink server port
+      - SERVER_PORT=2333
+      # Lavalink password
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+    volumes:
+      # Mount application.yml from the same directory
+      - ./application.yml:/opt/Lavalink/application.yml
+      # Persist plugins between restarts
+      - ./plugins/:/opt/Lavalink/plugins/
+    networks:
+      # Use the network defined below so client container can see it
+      - widenbot-net
+    expose:
+      # Expose port 2333 for the client
+      - 2333
+    # Uncomment this to make the server accessible from outside of Docker (e.g. local debugging)
+    #ports:
+    #  - 2333:2333
+  widenbot-client:
+    container_name: ${INSTANCE_LABEL}-widenbot-client
+    build: .
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+    networks:
+      - widenbot-net
+    environment:
+      - INSTANCE_LABEL=${INSTANCE_LABEL}
+      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD}
+      - DISCORD_SERVER_ID=${DISCORD_SERVER_ID}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+
+# Create network so the client can talk to the server
+networks:
+  widenbot-net:
+    name: ${INSTANCE_LABEL}-widenbot-net
