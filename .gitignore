@@ -12,6 +12,6 @@ config.json
 .env
 
 # Lavalink server
-Server/application.yml
-Server/logs
-Server/plugins/*.jar
+application.yml
+logs
+plugins/*.jar
