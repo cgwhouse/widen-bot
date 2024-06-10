@@ -27,6 +27,7 @@ services:
     #  - 2333:2333
   widenbot-client:
     container_name: ${INSTANCE_LABEL}-widenbot-client
+    restart: unless-stopped
     build: .
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
