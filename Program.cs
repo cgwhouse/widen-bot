@@ -9,6 +9,7 @@ using Lavalink4NET.InactivityTracking.Extensions;
 using Lavalink4NET.InactivityTracking.Trackers.Idle;
 using Lavalink4NET.InactivityTracking.Trackers.Users;
 using Lavalink4NET.Integrations.SponsorBlock.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,9 +22,7 @@ internal class Program
     {
         var builder = new HostApplicationBuilder(args);
 
-        // Inject the Secrets object early so we can use it below
-        builder.Services.AddSingleton<Secrets>();
-        var botSecrets = new Secrets();
+        builder.Configuration.AddEnvironmentVariables();
 
         builder
             .Services
@@ -42,11 +41,20 @@ internal class Program
             .AddLavalink()
             .ConfigureLavalink(config =>
             {
+                var instanceLabel =
+                    builder.Configuration.GetValue<string>("INSTANCE_LABEL")
+                    ?? throw new Exception("INSTANCE_LABEL is null");
+
+                var lavalinkPassword =
+                    builder.Configuration.GetValue<string>("LAVALINK_PASSWORD")
+                    ?? throw new Exception("LAVALINK_PASSWORD is null");
+
                 // Comment out to debug against a locally running Lavalink server
-                config.BaseAddress = new Uri($"http://{botSecrets.Label}-widenbot-server:2333");
+                config.BaseAddress = new Uri($"http://{instanceLabel}-widenbot-server:2333");
+
+                config.Label = $"WidenBot-{instanceLabel}";
+                config.Passphrase = lavalinkPassword;
                 config.ReadyTimeout = TimeSpan.FromSeconds(10);
-                config.Label = $"WidenBot-{botSecrets.Label}";
-                config.Passphrase = botSecrets.LavalinkPassword;
             })
             // Lavalink inactivity tracking general settings
             .AddInactivityTracking()
