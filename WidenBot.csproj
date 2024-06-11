@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <WarningsAsErrors>enable</WarningsAsErrors>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute> 
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
   <ItemGroup>
