@@ -1,17 +1,17 @@
-bin
-obj
-.vscode
-
-# Emacs LSP cache
-.cache
-
 # Contains user secrets, manually managed
-config.json
+/config.json
+
+# vs code and Emacs LSP cache
+/.vscode
+/.cache
 
 # Environment variables
-.env
+src/.env
+
+# .NET
+src/bin
+src/obj
 
 # Lavalink server
-application.yml
-logs
-plugins/*.jar
+src/application.yml
+src/plugins/*.jar
