@@ -23,28 +23,9 @@ def main():
         )
         return
 
-    label = user_config["label"]
-    client_container = f"{label}-widenbot-client"
-    server_container = f"{label}-widenbot-server"
-
-    # Check for special action
+    # Check for action
     if len(sys.argv) > 1:
-        action = sys.argv[1].lower()
-
-        if action == "stop":
-            subprocess.run(["docker", "container", "kill", client_container])
-            subprocess.run(["docker", "container", "kill", server_container])
-            print(f"WidenBot instance {label} has been stopped.")
-
-        elif action == "client-logs":
-            subprocess.run(["docker", "logs", client_container, "--follow"])
-
-        elif action == "server-logs":
-            subprocess.run(["docker", "logs", server_container, "--follow"])
-
-        else:
-            print("Unrecognized action.")
-
+        handle_action(user_config, sys.argv[1].lower())
         return
 
     run_bot(user_config)
@@ -88,6 +69,26 @@ def handle_user_config():
         return user_config
     except (FileNotFoundError, KeyError, ValueError):
         return None
+
+
+def handle_action(user_config, action):
+    label = user_config["label"]
+    client_container = f"{label}-widenbot-client"
+    server_container = f"{label}-widenbot-server"
+
+    if action == "stop":
+        subprocess.run(["docker", "container", "kill", client_container])
+        subprocess.run(["docker", "container", "kill", server_container])
+        print(f"WidenBot instance {label} has been stopped.")
+
+    elif action == "client-logs":
+        subprocess.run(["docker", "logs", client_container, "--follow"])
+
+    elif action == "server-logs":
+        subprocess.run(["docker", "logs", server_container, "--follow"])
+
+    else:
+        print("Unrecognized action.")
 
 
 def run_bot(user_config):
