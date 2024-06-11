@@ -55,7 +55,7 @@ def main():
         ]
     )
 
-    print(f"\nWidenBot instance {user_config["label"]} is now running!")
+    print(f"\nWidenBot instance {user_config['label']} is now running!")
 
     print(
         "To view logs, use 'python3 run.py client-logs' or 'python3 run.py server-logs'"
