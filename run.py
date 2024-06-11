@@ -6,6 +6,7 @@ Before executing, ensure that values for all properties in config.json have been
 """
 
 import json
+import os
 import random
 import string
 import subprocess
@@ -91,6 +92,8 @@ def handle_user_config():
 
 def run_bot(user_config):
     print("Starting WidenBot...")
+
+    os.chdir("./src")
 
     # Lavalink application.yml
     write_application_yml(
