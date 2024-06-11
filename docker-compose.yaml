@@ -1,0 +1,43 @@
+services:
+  widenbot-server:
+    container_name: ${INSTANCE_LABEL}-widenbot-server
+    image: ghcr.io/lavalink-devs/lavalink:4
+    restart: unless-stopped
+    networks:
+      - widenbot-net
+    # Uncomment this to make the server accessible from outside of Docker (e.g. local debugging)
+    # ports:
+    #   - 2333:2333
+    volumes:
+      # Mount application.yml from the same directory
+      - ./application.yml:/opt/Lavalink/application.yml
+      # Persist plugins between restarts
+      - ./plugins/:/opt/Lavalink/plugins/
+    expose:
+      - 2333
+    environment:
+      # Java options
+      - _JAVA_OPTIONS=-Xmx6G
+      # Lavalink server port
+      - SERVER_PORT=2333
+      # Lavalink password
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+  widenbot-client:
+    depends_on:
+      - widenbot-server
+    container_name: ${INSTANCE_LABEL}-widenbot-client
+    build: .
+    restart: unless-stopped
+    networks:
+      - widenbot-net
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+    environment:
+      - INSTANCE_LABEL=${INSTANCE_LABEL}
+      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD}
+      - DISCORD_SERVER_ID=${DISCORD_SERVER_ID}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+
+networks:
+  widenbot-net:
+    name: ${INSTANCE_LABEL}-widenbot-net

@@ -6,7 +6,6 @@ Before executing, ensure that values for all properties in config.json have been
 """
 
 import json
-import os
 import random
 import string
 import subprocess
@@ -14,19 +13,7 @@ import sys
 
 
 def main():
-    # Handle run target
-    try:
-        run_target = sys.argv[1].lower()
-
-        if run_target not in ["client", "server"]:
-            raise IndexError
-    except IndexError:
-        print(
-            "Usage: python3 run.py run_target, where run_target = 'client' or 'server'"
-        )
-        return
-
-    # Extract config.json
+    # Get config.json
     user_config = handle_user_config()
 
     if user_config is None:
@@ -35,18 +22,31 @@ def main():
         )
         return
 
-    password = handle_password(run_target)
+    label = user_config["label"]
+    client_container = f"{label}-widenbot-client"
+    server_container = f"{label}-widenbot-server"
 
-    if password == "":
-        print("Unauthorized")
+    # Check for special action
+    if len(sys.argv) > 1:
+        action = sys.argv[1].lower()
+
+        if action == "stop":
+            subprocess.run(["docker", "container", "kill", client_container])
+            subprocess.run(["docker", "container", "kill", server_container])
+            print(f"WidenBot instance {label} has been stopped.")
+
+        elif action == "client-logs":
+            subprocess.run(["docker", "logs", client_container, "--follow"])
+
+        elif action == "server-logs":
+            subprocess.run(["docker", "logs", server_container, "--follow"])
+
+        else:
+            print("Unrecognized action.")
+
         return
 
-    user_config["password"] = password
-
-    if run_target == "client":
-        run_client(user_config)
-    else:
-        run_server(user_config)
+    run_bot(user_config)
 
 
 def handle_user_config():
@@ -72,51 +72,38 @@ def handle_user_config():
         ):
             return None
 
+        # Generate new password for this run
+        alphanumerics = list(
+            string.ascii_lowercase + string.ascii_uppercase + string.digits
+        )
+
+        password = ""
+
+        for _ in range(15):
+            password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+
+        user_config["password"] = password
+
         return user_config
     except (FileNotFoundError, KeyError, ValueError):
         return None
 
 
-def handle_password(run_target):
-    password = ""
+def run_bot(user_config):
+    print("Starting WidenBot...")
 
-    # If server, generate new password
-    if run_target == "server":
-        alphanumerics = list(
-            string.ascii_lowercase + string.ascii_uppercase + string.digits
-        )
-
-        for _ in range(15):
-            password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
-
-    # If client, extract password from running server
-    else:
-        server_config = get_file_contents_as_lines("Server/.env")
-
-        for line in server_config:
-            if "LAVALINK_PASSWORD" in line:
-                password = line.replace("LAVALINK_PASSWORD=", "").strip()
-                break
-
-    return password
-
-
-def run_client(user_config):
-    # Ensure server running first
-    serverCheck = subprocess.run(
-        ["docker", "container", "ls"], capture_output=True, text=True
+    # Lavalink application.yml
+    write_application_yml(
+        user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
     )
 
-    if serverCheck.stdout.find(f"{user_config['label']}-widenbot-server") == -1:
-        print(
-            "Server must be running first, See 'Running the Bot' section of README.md"
-        )
-        return
+    print("...Created audio server config")
 
-    # Change current working directory to client
-    os.chdir("./Client")
+    # Docker .env file
+    write_env_file(user_config)
 
-    # Run container
+    print("...Created environment variables")
+
     subprocess.run(
         [
             "docker",
@@ -126,66 +113,26 @@ def run_client(user_config):
             "up",
             "--build",
             "--force-recreate",
+            "--detach",
         ]
     )
 
+    print(f"\nWidenBot instance {user_config['label']} is now running!")
+    print("To view logs: 'python3 run.py client-logs' or 'python3 run.py server-logs'")
+    print("To stop the bot: 'python3 run.py stop'")
 
-def run_server(user_config):
 
-    # Change current working directory to server
-    os.chdir("./Server")
-
-    # Create application.yml with injected Spotify secrets from config
+def write_application_yml(client_id, client_secret):
     spotify_client_id = "SPOTIFY_CLIENT_ID"
     spotify_client_secret = "SPOTIFY_CLIENT_SECRET"
 
-    lavalinkConfigRaw = get_file_contents("application.template.yml")
+    lavalink_config_raw = get_file_contents("application.template.yml")
 
-    lavalinkConfigUpdated = lavalinkConfigRaw.replace(
-        spotify_client_id, user_config["spotify"]["clientID"]
-    ).replace(spotify_client_secret, user_config["spotify"]["clientSecret"])
+    lavalink_config_updated = lavalink_config_raw.replace(
+        spotify_client_id, client_id
+    ).replace(spotify_client_secret, client_secret)
 
-    write_file_contents("application.yml", lavalinkConfigUpdated)
-
-    # Ensure client no longer running if one is currently
-    # Since this is a new server run, the password will have changed
-    # and the old client session is no longer valid
-    kill_client_if_running(user_config)
-
-    # Write user config contents to .env file
-    write_env_file(user_config)
-
-    # Run container
-    subprocess.run(
-        [
-            "docker",
-            "compose",
-            "-p",
-            user_config["label"],
-            "up",
-            "--build",
-            "--force-recreate",
-        ]
-    )
-
-
-def kill_client_if_running(user_config):
-    # Check for client
-    serverCheck = subprocess.run(
-        ["docker", "container", "ls"], capture_output=True, text=True
-    )
-
-    clientName = f"{user_config['label']}-widenbot-client"
-
-    if serverCheck.stdout.find(clientName) == -1:
-        return
-
-    subprocess.run(
-        ["docker", "container", "kill", clientName],
-        capture_output=True,
-    )
-
-    print("Currently running client has been killed...")
+    write_file_contents("application.yml", lavalink_config_updated)
 
 
 def write_env_file(user_config):
@@ -198,18 +145,11 @@ def write_env_file(user_config):
     env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
     write_file_contents(".env", env_file_contents)
-    write_file_contents("../Client/.env", env_file_contents)
 
 
 def get_file_contents(path):
     with open(path, "r") as f:
         raw = f.read()
-        return raw
-
-
-def get_file_contents_as_lines(path):
-    with open(path, "r") as f:
-        raw = f.readlines()
         return raw
 
 
