@@ -9,13 +9,13 @@ import json
 import random
 import string
 import subprocess
+import sys
 
 
 def main():
 
     # TODO:
     # update readme
-    # separate scripts for logs and killing? or just optional actions
 
     # Get config.json
     user_config = handle_user_config()
@@ -25,6 +25,24 @@ def main():
             "config.json must exist in main directory (same as this script), and must be fully specified. See 'WidenBot Config' section of README.md"
         )
         return
+
+    label = user_config["label"]
+
+    # Check for special action
+    try:
+        action = sys.argv[1].lower()
+
+        if action == "stop":
+            handle_stop(label)
+            return
+        elif action == "client-logs":
+            subprocess.run(["docker", "logs", f"{label}-client", "--follow"])
+            return
+        elif action == "server-logs":
+            subprocess.run(["docker", "logs", f"{label}-server", "--follow"])
+            return
+    except IndexError:
+        pass
 
     print("Starting WidenBot...")
 
@@ -40,8 +58,6 @@ def main():
 
     print("...Created environment variables")
 
-    print("...Assembling bot")
-
     subprocess.run(
         [
             "docker",
@@ -56,12 +72,14 @@ def main():
     )
 
     print(f"\nWidenBot instance {user_config['label']} is now running!")
+    print("To view logs: 'python3 run.py client-logs' or 'python3 run.py server-logs'")
+    print("To stop the bot: 'python3 run.py stop'")
 
-    print(
-        "To view logs, use 'python3 run.py client-logs' or 'python3 run.py server-logs'"
-    )
 
-    print("To stop the bot, use 'python3 run.py stop'")
+def handle_stop(label):
+    subprocess.run(["docker", "container", "kill", f"{label}-client"])
+    subprocess.run(["docker", "container", "kill", f"{label}-server"])
+    print(f"WidenBot instance {label} has been stopped.")
 
 
 def handle_user_config():
