@@ -16,6 +16,7 @@ def main():
     # TODO:
     # update readme
     # env variables injected into IConfiguration instead of weird custom class
+    # separate scripts for logs and killing? or just optional actions
 
     # Get config.json
     user_config = handle_user_config()
@@ -55,9 +56,13 @@ def main():
         ]
     )
 
-    print("...Bot is now running!")
+    print(f"\nWidenBot instance {user_config["label"]} is now running!")
 
-    print("...TODO note about viewing logs")
+    print(
+        "To view logs, use 'python3 run.py client-logs' or 'python3 run.py server-logs'"
+    )
+
+    print("To stop the bot, use 'python3 run.py stop'")
 
 
 def handle_user_config():
