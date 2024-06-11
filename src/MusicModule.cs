@@ -31,7 +31,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     }
 
     [SlashCommand($"{CommandPrefix}creed", description: "Hold me down", runMode: RunMode.Async)]
-    public async Task PlayAsync()
+    public async Task CreedAsync()
     {
         await DeferAsync().ConfigureAwait(false);
 
