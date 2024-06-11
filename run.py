@@ -15,7 +15,6 @@ def main():
 
     # TODO:
     # update readme
-    # env variables injected into IConfiguration instead of weird custom class
     # separate scripts for logs and killing? or just optional actions
 
     # Get config.json
