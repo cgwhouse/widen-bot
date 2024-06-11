@@ -27,19 +27,23 @@ def main():
         return
 
     label = user_config["label"]
+    client_container = f"{label}-widenbot-client"
+    server_container = f"{label}-widenbot-server"
 
     # Check for special action
     try:
         action = sys.argv[1].lower()
 
         if action == "stop":
-            handle_stop(label)
+            subprocess.run(["docker", "container", "kill", client_container])
+            subprocess.run(["docker", "container", "kill", server_container])
+            print(f"WidenBot instance {label} has been stopped.")
             return
         elif action == "client-logs":
-            subprocess.run(["docker", "logs", f"{label}-client", "--follow"])
+            subprocess.run(["docker", "logs", client_container, "--follow"])
             return
         elif action == "server-logs":
-            subprocess.run(["docker", "logs", f"{label}-server", "--follow"])
+            subprocess.run(["docker", "logs", server_container, "--follow"])
             return
     except IndexError:
         pass
@@ -63,7 +67,7 @@ def main():
             "docker",
             "compose",
             "-p",
-            user_config["label"],
+            label,
             "up",
             "--build",
             "--force-recreate",
@@ -71,15 +75,9 @@ def main():
         ]
     )
 
-    print(f"\nWidenBot instance {user_config['label']} is now running!")
+    print(f"\nWidenBot instance {label} is now running!")
     print("To view logs: 'python3 run.py client-logs' or 'python3 run.py server-logs'")
     print("To stop the bot: 'python3 run.py stop'")
-
-
-def handle_stop(label):
-    subprocess.run(["docker", "container", "kill", f"{label}-client"])
-    subprocess.run(["docker", "container", "kill", f"{label}-server"])
-    print(f"WidenBot instance {label} has been stopped.")
 
 
 def handle_user_config():
@@ -126,13 +124,13 @@ def write_application_yml(client_id, client_secret):
     spotify_client_id = "SPOTIFY_CLIENT_ID"
     spotify_client_secret = "SPOTIFY_CLIENT_SECRET"
 
-    lavalinkConfigRaw = get_file_contents("application.template.yml")
+    lavalink_config_raw = get_file_contents("application.template.yml")
 
-    lavalinkConfigUpdated = lavalinkConfigRaw.replace(
+    lavalink_config_updated = lavalink_config_raw.replace(
         spotify_client_id, client_id
     ).replace(spotify_client_secret, client_secret)
 
-    write_file_contents("application.yml", lavalinkConfigUpdated)
+    write_file_contents("application.yml", lavalink_config_updated)
 
 
 def write_env_file(user_config):
