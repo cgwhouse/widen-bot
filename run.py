@@ -13,10 +13,6 @@ import sys
 
 
 def main():
-
-    # TODO:
-    # update readme
-
     # Get config.json
     user_config = handle_user_config()
 
@@ -31,53 +27,26 @@ def main():
     server_container = f"{label}-widenbot-server"
 
     # Check for special action
-    try:
+    if len(sys.argv) > 1:
         action = sys.argv[1].lower()
 
         if action == "stop":
             subprocess.run(["docker", "container", "kill", client_container])
             subprocess.run(["docker", "container", "kill", server_container])
             print(f"WidenBot instance {label} has been stopped.")
-            return
+
         elif action == "client-logs":
             subprocess.run(["docker", "logs", client_container, "--follow"])
-            return
+
         elif action == "server-logs":
             subprocess.run(["docker", "logs", server_container, "--follow"])
-            return
-    except IndexError:
-        pass
 
-    print("Starting WidenBot...")
+        else:
+            print("Unrecognized action.")
 
-    # Lavalink application.yml
-    write_application_yml(
-        user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
-    )
+        return
 
-    print("...Created audio server config")
-
-    # Docker .env file
-    write_env_file(user_config)
-
-    print("...Created environment variables")
-
-    subprocess.run(
-        [
-            "docker",
-            "compose",
-            "-p",
-            label,
-            "up",
-            "--build",
-            "--force-recreate",
-            "--detach",
-        ]
-    )
-
-    print(f"\nWidenBot instance {label} is now running!")
-    print("To view logs: 'python3 run.py client-logs' or 'python3 run.py server-logs'")
-    print("To stop the bot: 'python3 run.py stop'")
+    run_bot(user_config)
 
 
 def handle_user_config():
@@ -118,6 +87,39 @@ def handle_user_config():
         return user_config
     except (FileNotFoundError, KeyError, ValueError):
         return None
+
+
+def run_bot(user_config):
+    print("Starting WidenBot...")
+
+    # Lavalink application.yml
+    write_application_yml(
+        user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
+    )
+
+    print("...Created audio server config")
+
+    # Docker .env file
+    write_env_file(user_config)
+
+    print("...Created environment variables")
+
+    subprocess.run(
+        [
+            "docker",
+            "compose",
+            "-p",
+            user_config["label"],
+            "up",
+            "--build",
+            "--force-recreate",
+            "--detach",
+        ]
+    )
+
+    print(f"\nWidenBot instance {user_config['label']} is now running!")
+    print("To view logs: 'python3 run.py client-logs' or 'python3 run.py server-logs'")
+    print("To stop the bot: 'python3 run.py stop'")
 
 
 def write_application_yml(client_id, client_secret):
