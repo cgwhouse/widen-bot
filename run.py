@@ -5,68 +5,115 @@ Script to inject all the sensitive info needed to connect and run the bot, then 
 Before executing, ensure that values for all properties in config.json have been provided.
 """
 
+import argparse
 import json
 import os
 import random
 import string
 import subprocess
-import sys
+
+# import sys
 
 
 def main():
-    # Get config.json
-    user_config = handle_user_config()
+    args = get_args()
 
-    if user_config is None:
+    # Get config.json
+    user_config_list = handle_user_config()
+
+    if user_config_list is None:
         print(
             "config.json must exist in main directory (same as this script), and must be fully specified. See 'WidenBot Config' section of README.md"
         )
         return
 
-    # Check for action
-    if len(sys.argv) > 1:
-        handle_action(user_config, sys.argv[1].lower())
+    # If no label, ignore everything else and start / restart all bots
+    if args.bot_label is None:
+        run_bots(user_config_list)
         return
 
-    run_bot(user_config)
+    print(args.bot_label)
+    print(args.action)
+    print(args.log_type)
+    return
+
+    # Check for action
+    # if len(sys.argv) > 1:
+    #    # TODO: need to update this to handle multiple bots
+    #    # maybe use argparse
+    #    handle_action(user_config_list, sys.argv[1].lower())
+    #    return
+
+    run_bots(user_config_list)
+
+
+def get_args():
+    parser = argparse.ArgumentParser(
+        prog="run.py",
+        description="Run script for WidenBot.",
+        epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
+    )
+
+    parser.add_argument(
+        "--label",
+        required=False,
+        type=str,
+        help="If not provided, all bots specified in config.json will be rebuilt and restarted. If provided, --action must be specified, and a matching config must be present in config.json.",
+    )
+
+    parser.add_argument(
+        "--action",
+        required=False,
+        type=str,
+        choices=["stop", "logs"],
+        help="Required if --label is specified. 'stop' stops the client and server containers for the given label, 'logs' shows current client or server logs.",
+    )
+
+    parser.add_argument(
+        "--log-type",
+        required=False,
+        type=str,
+        choices=["client", "server"],
+        help="Required if --action 'logs' is specified.",
+    )
+
+    return parser.parse_args()
 
 
 def handle_user_config():
     try:
-        user_config = json.loads(get_file_contents("config.json"))
+        user_config_list = json.loads(get_file_contents("config.json"))
 
-        # Validate config contents
-        if user_config["label"] == "" or not user_config["label"].isalnum():
-            return None
+        # Validate each config in the array
+        for user_config in user_config_list:
+            if user_config["label"] == "" or not user_config["label"].isalnum():
+                return None
 
-        if not int(user_config["clientPort"]):
-            return None
+            if (
+                user_config["discord"]["serverID"] == ""
+                or user_config["discord"]["botToken"] == ""
+            ):
+                return None
 
-        if (
-            user_config["discord"]["serverID"] == ""
-            or user_config["discord"]["botToken"] == ""
-        ):
-            return None
+            if (
+                user_config["spotify"]["clientID"] == ""
+                or user_config["spotify"]["clientSecret"] == ""
+            ):
+                return None
 
-        if (
-            user_config["spotify"]["clientID"] == ""
-            or user_config["spotify"]["clientSecret"] == ""
-        ):
-            return None
+            # Generate new password for this run
+            alphanumerics = list(
+                string.ascii_lowercase + string.ascii_uppercase + string.digits
+            )
 
-        # Generate new password for this run
-        alphanumerics = list(
-            string.ascii_lowercase + string.ascii_uppercase + string.digits
-        )
+            password = ""
 
-        password = ""
+            for _ in range(15):
+                password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
 
-        for _ in range(15):
-            password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+            user_config["password"] = password
 
-        user_config["password"] = password
-
-        return user_config
+        return user_config_list
     except (FileNotFoundError, KeyError, ValueError):
         return None
 
@@ -91,7 +138,7 @@ def handle_action(user_config, action):
         print("Unrecognized action.")
 
 
-def run_bot(user_config):
+def run_bots(user_config):
     print("Starting WidenBot...")
 
     os.chdir("./src")
