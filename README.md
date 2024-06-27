@@ -2,14 +2,8 @@
 
 WidenBot is your private music bot for Discord.
 
-**Disclaimers:**
-
-- **This project is not intended to be a plug-and-play music bot that can be
-  added to a Discord server in a couple of clicks. It requires a bit of manual
-  setup, and hosting is up to you.**
-- **A single instance of WidenBot cannot serve more than one Discord server simultaneously.**
-- **Due to the nature of what a music bot is trying to accomplish, it can be
-  prone to occasional breakage.**
+**Disclaimer: Due to the nature of what a music bot is trying to accomplish, it
+can be prone to occasional breakage.**
 
 A WidenBot instance consists of three components:
 
@@ -67,15 +61,15 @@ instructions on installing Docker.
 ## WidenBot Config
 
 1. Clone this repository
-2. Copy the contents of `config.template.json` into a new file called
-   `config.json`, and provide values as follows:
+2. Copy the contents of `config.template.json` into a new file called `config.json`
+3. For each instance of WidenBot you want to run, add an object to the array
+   like so:
 
    ```json
    {
-     "clientPort": "Start with 80 for this, and for each instance of WidenBot hosted on the same machine, increment by 1",
      "label": "An arbitrary label for this instance of WidenBot",
      "discord": {
-       "serverID": "Right-click on the server you invited the bot to, select 'Copy Server ID'",
+       "serverID": "Right-click on server in Discord and select 'Copy Server ID'",
        "botToken": "Bot token from Discord Developer Portal"
      },
      "spotify": {
@@ -87,7 +81,7 @@ instructions on installing Docker.
 
 ## Running the Bot
 
-1. If on a Linux host, ensure the `Server/plugins` directory has at least 322 permissions.
+1. If on a Linux host, ensure the `Server/plugins` directory has at least 322 permissions
 
 2. From the root of the repository, execute:
 

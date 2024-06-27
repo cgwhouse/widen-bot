@@ -1,12 +1,13 @@
-{
-  "clientPort": "",
-  "label": "",
-  "discord": {
-    "serverID": "",
-    "botToken": ""
-  },
-  "spotify": {
-    "clientID": "",
-    "clientSecret": ""
+[
+  {
+    "label": "",
+    "discord": {
+      "serverID": "",
+      "botToken": ""
+    },
+    "spotify": {
+      "clientID": "",
+      "clientSecret": ""
+    }
   }
-}
+]
