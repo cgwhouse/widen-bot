@@ -28,11 +28,11 @@ def main():
         return
 
     # If no label, ignore everything else and start / restart all bots
-    if args.bot_label is None:
+    if args.label is None:
         run_bots(user_config_list)
         return
 
-    print(args.bot_label)
+    print(args.label)
     print(args.action)
     print(args.log_type)
     return
