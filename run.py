@@ -73,6 +73,7 @@ def get_parser():
 
     parser.add_argument(
         "--label",
+        "-l",
         required=False,
         type=str,
         help="If not provided, all bots specified in config.json will be rebuilt and restarted. If provided, --action must be specified, and a matching config must be present in config.json.",
