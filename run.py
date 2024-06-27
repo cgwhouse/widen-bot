@@ -54,11 +54,11 @@ def main():
         print(f"WidenBot instance {args.label} has been stopped.")
         return
 
-    if args.log_type is None:
+    if args.type is None:
         parser.print_help()
         return
 
-    if args.log_type == "client":
+    if args.type == "client":
         subprocess.run(["docker", "logs", client_container, "--follow"])
     else:
         subprocess.run(["docker", "logs", server_container, "--follow"])
@@ -72,14 +72,15 @@ def get_parser():
     )
 
     parser.add_argument(
-        "--label",
         "-l",
+        "--label",
         required=False,
         type=str,
         help="If not provided, all bots specified in config.json will be rebuilt and restarted. If provided, --action must be specified, and a matching config must be present in config.json.",
     )
 
     parser.add_argument(
+        "-a",
         "--action",
         required=False,
         type=str,
@@ -88,7 +89,8 @@ def get_parser():
     )
 
     parser.add_argument(
-        "--log-type",
+        "-t",
+        "--type",
         required=False,
         type=str,
         choices=["client", "server"],
