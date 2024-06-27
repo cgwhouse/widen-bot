@@ -84,6 +84,9 @@ def handle_user_config():
     try:
         user_config_list = json.loads(get_file_contents("config.json"))
 
+        # Start at 80 and increment by 1 for each bot in the array
+        client_port = 80
+
         # Validate each config in the array
         for user_config in user_config_list:
             if user_config["label"] == "" or not user_config["label"].isalnum():
@@ -113,6 +116,9 @@ def handle_user_config():
 
             user_config["password"] = password
 
+            user_config["clientPort"] = client_port
+            client_port += 1
+
         return user_config_list
     except (FileNotFoundError, KeyError, ValueError):
         return None
@@ -138,39 +144,43 @@ def handle_action(user_config, action):
         print("Unrecognized action.")
 
 
-def run_bots(user_config):
+def run_bots(user_config_list):
     print("Starting WidenBot...")
 
     os.chdir("./src")
 
-    # Lavalink application.yml
-    write_application_yml(
-        user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
-    )
+    labels = list()
+    for user_config in user_config_list:
+        labels.append(user_config["label"])
 
-    print("...Created audio server config")
+        # Lavalink application.yml
+        write_application_yml(
+            user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
+        )
 
-    # Docker .env file
-    write_env_file(user_config)
+        print("...Created audio server config")
 
-    print("...Created environment variables")
+        # Docker .env file
+        write_env_file(user_config)
 
-    subprocess.run(
-        [
-            "docker",
-            "compose",
-            "-p",
-            user_config["label"],
-            "up",
-            "--build",
-            "--force-recreate",
-            "--detach",
-        ]
-    )
+        print("...Created environment variables")
 
-    print(f"\nWidenBot instance {user_config['label']} is now running!")
-    print("To view logs: 'python3 run.py client-logs' or 'python3 run.py server-logs'")
-    print("To stop the bot: 'python3 run.py stop'")
+        subprocess.run(
+            [
+                "docker",
+                "compose",
+                "-p",
+                user_config["label"],
+                "up",
+                "--build",
+                "--force-recreate",
+                "--detach",
+            ]
+        )
+
+    print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
+    # print("To view logs: 'python3 run.py --label [label] --action logs --client' or 'python3 run.py --action logs --server'")
+    # print("To stop the bot: 'python3 run.py --action stop'")
 
 
 def write_application_yml(client_id, client_secret):
