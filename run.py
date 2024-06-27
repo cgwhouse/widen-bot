@@ -32,10 +32,51 @@ def main():
         run_bots(user_config_list)
         return
 
-    print(args.label)
-    print(args.action)
-    print(args.log_type)
-    return
+    # Validate provided label
+    labels = list()
+    for user_config in user_config_list:
+        labels.append(user_config["label"])
+
+    if args.label not in labels:
+        args.print_help()
+        return
+
+    if args.action is None:
+        args.print_help()
+        return
+
+    # def handle_action(user_config, action):
+    #    label = user_config["label"]
+    #    client_container = f"{label}-widenbot-client"
+    #    server_container = f"{label}-widenbot-server"
+    #
+    #    if action == "stop":
+    #        subprocess.run(["docker", "container", "kill", client_container])
+    #        subprocess.run(["docker", "container", "kill", server_container])
+    #        print(f"WidenBot instance {label} has been stopped.")
+    #
+    #    elif action == "client-logs":
+    #        subprocess.run(["docker", "logs", client_container, "--follow"])
+    #
+    #    elif action == "server-logs":
+    #        subprocess.run(["docker", "logs", server_container, "--follow"])
+    #
+    #    else:
+    #        print("Unrecognized action.")
+
+    if args.action == "stop":
+        client_container = f"{args.label}-widenbot-client"
+        server_container = f"{args.label}-widenbot-server"
+
+        subprocess.run(["docker", "container", "kill", client_container])
+        subprocess.run(["docker", "container", "kill", server_container])
+
+        print(f"WidenBot instance {args.label} has been stopped.")
+
+    # print(args.label)
+    # print(args.action)
+    # print(args.log_type)
+    # return
 
     # Check for action
     # if len(sys.argv) > 1:
@@ -44,7 +85,7 @@ def main():
     #    handle_action(user_config_list, sys.argv[1].lower())
     #    return
 
-    run_bots(user_config_list)
+    # run_bots(user_config_list)
 
 
 def get_args():
