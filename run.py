@@ -14,10 +14,11 @@ import subprocess
 
 
 def main():
+    # Handle args
     parser = get_parser()
     args = parser.parse_args()
 
-    # Get config.json
+    # Handle config.json
     user_config_list = handle_user_config()
 
     if user_config_list is None:
@@ -26,7 +27,7 @@ def main():
         )
         return
 
-    # If no label, ignore everything else and start / restart all bots
+    # If no label, start / restart all bots and exit
     if args.label is None:
         run_bots(user_config_list)
         return
@@ -40,6 +41,7 @@ def main():
         parser.print_help()
         return
 
+    # Ensure action was provided
     if args.action is None:
         parser.print_help()
         return
@@ -47,6 +49,7 @@ def main():
     client_container = f"{args.label}-widenbot-client"
     server_container = f"{args.label}-widenbot-server"
 
+    # Perform stop action and exit
     if args.action == "stop":
         subprocess.run(["docker", "container", "kill", client_container])
         subprocess.run(["docker", "container", "kill", server_container])
@@ -54,6 +57,7 @@ def main():
         print(f"WidenBot instance {args.label} has been stopped.")
         return
 
+    # Ensure type was provided, since this is a log action
     if args.type is None:
         parser.print_help()
         return
@@ -144,26 +148,6 @@ def handle_user_config():
         return None
 
 
-def handle_action(user_config, action):
-    label = user_config["label"]
-    client_container = f"{label}-widenbot-client"
-    server_container = f"{label}-widenbot-server"
-
-    if action == "stop":
-        subprocess.run(["docker", "container", "kill", client_container])
-        subprocess.run(["docker", "container", "kill", server_container])
-        print(f"WidenBot instance {label} has been stopped.")
-
-    elif action == "client-logs":
-        subprocess.run(["docker", "logs", client_container, "--follow"])
-
-    elif action == "server-logs":
-        subprocess.run(["docker", "logs", server_container, "--follow"])
-
-    else:
-        print("Unrecognized action.")
-
-
 def run_bots(user_config_list):
     print("Starting WidenBot...")
 
@@ -199,8 +183,6 @@ def run_bots(user_config_list):
         )
 
     print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
-    # print("To view logs: 'python3 run.py --label [label] --action logs --client' or 'python3 run.py --action logs --server'")
-    # print("To stop the bot: 'python3 run.py --action stop'")
 
 
 def write_application_yml(client_id, client_secret):
