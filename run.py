@@ -16,7 +16,8 @@ import subprocess
 
 
 def main():
-    args = get_args()
+    parser = get_parser()
+    args = parser.parse_args()
 
     # Get config.json
     user_config_list = handle_user_config()
@@ -38,11 +39,11 @@ def main():
         labels.append(user_config["label"])
 
     if args.label not in labels:
-        args.print_help()
+        parser.print_help()
         return
 
     if args.action is None:
-        args.print_help()
+        parser.print_help()
         return
 
     # def handle_action(user_config, action):
@@ -88,7 +89,7 @@ def main():
     # run_bots(user_config_list)
 
 
-def get_args():
+def get_parser():
     parser = argparse.ArgumentParser(
         prog="run.py",
         description="Run script for WidenBot.",
@@ -118,7 +119,7 @@ def get_args():
         help="Required if --action 'logs' is specified.",
     )
 
-    return parser.parse_args()
+    return parser
 
 
 def handle_user_config():
