@@ -1,8 +1,6 @@
 """
 run.py
-
-Script to inject all the sensitive info needed to connect and run the bot, then run it.
-Before executing, ensure that values for all properties in config.json have been provided.
+WidenBot Dev Team
 """
 
 import argparse
@@ -11,6 +9,7 @@ import os
 import random
 import string
 import subprocess
+import sys
 
 
 def main():
@@ -41,11 +40,6 @@ def main():
         parser.print_help()
         return
 
-    # Ensure action was provided
-    if args.action is None:
-        parser.print_help()
-        return
-
     client_container = f"{args.label}-widenbot-client"
     server_container = f"{args.label}-widenbot-server"
 
@@ -57,11 +51,7 @@ def main():
         print(f"WidenBot instance {args.label} has been stopped.")
         return
 
-    # Ensure type was provided, since this is a log action
-    if args.type is None:
-        parser.print_help()
-        return
-
+    # Assume logs action
     if args.type == "client":
         subprocess.run(["docker", "logs", client_container, "--follow"])
     else:
@@ -80,25 +70,30 @@ def get_parser():
         "--label",
         required=False,
         type=str,
-        help="If not provided, all bots specified in config.json will be rebuilt and restarted. If provided, --action must be specified, and a matching config must be present in config.json.",
+        help="Use to direct an --action at a given WidenBot instance. If not provided, all bots specified in config.json will be rebuilt and restarted.",
     )
+
+    action_is_required = "--label" in sys.argv or "-l" in sys.argv
 
     parser.add_argument(
         "-a",
         "--action",
-        required=False,
+        required=action_is_required,
         type=str,
         choices=["stop", "logs"],
-        help="Required if --label is specified. 'stop' stops the client and server containers for the given label, 'logs' shows current client or server logs.",
+        help="The 'stop' action stops the client and server containers for the given label, and 'logs' shows current client or server container logs in --follow mode.",
     )
+
+    joined_args = " ".join(sys.argv)
+    type_is_required = "--action logs" in joined_args or "-a logs" in joined_args
 
     parser.add_argument(
         "-t",
         "--type",
-        required=False,
+        required=type_is_required,
         type=str,
         choices=["client", "server"],
-        help="Required if --action 'logs' is specified.",
+        help="Whether to view client or server logs.",
     )
 
     return parser
