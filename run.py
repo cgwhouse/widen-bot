@@ -1,8 +1,3 @@
-"""
-run.py
-WidenBot Dev Team
-"""
-
 import argparse
 import json
 import os
@@ -13,11 +8,8 @@ import sys
 
 
 def main():
-    # Handle args
     parser = get_parser()
     args = parser.parse_args()
-
-    # Handle config.json
     user_config_list = handle_user_config()
 
     if user_config_list is None:
@@ -26,9 +18,14 @@ def main():
         )
         return
 
-    # If no label, start / restart all bots and exit
     if args.label is None:
-        run_bots(user_config_list)
+        if args.action is None:
+            run_all_bots(user_config_list)
+        elif args.action == "stop":
+            stop_all_bots(user_config_list)
+        else:
+            parser.print_help()
+
         return
 
     # Validate provided label
@@ -40,39 +37,19 @@ def main():
         parser.print_help()
         return
 
-    client_container = f"{args.label}-widenbot-client"
-    server_container = f"{args.label}-widenbot-server"
-
-    # Perform stop action and exit
-    if args.action == "stop":
-        subprocess.run(["docker", "container", "kill", client_container])
-        subprocess.run(["docker", "container", "kill", server_container])
-
-        print(f"WidenBot instance {args.label} has been stopped.")
-        return
-
-    # Assume logs action
-    if args.type == "client":
-        subprocess.run(["docker", "logs", client_container, "--follow"])
-    else:
-        subprocess.run(["docker", "logs", server_container, "--follow"])
+    perform_specific_action(args)
 
 
 def get_parser():
     parser = argparse.ArgumentParser(
         prog="run.py",
-        description="Run script for WidenBot.",
+        description="Run script for WidenBot. If no arguments are provided, all instances in config.json will be (re)built and (re)started.",
         epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
     )
 
-    parser.add_argument(
-        "-l",
-        "--label",
-        required=False,
-        type=str,
-        help="Use to direct an --action at a given WidenBot instance. If not provided, all bots specified in config.json will be rebuilt and restarted.",
-    )
+    joined_args = " ".join(sys.argv)
 
+    # --action only needed if a label is present, specific bot instance needs a specific action
     action_is_required = "--label" in sys.argv or "-l" in sys.argv
 
     parser.add_argument(
@@ -84,13 +61,23 @@ def get_parser():
         help="The 'stop' action stops the client and server containers for the given label, and 'logs' shows current client or server container logs in --follow mode.",
     )
 
-    joined_args = " ".join(sys.argv)
-    type_is_required = "--action logs" in joined_args or "-a logs" in joined_args
+    # --label is only required if the --action specified is logs, because --action of stop can be for all bots
+    # --type is to specify which logs to view, so it being required is also
+    # based on whether action_is_logs or not
+    action_is_logs = "--action logs" in joined_args or "-a logs" in joined_args
+
+    parser.add_argument(
+        "-l",
+        "--label",
+        required=action_is_logs,
+        type=str,
+        help="Use to direct an --action at a given WidenBot instance.",
+    )
 
     parser.add_argument(
         "-t",
         "--type",
-        required=type_is_required,
+        required=action_is_logs,
         type=str,
         choices=["client", "server"],
         help="Whether to view client or server logs.",
@@ -143,7 +130,7 @@ def handle_user_config():
         return None
 
 
-def run_bots(user_config_list):
+def run_all_bots(user_config_list):
     print("Starting WidenBot...")
 
     os.chdir("./src")
@@ -178,6 +165,33 @@ def run_bots(user_config_list):
         )
 
     print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
+
+
+def stop_all_bots(user_config_list):
+    for user_config in user_config_list:
+        stop_bot(user_config["label"])
+
+
+def stop_bot(label):
+    for type in ["client", "server"]:
+        subprocess.run(["docker", "container", "kill", get_container_name(label, type)])
+
+    print(f"WidenBot instance {label} has been stopped.")
+
+
+def perform_specific_action(args):
+    if args.action == "stop":
+        stop_bot(args.label)
+        return
+
+    # Can assume logs action due to argparse
+    subprocess.run(
+        ["docker", "logs", get_container_name(args.label, args.type), "--follow"]
+    )
+
+
+def get_container_name(label, type):
+    return f"{label}-widenbot-{type}"
 
 
 def write_application_yml(client_id, client_secret):
