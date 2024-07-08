@@ -105,17 +105,20 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        // Peek at the next thing so we can write a message about it
+        // Peek at the next thing so we can potentially write a message about it
         var queueCopy = player.Queue;
         var newCurrentItemUri = queueCopy.Peek()?.Track?.Uri;
 
         await player.SkipAsync().ConfigureAwait(false);
 
-        if (newCurrentItemUri != null)
-            await RespondAsync($"Skipped. Now playing: {newCurrentItemUri}").ConfigureAwait(false);
-        else
-            await RespondAsync("Skipped. Stopped playing because the queue is now empty.")
-                .ConfigureAwait(false);
+        var responseMessage = "Skipped.";
+
+        if (newCurrentItemUri == null)
+            responseMessage += " Stopped playing because the queue is now empty.";
+        else if (!player.Shuffle)
+            responseMessage += $" Now playing: {newCurrentItemUri}";
+
+        await RespondAsync(responseMessage).ConfigureAwait(false);
     }
 
     [SlashCommand(
