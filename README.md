@@ -86,7 +86,7 @@ instructions on installing Docker.
 2. From the root of the repository, execute:
 
    ```bash
-   python3 run.py
+   python3 run.py start
    ```
 
 The bot can be hosted from any machine that can install the [dependencies](#dependencies).
