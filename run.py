@@ -36,18 +36,6 @@ def main():
             ["docker", "logs", get_container_name(args.label, args.type), "--follow"]
         )
 
-        # perform_specific_action(args)
-
-        # if args.label is None:
-        #    if args.action is None:
-        #        run_all_bots(user_config_list)
-        #    elif args.action == "stop":
-        #        stop_all_bots(user_config_list)
-        #    # else:
-        #    #    parser.print_help()
-
-        #    return
-
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -56,25 +44,14 @@ def get_parser():
         epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
     )
 
-    joined_args = " ".join(sys.argv)
-
-    # --action only needed if a label is present, specific bot instance needs a specific action
-    # action_is_required = "--label" in sys.argv or "-l" in sys.argv
-
     parser.add_argument(
-        # "-a",
         "action",
-        # required=action_is_required,
         type=str,
         choices=["start", "stop", "logs"],
         help="The 'start' / 'stop' actions start or stop all WidenBots in config.json, and 'logs' shows specific client or server container logs in --follow mode.",
     )
 
-    # --label only required if --action is logs
-    # --label is only required if the --action specified is logs, because --action of stop can be for all bots
-    # --type is to specify which logs to view, so it being required is also
-    # based on whether action_is_logs or not
-    action_is_logs = "run.py logs" in joined_args
+    action_is_logs = "run.py logs" in " ".join(sys.argv)
 
     parser.add_argument(
         "-l",
@@ -193,26 +170,6 @@ def stop_all_bots(user_config_list):
 
         print(f"WidenBot instance {label} has been stopped.")
 
-        # stop_bot(user_config["label"])
-
-    # def stop_bot(label):
-    #    for type in ["client", "server"]:
-    #        subprocess.run(["docker", "container", "kill", get_container_name(label, type)])
-    #
-    #    print(f"WidenBot instance {label} has been stopped.")
-
-
-# def perform_specific_action(args):
-#    # if args.action == "stop":
-#    #    stop_bot(args.label)
-#    #    return
-#
-#    # Can assume logs action due to argparse
-
-
-def get_container_name(label, type):
-    return f"{label}-widenbot-{type}"
-
 
 def write_application_yml(client_id, client_secret):
     spotify_client_id = "SPOTIFY_CLIENT_ID"
@@ -248,6 +205,10 @@ def get_file_contents(path):
 def write_file_contents(path, contents):
     with open(path, "w") as f:
         f.write(contents)
+
+
+def get_container_name(label, type):
+    return f"{label}-widenbot-{type}"
 
 
 if __name__ == "__main__":
