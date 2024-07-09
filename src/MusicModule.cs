@@ -230,7 +230,8 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: false, isDeferred: true)
+            .ConfigureAwait(false);
 
         if (player == null)
         {
@@ -247,8 +248,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             result += "Queue is empty.";
         else
         {
-            foreach (var track in player.Queue)
-                result += $"{track.Track?.Title ?? "Unknown title"}\n";
+            if (player.Queue.Count() > 74)
+                result += "Lots! Sorry, WidenBot can't show this many tracks at once.";
+            else
+                foreach (var track in player.Queue)
+                    result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
 
         result += $"\nShuffle: {player.Shuffle}\n";
