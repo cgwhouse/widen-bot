@@ -75,9 +75,14 @@ instructions on installing Docker.
      "spotify": {
        "clientID": "Client ID from Spotify developer dashboard",
        "clientSecret": "Client secret from Spotify developer dashboard"
-     }
+     },
+     "useSponsorBlock": false
    }
    ```
+
+_NOTE: The `useSponsorBlock` flag optionally enables integration with [SponsorBlock](https://sponsor.ajay.app/)
+for YouTube. Mileage may vary, disable if you are having issues.
+At time of writing (July 9 2024), this flag must be set to false for the bot to work._
 
 ## Running the Bot
 
