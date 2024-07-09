@@ -97,6 +97,9 @@ def handle_user_config():
             ):
                 return None
 
+            if user_config["useSponsorBlock"] == "":
+                return None
+
             # Generate new password for this run
             alphanumerics = list(
                 string.ascii_lowercase + string.ascii_uppercase + string.digits
@@ -192,6 +195,8 @@ def write_env_file(user_config):
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
 
     env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
+
+    env_file_contents += f"USE_SPONSORBLOCK={user_config['useSponsorBlock']}\n"
 
     write_file_contents(".env", env_file_contents)
 
