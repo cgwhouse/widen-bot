@@ -228,11 +228,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task ShowAsync()
     {
+        await DeferAsync().ConfigureAwait(false);
+
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
         {
-            await RespondAsync("No player.").ConfigureAwait(false);
+            await FollowupAsync("No player.").ConfigureAwait(false);
             return;
         }
 
@@ -256,7 +258,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player.CurrentItem?.Track != null)
             result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
 
-        await RespondAsync(result).ConfigureAwait(false);
+        await FollowupAsync(result).ConfigureAwait(false);
     }
 
     private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
