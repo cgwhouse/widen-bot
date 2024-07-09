@@ -247,11 +247,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             result += "Queue is empty.";
         else
         {
-            if (player.Queue.Count() > 74)
-                result += "\nLots! Sorry, WidenBot can't show this many tracks at once.\n";
-            else
-                foreach (var track in player.Queue)
-                    result += $"{track.Track?.Title ?? "Unknown title"}\n";
+            var count = player.Queue.Count();
+            //if (count > 74)
+            //    result +=
+            //        $"\nLots ({count})! Sorry, Discord won't let us show this many tracks at once.\n";
+            //else
+            foreach (var track in player.Queue)
+                result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
 
         result += $"\nShuffle: {player.Shuffle}\n";
