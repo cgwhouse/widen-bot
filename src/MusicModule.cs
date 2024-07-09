@@ -238,19 +238,28 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        var result = string.Empty;
+        // Build response starting with queue info
+        var result = $"Queue:\n";
 
-        // Queue
-        result += $"Queue:\n";
+        // Also go ahead and build the final portion of response
+        var finalPortion = $"\nShuffle: {player.Shuffle}\nRepeat: {player.RepeatMode}\n";
+        if (player.CurrentItem?.Track != null)
+            finalPortion += $"Now playing: {player.CurrentItem.Track.Uri}\n";
 
-        if (!player.Queue.Any())
-            result += "Queue is empty.";
-        else
+        if (player.Queue.Any())
         {
-            result += string.Join(
+            // See if we can show the whole queue, 2000 char limit
+            var queueContents = string.Join(
                 "\n",
                 player.Queue.Select(x => x.Track?.Title ?? "Unknown title")
             );
+
+            // Manufacture shorter message if needed
+            if ((result + queueContents + finalPortion).Length > 2000)
+                queueContents =
+                    $"\nLots ({player.Queue.Count()})! Sorry, Discord won't let us show this many tracks at once.\n";
+
+            result += queueContents;
 
             //var count = player.Queue.Count();
             //if (count > 74)
@@ -260,15 +269,19 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             //foreach (var track in player.Queue)
             //    result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
+        else
+            result += "Queue is empty.";
 
-        result += $"\nShuffle: {player.Shuffle}\n";
+        await RespondAsync(result + finalPortion).ConfigureAwait(false);
 
-        result += $"Repeat: {player.RepeatMode}\n";
+        //result += $"\nShuffle: {player.Shuffle}\n";
 
-        if (player.CurrentItem?.Track != null)
-            result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
+        //result += $"Repeat: {player.RepeatMode}\n";
 
-        await RespondAsync(result).ConfigureAwait(false);
+        //if (player.CurrentItem?.Track != null)
+        //    result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
+
+        //await RespondAsync(result).ConfigureAwait(false);
     }
 
     private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
