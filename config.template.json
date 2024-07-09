@@ -8,6 +8,7 @@
     "spotify": {
       "clientID": "",
       "clientSecret": ""
-    }
+    },
+    "useSponsorBlock": false
   }
 ]
