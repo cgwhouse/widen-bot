@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net.Http;
+//using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -9,8 +9,8 @@ using Discord.Interactions;
 using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
-using Lavalink4NET.Integrations.SponsorBlock;
-using Lavalink4NET.Integrations.SponsorBlock.Extensions;
+//using Lavalink4NET.Integrations.SponsorBlock;
+//using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
@@ -309,30 +309,30 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 
         // Ensure SponsorBlock
 
-        try
-        {
-            var categories = await player
-                .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+        //try
+        //{
+        //    var categories = await player
+        //        .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
+        //        .ConfigureAwait(false);
 
-            if (!categories.SequenceEqual(sponsorBlockCategories))
-                await player
-                    .UpdateSponsorBlockCategoriesAsync(
-                        sponsorBlockCategories,
-                        cancellationToken: cancellationToken
-                    )
-                    .ConfigureAwait(false);
-        }
-        catch (HttpRequestException)
-        {
-            // Endpoint returns 404 when no SponsorBlock categories are set yet
-            await player
-                .UpdateSponsorBlockCategoriesAsync(
-                    sponsorBlockCategories,
-                    cancellationToken: cancellationToken
-                )
-                .ConfigureAwait(false);
-        }
+        //    if (!categories.SequenceEqual(sponsorBlockCategories))
+        //        await player
+        //            .UpdateSponsorBlockCategoriesAsync(
+        //                sponsorBlockCategories,
+        //                cancellationToken: cancellationToken
+        //            )
+        //            .ConfigureAwait(false);
+        //}
+        //catch (HttpRequestException)
+        //{
+        //    // Endpoint returns 404 when no SponsorBlock categories are set yet
+        //    await player
+        //        .UpdateSponsorBlockCategoriesAsync(
+        //            sponsorBlockCategories,
+        //            cancellationToken: cancellationToken
+        //        )
+        //        .ConfigureAwait(false);
+        //}
 
         return player;
     }
@@ -378,17 +378,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         return TrackSearchMode.YouTube;
     }
 
-    private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
-    [
-        SegmentCategory.Sponsor,
-        SegmentCategory.SelfPromotion,
-        SegmentCategory.Interaction,
-        SegmentCategory.Intro,
-        SegmentCategory.Outro,
-        SegmentCategory.Preview,
-        SegmentCategory.OfftopicMusic,
-        SegmentCategory.Filler,
-    ];
+    //private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
+    //[
+    //    SegmentCategory.Sponsor,
+    //    SegmentCategory.SelfPromotion,
+    //    SegmentCategory.Interaction,
+    //    SegmentCategory.Intro,
+    //    SegmentCategory.Outro,
+    //    SegmentCategory.Preview,
+    //    SegmentCategory.OfftopicMusic,
+    //    SegmentCategory.Filler,
+    //];
 
     private static bool IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
     {
