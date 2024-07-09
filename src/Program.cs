@@ -8,7 +8,7 @@ using Lavalink4NET.InactivityTracking;
 using Lavalink4NET.InactivityTracking.Extensions;
 using Lavalink4NET.InactivityTracking.Trackers.Idle;
 using Lavalink4NET.InactivityTracking.Trackers.Users;
-//using Lavalink4NET.Integrations.SponsorBlock.Extensions;
+using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -83,7 +83,9 @@ internal class Program
 
         var app = builder.Build();
 
-        //app.UseSponsorBlock();
+        var useSponsorBlock = builder.Configuration.GetValue<bool>("USE_SPONSORBLOCK");
+        if (useSponsorBlock)
+            app.UseSponsorBlock();
 
         await app.RunAsync();
     }

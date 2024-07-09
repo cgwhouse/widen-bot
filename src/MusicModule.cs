@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-//using System.Net.Http;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -9,12 +9,13 @@ using Discord.Interactions;
 using Lavalink4NET;
 using Lavalink4NET.Clients;
 using Lavalink4NET.DiscordNet;
-//using Lavalink4NET.Integrations.SponsorBlock;
-//using Lavalink4NET.Integrations.SponsorBlock.Extensions;
+using Lavalink4NET.Integrations.SponsorBlock;
+using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
+using Microsoft.Extensions.Configuration;
 
 namespace WidenBot;
 
@@ -22,10 +23,14 @@ namespace WidenBot;
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IAudioService _audioService;
+    private readonly IConfiguration _config;
 
-    public MusicModule(IAudioService audioService)
+    private bool UseSponsorBlock => _config.GetValue<bool>("USE_SPONSORBLOCK");
+
+    public MusicModule(IAudioService audioService, IConfiguration config)
     {
         _audioService = audioService;
+        _config = config;
     }
 
     [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
@@ -228,8 +233,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task ShowAsync()
     {
-        //await DeferAsync().ConfigureAwait(false);
-
         var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
@@ -249,39 +252,22 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player.Queue.Any())
         {
             // See if we can show the whole queue, 2000 char limit
-            var queueContents = string.Join(
-                "\n",
-                player.Queue.Select(x => x.Track?.Title ?? "Unknown title")
-            );
+            var queueContents =
+                "\n"
+                + string.Join("\n", player.Queue.Select(x => x.Track?.Title ?? "Unknown title"))
+                + "\n";
 
             // Manufacture shorter message if needed
             if ((result + queueContents + finalPortion).Length > 2000)
                 queueContents =
-                    $"\nLots ({player.Queue.Count()})! Sorry, Discord won't let us show this many tracks at once.\n";
+                    $"\nLots ({player.Queue.Count()}). Discord won't let us show this many tracks at once, the message would be too big.\n";
 
             result += queueContents;
-
-            //var count = player.Queue.Count();
-            //if (count > 74)
-            //    result +=
-            //        $"\nLots ({count})! Sorry, Discord won't let us show this many tracks at once.\n";
-            //else
-            //foreach (var track in player.Queue)
-            //    result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
         else
             result += "Queue is empty.";
 
         await RespondAsync(result + finalPortion).ConfigureAwait(false);
-
-        //result += $"\nShuffle: {player.Shuffle}\n";
-
-        //result += $"Repeat: {player.RepeatMode}\n";
-
-        //if (player.CurrentItem?.Track != null)
-        //    result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
-
-        //await RespondAsync(result).ConfigureAwait(false);
     }
 
     private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
@@ -332,32 +318,34 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
                 .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
-        // Ensure SponsorBlock
+        // Ensure SponsorBlock if enabled
+        if (UseSponsorBlock)
+        {
+            try
+            {
+                var categories = await player
+                    .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
 
-        //try
-        //{
-        //    var categories = await player
-        //        .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
-        //        .ConfigureAwait(false);
-
-        //    if (!categories.SequenceEqual(sponsorBlockCategories))
-        //        await player
-        //            .UpdateSponsorBlockCategoriesAsync(
-        //                sponsorBlockCategories,
-        //                cancellationToken: cancellationToken
-        //            )
-        //            .ConfigureAwait(false);
-        //}
-        //catch (HttpRequestException)
-        //{
-        //    // Endpoint returns 404 when no SponsorBlock categories are set yet
-        //    await player
-        //        .UpdateSponsorBlockCategoriesAsync(
-        //            sponsorBlockCategories,
-        //            cancellationToken: cancellationToken
-        //        )
-        //        .ConfigureAwait(false);
-        //}
+                if (!categories.SequenceEqual(sponsorBlockCategories))
+                    await player
+                        .UpdateSponsorBlockCategoriesAsync(
+                            sponsorBlockCategories,
+                            cancellationToken: cancellationToken
+                        )
+                        .ConfigureAwait(false);
+            }
+            catch (HttpRequestException)
+            {
+                // Endpoint returns 404 when no SponsorBlock categories are set yet
+                await player
+                    .UpdateSponsorBlockCategoriesAsync(
+                        sponsorBlockCategories,
+                        cancellationToken: cancellationToken
+                    )
+                    .ConfigureAwait(false);
+            }
+        }
 
         return player;
     }
@@ -403,17 +391,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         return TrackSearchMode.YouTube;
     }
 
-    //private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
-    //[
-    //    SegmentCategory.Sponsor,
-    //    SegmentCategory.SelfPromotion,
-    //    SegmentCategory.Interaction,
-    //    SegmentCategory.Intro,
-    //    SegmentCategory.Outro,
-    //    SegmentCategory.Preview,
-    //    SegmentCategory.OfftopicMusic,
-    //    SegmentCategory.Filler,
-    //];
+    private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
+    [
+        SegmentCategory.Sponsor,
+        SegmentCategory.SelfPromotion,
+        SegmentCategory.Interaction,
+        SegmentCategory.Intro,
+        SegmentCategory.Outro,
+        SegmentCategory.Preview,
+        SegmentCategory.OfftopicMusic,
+        SegmentCategory.Filler,
+    ];
 
     private static bool IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
     {

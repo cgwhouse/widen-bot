@@ -17,6 +17,14 @@ internal sealed class DiscordClientHost : IHostedService
     private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _config;
 
+    private string BotToken =>
+        _config.GetValue<string>("DISCORD_BOT_TOKEN")
+        ?? throw new Exception("DISCORD_BOT_TOKEN is null");
+
+    private string ServerID =>
+        _config.GetValue<string>("DISCORD_SERVER_ID")
+        ?? throw new Exception("DISCORD_SERVER_ID is null");
+
     public DiscordClientHost(
         DiscordSocketClient discordSocketClient,
         InteractionService interactionService,
@@ -29,14 +37,6 @@ internal sealed class DiscordClientHost : IHostedService
         _serviceProvider = serviceProvider;
         _config = config;
     }
-
-    private string BotToken =>
-        _config.GetValue<string>("DISCORD_BOT_TOKEN")
-        ?? throw new Exception("DISCORD_BOT_TOKEN is null");
-
-    private string ServerID =>
-        _config.GetValue<string>("DISCORD_SERVER_ID")
-        ?? throw new Exception("DISCORD_SERVER_ID is null");
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
