@@ -247,13 +247,18 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             result += "Queue is empty.";
         else
         {
-            var count = player.Queue.Count();
+            result += string.Join(
+                "\n",
+                player.Queue.Select(x => x.Track?.Title ?? "Unknown title")
+            );
+
+            //var count = player.Queue.Count();
             //if (count > 74)
             //    result +=
             //        $"\nLots ({count})! Sorry, Discord won't let us show this many tracks at once.\n";
             //else
-            foreach (var track in player.Queue)
-                result += $"{track.Track?.Title ?? "Unknown title"}\n";
+            //foreach (var track in player.Queue)
+            //    result += $"{track.Track?.Title ?? "Unknown title"}\n";
         }
 
         result += $"\nShuffle: {player.Shuffle}\n";
