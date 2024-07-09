@@ -84,6 +84,7 @@ internal class Program
         var app = builder.Build();
 
         var useSponsorBlock = builder.Configuration.GetValue<bool>("USE_SPONSORBLOCK");
+
         if (useSponsorBlock)
             app.UseSponsorBlock();
 
