@@ -228,14 +228,13 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task ShowAsync()
     {
-        await DeferAsync().ConfigureAwait(false);
+        //await DeferAsync().ConfigureAwait(false);
 
-        var player = await TryGetPlayerAsync(allowConnect: false, isDeferred: true)
-            .ConfigureAwait(false);
+        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
 
         if (player == null)
         {
-            await FollowupAsync("No player.").ConfigureAwait(false);
+            await RespondAsync("No player.").ConfigureAwait(false);
             return;
         }
 
@@ -249,7 +248,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         else
         {
             if (player.Queue.Count() > 74)
-                result += "Lots! Sorry, WidenBot can't show this many tracks at once.";
+                result += "\nLots! Sorry, WidenBot can't show this many tracks at once.\n";
             else
                 foreach (var track in player.Queue)
                     result += $"{track.Track?.Title ?? "Unknown title"}\n";
@@ -262,7 +261,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         if (player.CurrentItem?.Track != null)
             result += $"Now playing: {player.CurrentItem.Track.Uri}\n";
 
-        await FollowupAsync(result).ConfigureAwait(false);
+        await RespondAsync(result).ConfigureAwait(false);
     }
 
     private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
