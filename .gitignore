@@ -1,0 +1,17 @@
+# Contains user secrets, manually managed
+/config.json
+
+# vs code and Emacs LSP cache
+/.vscode
+/.cache
+
+# Environment variables
+src/.env
+
+# .NET
+src/bin
+src/obj
+
+# Lavalink server
+src/application.yml
+src/plugins/*.jar

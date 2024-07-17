@@ -1,0 +1,1 @@
+# Lavalink will automatically download any plugins to this directory
