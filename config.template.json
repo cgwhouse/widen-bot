@@ -9,6 +9,6 @@
       "clientID": "",
       "clientSecret": ""
     },
-    "useSponsorBlock": false
+    "useSponsorBlock": true
   }
 ]
