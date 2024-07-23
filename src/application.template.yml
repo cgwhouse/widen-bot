@@ -31,8 +31,8 @@ server:
 lavalink:
   plugins:
     - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
-    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.1.1"
-    - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.0"
+    - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.2.0"
+    - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.1"
     - dependency: "dev.lavalink.youtube:youtube-plugin:1.4.0"
   server:
     password: ""
