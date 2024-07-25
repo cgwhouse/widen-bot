@@ -21,7 +21,11 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 50 tracks each
   youtube:
     enabled: true
-    clients: ["MUSIC", "ANDROID", "WEB"]
+    clients:
+      - MUSIC
+      - ANDROID_TESTSUITE
+      - WEB
+      - TVHTML5EMBEDDED
 
 server:
   port: 2333
@@ -33,7 +37,7 @@ lavalink:
     - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.2.0"
     - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.1"
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.4.0"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.5.0"
   server:
     password: ""
     sources:
