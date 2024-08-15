@@ -21,6 +21,9 @@ plugins:
       albumLoadLimit: 6 # The number of pages at 50 tracks each
   youtube:
     enabled: true
+    allowSearch: true # Whether "ytsearch:" and "ytmsearch:" can be used.
+    allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
+    allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
     clients:
       - MUSIC
       - ANDROID_TESTSUITE
@@ -37,7 +40,7 @@ lavalink:
     - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.2.0"
     - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.1"
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.5.2"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.6.0"
   server:
     password: ""
     sources:
