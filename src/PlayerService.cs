@@ -119,21 +119,21 @@ public class PlayerService : IPlayerService
         {
             PlayerRetrieveStatus.UserNotInVoiceChannel => "You must be in a voice channel.",
             PlayerRetrieveStatus.BotNotConnected => "The bot is not connected to any channel.",
-            PlayerRetrieveStatus.VoiceChannelMismatch
-                => "You must be in the same voice channel as the bot.",
+            PlayerRetrieveStatus.VoiceChannelMismatch =>
+                "You must be in the same voice channel as the bot.",
 
             PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.Playing
-                => "Failed, player must be playing something.",
+                when result.Precondition == PlayerPrecondition.Playing =>
+                "Failed, player must be playing something.",
             PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.NotPaused
-                => "Failed, player must not be paused.",
+                when result.Precondition == PlayerPrecondition.NotPaused =>
+                "Failed, player must not be paused.",
             PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.Paused
-                => "Failed, player must be paused.",
+                when result.Precondition == PlayerPrecondition.Paused =>
+                "Failed, player must be paused.",
             PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.QueueNotEmpty
-                => "Failed, queue must not be empty",
+                when result.Precondition == PlayerPrecondition.QueueNotEmpty =>
+                "Failed, queue must not be empty",
             _ => "Unknown error.",
         };
 

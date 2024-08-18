@@ -1,21 +1,22 @@
 using System;
-using System.Collections.Immutable;
+//using System.Collections.Immutable;
 using System.Linq;
-using System.Net.Http;
-using System.Threading;
+//using System.Net.Http;
+//using System.Threading;
 using System.Threading.Tasks;
-using Discord;
+//using Discord;
 using Discord.Interactions;
 using Lavalink4NET;
-using Lavalink4NET.Clients;
-using Lavalink4NET.DiscordNet;
-using Lavalink4NET.Integrations.SponsorBlock;
-using Lavalink4NET.Integrations.SponsorBlock.Extensions;
-using Lavalink4NET.Players;
+//using Lavalink4NET.Clients;
+//using Lavalink4NET.DiscordNet;
+//using Lavalink4NET.Integrations.SponsorBlock;
+//using Lavalink4NET.Integrations.SponsorBlock.Extensions;
+//using Lavalink4NET.Players;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
-using Microsoft.Extensions.Configuration;
+
+//using Microsoft.Extensions.Configuration;
 
 namespace WidenBot;
 
@@ -24,19 +25,20 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
 {
     private readonly IPlayerService _playerService;
     private readonly IAudioService _audioService;
-    private readonly IConfiguration _config;
 
-    private bool UseSponsorBlock => _config.GetValue<bool>("USE_SPONSORBLOCK");
+    //private readonly IConfiguration _config;
+
+    //private bool UseSponsorBlock => _config.GetValue<bool>("USE_SPONSORBLOCK");
 
     public MusicModule(
         IPlayerService playerService,
-        IAudioService audioService,
-        IConfiguration config
+        IAudioService audioService //,
+    //IConfiguration config
     )
     {
         _playerService = playerService;
         _audioService = audioService;
-        _config = config;
+        //_config = config;
     }
 
     [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
@@ -123,9 +125,6 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        if (player == null)
-            return;
-
         if (player.CurrentItem == null)
         {
             await RespondAsync("Nothing to skip.").ConfigureAwait(false);
@@ -151,14 +150,21 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
     public async Task PauseAsync()
     {
-        var player = await TryGetPlayerAsync(
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(
+                Context,
                 allowConnect: false,
                 preconditions: [PlayerPrecondition.NotPaused, PlayerPrecondition.Playing]
             )
             .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         await player.PauseAsync().ConfigureAwait(false);
 
@@ -168,14 +174,21 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("resume", description: "Resumes the player", runMode: RunMode.Async)]
     public async Task ResumeAsync()
     {
-        var player = await TryGetPlayerAsync(
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(
+                Context,
                 allowConnect: false,
                 preconditions: [PlayerPrecondition.Paused]
             )
             .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         await player.ResumeAsync().ConfigureAwait(false);
 
@@ -189,10 +202,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task StopAsync()
     {
-        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: false)
+            .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         if (player.CurrentItem == null)
         {
@@ -212,10 +232,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task DisconnectAsync()
     {
-        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: false)
+            .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         await player.DisconnectAsync().ConfigureAwait(false);
 
@@ -225,14 +252,21 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
     public async Task ShuffleAsync()
     {
-        var player = await TryGetPlayerAsync(
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(
+                Context,
                 allowConnect: false,
                 preconditions: [PlayerPrecondition.QueueNotEmpty]
             )
             .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         player.Shuffle = !player.Shuffle;
 
@@ -243,10 +277,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
-        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: false)
+            .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         player.RepeatMode = repeatMode;
 
@@ -261,11 +302,15 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     )]
     public async Task ShowAsync()
     {
-        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: false)
+            .ConfigureAwait(false);
 
         if (player == null)
         {
-            await RespondAsync("No player.").ConfigureAwait(false);
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
         }
 
