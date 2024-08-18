@@ -36,6 +36,7 @@ internal class Program
                 (IRestClientProvider)x.GetRequiredService<DiscordSocketClient>()
             )
             .AddSingleton<InteractionService>()
+            .AddTransient<IPlayerService, PlayerService>()
             .AddHostedService<DiscordClientHost>()
             // Lavalink general settings
             .AddLavalink()
