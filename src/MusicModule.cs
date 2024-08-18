@@ -22,13 +22,19 @@ namespace WidenBot;
 [RequireContext(ContextType.Guild)]
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
+    private readonly IPlayerService _playerService;
     private readonly IAudioService _audioService;
     private readonly IConfiguration _config;
 
     private bool UseSponsorBlock => _config.GetValue<bool>("USE_SPONSORBLOCK");
 
-    public MusicModule(IAudioService audioService, IConfiguration config)
+    public MusicModule(
+        IPlayerService playerService,
+        IAudioService audioService,
+        IConfiguration config
+    )
     {
+        _playerService = playerService;
         _audioService = audioService;
         _config = config;
     }
@@ -38,11 +44,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var player = await TryGetPlayerAsync(allowConnect: true, isDeferred: true)
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: true)
             .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         // Stop the player (stops current music and clears queue)
         await player.StopAsync().ConfigureAwait(false);
@@ -70,11 +82,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var player = await TryGetPlayerAsync(allowConnect: true, isDeferred: true)
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: true)
             .ConfigureAwait(false);
 
         if (player == null)
+        {
+            if (errorEmbed != null)
+                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
             return;
+        }
 
         // Determine search mode we'll initially start with
         var bestGuessSearchMode = DetermineSearchMode(query);
@@ -93,7 +111,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
     public async Task SkipAsync()
     {
-        var player = await TryGetPlayerAsync(allowConnect: false).ConfigureAwait(false);
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: false)
+            .ConfigureAwait(false);
+
+        if (player == null)
+        {
+            if (errorEmbed != null)
+                await RespondAsync(embed: errorEmbed).ConfigureAwait(false);
+
+            return;
+        }
 
         if (player == null)
             return;
@@ -270,112 +298,112 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await RespondAsync(result + finalPortion).ConfigureAwait(false);
     }
 
-    private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
-        bool allowConnect = false,
-        bool requireChannel = true,
-        ImmutableArray<IPlayerPrecondition> preconditions = default,
-        bool isDeferred = false,
-        CancellationToken cancellationToken = default
-    )
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+    //private async Task<QueuedLavalinkPlayer?> TryGetPlayerAsync(
+    //    bool allowConnect = false,
+    //    bool requireChannel = true,
+    //    ImmutableArray<IPlayerPrecondition> preconditions = default,
+    //    bool isDeferred = false,
+    //    CancellationToken cancellationToken = default
+    //)
+    //{
+    //    cancellationToken.ThrowIfCancellationRequested();
 
-        var options = new PlayerRetrieveOptions(
-            ChannelBehavior: allowConnect ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None,
-            VoiceStateBehavior: requireChannel
-                ? MemberVoiceStateBehavior.RequireSame
-                : MemberVoiceStateBehavior.Ignore,
-            Preconditions: preconditions
-        );
+    //    var options = new PlayerRetrieveOptions(
+    //        ChannelBehavior: allowConnect ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None,
+    //        VoiceStateBehavior: requireChannel
+    //            ? MemberVoiceStateBehavior.RequireSame
+    //            : MemberVoiceStateBehavior.Ignore,
+    //        Preconditions: preconditions
+    //    );
 
-        var result = await _audioService
-            .Players.RetrieveAsync(
-                Context,
-                playerFactory: PlayerFactory.Queued,
-                options,
-                cancellationToken: cancellationToken
-            )
-            .ConfigureAwait(false);
+    //    var result = await _audioService
+    //        .Players.RetrieveAsync(
+    //            Context,
+    //            playerFactory: PlayerFactory.Queued,
+    //            options,
+    //            cancellationToken: cancellationToken
+    //        )
+    //        .ConfigureAwait(false);
 
-        if (!result.IsSuccess)
-        {
-            // See the error handling section for more information
-            var errorMessage = CreateErrorEmbed(result);
+    //    if (!result.IsSuccess)
+    //    {
+    //        // See the error handling section for more information
+    //        var errorMessage = CreateErrorEmbed(result);
 
-            if (isDeferred)
-                await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
-            else
-                await RespondAsync(embed: errorMessage).ConfigureAwait(false);
+    //        if (isDeferred)
+    //            await FollowupAsync(embed: errorMessage).ConfigureAwait(false);
+    //        else
+    //            await RespondAsync(embed: errorMessage).ConfigureAwait(false);
 
-            return null;
-        }
+    //        return null;
+    //    }
 
-        var player = result.Player;
+    //    var player = result.Player;
 
-        // Ensure reasonable volume
-        if (player.Volume != 0.25f)
-            await player
-                .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
-                .ConfigureAwait(false);
+    //    // Ensure reasonable volume
+    //    if (player.Volume != 0.25f)
+    //        await player
+    //            .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
+    //            .ConfigureAwait(false);
 
-        // Ensure SponsorBlock if enabled
-        if (UseSponsorBlock)
-        {
-            try
-            {
-                var categories = await player
-                    .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+    //    // Ensure SponsorBlock if enabled
+    //    if (UseSponsorBlock)
+    //    {
+    //        try
+    //        {
+    //            var categories = await player
+    //                .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
+    //                .ConfigureAwait(false);
 
-                if (!categories.SequenceEqual(sponsorBlockCategories))
-                    await player
-                        .UpdateSponsorBlockCategoriesAsync(
-                            sponsorBlockCategories,
-                            cancellationToken: cancellationToken
-                        )
-                        .ConfigureAwait(false);
-            }
-            catch (HttpRequestException)
-            {
-                // Endpoint returns 404 when no SponsorBlock categories are set yet
-                await player
-                    .UpdateSponsorBlockCategoriesAsync(
-                        sponsorBlockCategories,
-                        cancellationToken: cancellationToken
-                    )
-                    .ConfigureAwait(false);
-            }
-        }
+    //            if (!categories.SequenceEqual(sponsorBlockCategories))
+    //                await player
+    //                    .UpdateSponsorBlockCategoriesAsync(
+    //                        sponsorBlockCategories,
+    //                        cancellationToken: cancellationToken
+    //                    )
+    //                    .ConfigureAwait(false);
+    //        }
+    //        catch (HttpRequestException)
+    //        {
+    //            // Endpoint returns 404 when no SponsorBlock categories are set yet
+    //            await player
+    //                .UpdateSponsorBlockCategoriesAsync(
+    //                    sponsorBlockCategories,
+    //                    cancellationToken: cancellationToken
+    //                )
+    //                .ConfigureAwait(false);
+    //        }
+    //    }
 
-        return player;
-    }
+    //    return player;
+    //}
 
-    private static Embed CreateErrorEmbed(PlayerResult<QueuedLavalinkPlayer> result)
-    {
-        var title = result.Status switch
-        {
-            PlayerRetrieveStatus.UserNotInVoiceChannel => "You must be in a voice channel.",
-            PlayerRetrieveStatus.BotNotConnected => "The bot is not connected to any channel.",
-            PlayerRetrieveStatus.VoiceChannelMismatch
-                => "You must be in the same voice channel as the bot.",
+    //private static Embed CreateErrorEmbed(PlayerResult<QueuedLavalinkPlayer> result)
+    //{
+    //    var title = result.Status switch
+    //    {
+    //        PlayerRetrieveStatus.UserNotInVoiceChannel => "You must be in a voice channel.",
+    //        PlayerRetrieveStatus.BotNotConnected => "The bot is not connected to any channel.",
+    //        PlayerRetrieveStatus.VoiceChannelMismatch
+    //            => "You must be in the same voice channel as the bot.",
 
-            PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.Playing
-                => "Failed, player must be playing something.",
-            PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.NotPaused
-                => "Failed, player must not be paused.",
-            PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.Paused
-                => "Failed, player must be paused.",
-            PlayerRetrieveStatus.PreconditionFailed
-                when result.Precondition == PlayerPrecondition.QueueNotEmpty
-                => "Failed, queue must not be empty",
-            _ => "Unknown error.",
-        };
+    //        PlayerRetrieveStatus.PreconditionFailed
+    //            when result.Precondition == PlayerPrecondition.Playing
+    //            => "Failed, player must be playing something.",
+    //        PlayerRetrieveStatus.PreconditionFailed
+    //            when result.Precondition == PlayerPrecondition.NotPaused
+    //            => "Failed, player must not be paused.",
+    //        PlayerRetrieveStatus.PreconditionFailed
+    //            when result.Precondition == PlayerPrecondition.Paused
+    //            => "Failed, player must be paused.",
+    //        PlayerRetrieveStatus.PreconditionFailed
+    //            when result.Precondition == PlayerPrecondition.QueueNotEmpty
+    //            => "Failed, queue must not be empty",
+    //        _ => "Unknown error.",
+    //    };
 
-        return new EmbedBuilder().WithTitle(title).Build();
-    }
+    //    return new EmbedBuilder().WithTitle(title).Build();
+    //}
 
     private static TrackSearchMode DetermineSearchMode(string query)
     {
@@ -391,17 +419,17 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         return TrackSearchMode.YouTube;
     }
 
-    private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
-    [
-        SegmentCategory.Sponsor,
-        SegmentCategory.SelfPromotion,
-        SegmentCategory.Interaction,
-        SegmentCategory.Intro,
-        SegmentCategory.Outro,
-        SegmentCategory.Preview,
-        SegmentCategory.OfftopicMusic,
-        SegmentCategory.Filler,
-    ];
+    //private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
+    //[
+    //    SegmentCategory.Sponsor,
+    //    SegmentCategory.SelfPromotion,
+    //    SegmentCategory.Interaction,
+    //    SegmentCategory.Intro,
+    //    SegmentCategory.Outro,
+    //    SegmentCategory.Preview,
+    //    SegmentCategory.OfftopicMusic,
+    //    SegmentCategory.Filler,
+    //];
 
     private static bool IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
     {
