@@ -181,15 +181,19 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
 
         if (playNext)
         {
-            var currentItem = player.CurrentItem;
+            if (player.CurrentItem == null)
+            {
+                await player.PlayAsync(track).ConfigureAwait(false);
 
-            await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
-
-            if (currentItem == null)
                 await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            }
             else
+            {
+                await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
+
                 await FollowupAsync($"🔈 Added to front of queue: {track.Uri}")
                     .ConfigureAwait(false);
+            }
         }
         else
         {
