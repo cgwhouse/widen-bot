@@ -80,7 +80,9 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
 
         if (multiItemCheck)
         {
-            await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+            await FollowupAsync("Sorry, /playnext cannot be used with album or playlist queries.")
+                .ConfigureAwait(false);
+
             return;
         }
 
