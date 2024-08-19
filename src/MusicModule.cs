@@ -41,6 +41,50 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         //_config = config;
     }
 
+    [SlashCommand(
+        "umbrella",
+        description: "When the sun shine, we shine together",
+        runMode: RunMode.Async
+    )]
+    public async Task UmbrellaAsync()
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: true)
+            .ConfigureAwait(false);
+
+        if (player == null)
+        {
+            if (errorEmbed != null)
+                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
+            return;
+        }
+
+        // Stop the player (stops current music and clears queue)
+        await player.StopAsync().ConfigureAwait(false);
+
+        // Repeat song after it finishes
+        player.RepeatMode = TrackRepeatMode.Track;
+
+        // FIXME: everything in here is same as the creed one, honestly just do a straight once playthrough no repeat
+        var track = await _audioService
+            .Tracks.LoadTrackAsync("Umbrella Rhianna", TrackSearchMode.YouTube)
+            .ConfigureAwait(false);
+
+        if (track == null)
+        {
+            await FollowupAsync("😖 No results.").ConfigureAwait(false);
+            return;
+        }
+
+        await player.PlayAsync(track).ConfigureAwait(false);
+
+        await FollowupAsync("When the war has took its part, when the world has dealt its cards...")
+            .ConfigureAwait(false);
+    }
+
     [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
     public async Task CreedAsync()
     {
