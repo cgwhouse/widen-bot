@@ -30,12 +30,9 @@ public interface IPlayerService
     );
 }
 
-public class PlayerService : IPlayerService
+public class PlayerService(IAudioService audioService, IConfiguration config) : IPlayerService
 {
-    private readonly IAudioService _audioService;
-    private readonly IConfiguration _config;
-
-    private bool UseSponsorBlock => _config.GetValue<bool>("USE_SPONSORBLOCK");
+    private bool UseSponsorBlock => config.GetValue<bool>("USE_SPONSORBLOCK");
 
     private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
     [
@@ -48,12 +45,6 @@ public class PlayerService : IPlayerService
         SegmentCategory.OfftopicMusic,
         SegmentCategory.Filler,
     ];
-
-    public PlayerService(IAudioService audioService, IConfiguration config)
-    {
-        _audioService = audioService;
-        _config = config;
-    }
 
     public async Task<(QueuedLavalinkPlayer? player, Embed? errorEmbed)> TryGetPlayerAsync(
         SocketInteractionContext interactionContext,
@@ -73,7 +64,7 @@ public class PlayerService : IPlayerService
             Preconditions: preconditions
         );
 
-        var result = await _audioService
+        var result = await audioService
             .Players.RetrieveAsync(
                 interactionContext,
                 playerFactory: PlayerFactory.Queued,

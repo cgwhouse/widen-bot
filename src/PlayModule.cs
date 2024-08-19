@@ -9,23 +9,15 @@ using Lavalink4NET.Rest.Entities.Tracks;
 namespace WidenBot;
 
 [RequireContext(ContextType.Guild)]
-public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
+public sealed class PlayModule(IPlayerService playerService, IAudioService audioService)
+    : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly IPlayerService _playerService;
-    private readonly IAudioService _audioService;
-
-    public PlayModule(IPlayerService playerService, IAudioService audioService)
-    {
-        _playerService = playerService;
-        _audioService = audioService;
-    }
-
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
     public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: true)
             .ConfigureAwait(false);
 
@@ -61,7 +53,7 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: true)
             .ConfigureAwait(false);
 
@@ -99,7 +91,7 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: true)
             .ConfigureAwait(false);
 
@@ -111,7 +103,7 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        var track = await _audioService
+        var track = await audioService
             .Tracks.LoadTrackAsync("Umbrella Rhianna", TrackSearchMode.YouTube)
             .ConfigureAwait(false);
 
@@ -131,7 +123,7 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync().ConfigureAwait(false);
 
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: true)
             .ConfigureAwait(false);
 
@@ -143,7 +135,7 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        var track = await _audioService
+        var track = await audioService
             .Tracks.LoadTrackAsync("One Last Breath Creed", TrackSearchMode.YouTube)
             .ConfigureAwait(false);
 
@@ -165,13 +157,13 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
         bool playNext
     )
     {
-        var track = await _audioService
+        var track = await audioService
             .Tracks.LoadTrackAsync(query, bestGuessSearchMode)
             .ConfigureAwait(false);
 
         // If we didn't get anything, fall back to YouTube search
         if (track == null && bestGuessSearchMode != TrackSearchMode.YouTube)
-            track = await _audioService
+            track = await audioService
                 .Tracks.LoadTrackAsync(query, TrackSearchMode.YouTube)
                 .ConfigureAwait(false);
 
@@ -214,7 +206,7 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
         TrackSearchMode bestGuessSearchMode
     )
     {
-        var searchResult = await _audioService
+        var searchResult = await audioService
             .Tracks.LoadTracksAsync(
                 query,
                 loadOptions: new TrackLoadOptions(

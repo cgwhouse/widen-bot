@@ -1,27 +1,18 @@
 using System.Threading.Tasks;
 using Discord.Interactions;
-using Lavalink4NET;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
 
 namespace WidenBot;
 
 [RequireContext(ContextType.Guild)]
-public sealed class PlaybackModule : InteractionModuleBase<SocketInteractionContext>
+public sealed class PlaybackManagementModule(IPlayerService playerService)
+    : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly IPlayerService _playerService;
-    private readonly IAudioService _audioService;
-
-    public PlaybackModule(IPlayerService playerService, IAudioService audioService)
-    {
-        _playerService = playerService;
-        _audioService = audioService;
-    }
-
     [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
     public async Task PauseAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(
                 Context,
                 allowConnect: false,
@@ -45,7 +36,7 @@ public sealed class PlaybackModule : InteractionModuleBase<SocketInteractionCont
     [SlashCommand("resume", description: "Resumes the player", runMode: RunMode.Async)]
     public async Task ResumeAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(
                 Context,
                 allowConnect: false,
@@ -69,7 +60,7 @@ public sealed class PlaybackModule : InteractionModuleBase<SocketInteractionCont
     [SlashCommand("skip", description: "Skips the current track", runMode: RunMode.Async)]
     public async Task SkipAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: false)
             .ConfigureAwait(false);
 
@@ -106,7 +97,7 @@ public sealed class PlaybackModule : InteractionModuleBase<SocketInteractionCont
     [SlashCommand("shuffle", description: "Toggles shuffle mode", runMode: RunMode.Async)]
     public async Task ShuffleAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(
                 Context,
                 allowConnect: false,
@@ -131,7 +122,7 @@ public sealed class PlaybackModule : InteractionModuleBase<SocketInteractionCont
     [SlashCommand("repeat", description: "Sets repeat mode of the player", runMode: RunMode.Async)]
     public async Task RepeatAsync(TrackRepeatMode repeatMode)
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: false)
             .ConfigureAwait(false);
 
@@ -156,7 +147,7 @@ public sealed class PlaybackModule : InteractionModuleBase<SocketInteractionCont
     )]
     public async Task StopAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: false)
             .ConfigureAwait(false);
 

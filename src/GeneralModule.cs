@@ -2,22 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Interactions;
-using Lavalink4NET;
 
 namespace WidenBot;
 
 [RequireContext(ContextType.Guild)]
-public sealed class GeneralModule : InteractionModuleBase<SocketInteractionContext>
+public sealed class GeneralModule(IPlayerService playerService)
+    : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly IPlayerService _playerService;
-    private readonly IAudioService _audioService;
-
-    public GeneralModule(IPlayerService playerService, IAudioService audioService)
-    {
-        _playerService = playerService;
-        _audioService = audioService;
-    }
-
     [SlashCommand(
         "disconnect",
         description: "Disconnects the bot from the voice channel",
@@ -25,7 +16,7 @@ public sealed class GeneralModule : InteractionModuleBase<SocketInteractionConte
     )]
     public async Task DisconnectAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: false)
             .ConfigureAwait(false);
 
@@ -49,7 +40,7 @@ public sealed class GeneralModule : InteractionModuleBase<SocketInteractionConte
     )]
     public async Task ShowAsync()
     {
-        var (player, errorEmbed) = await _playerService
+        var (player, errorEmbed) = await playerService
             .TryGetPlayerAsync(Context, allowConnect: false)
             .ConfigureAwait(false);
 

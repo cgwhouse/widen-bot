@@ -10,66 +10,53 @@ using Microsoft.Extensions.Hosting;
 
 namespace WidenBot;
 
-internal sealed class DiscordClientHost : IHostedService
+internal sealed class DiscordClientHost(
+    DiscordSocketClient discordSocketClient,
+    InteractionService interactionService,
+    IServiceProvider serviceProvider,
+    IConfiguration config
+) : IHostedService
 {
-    private readonly DiscordSocketClient _discordSocketClient;
-    private readonly InteractionService _interactionService;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IConfiguration _config;
-
     private string BotToken =>
-        _config.GetValue<string>("DISCORD_BOT_TOKEN")
+        config.GetValue<string>("DISCORD_BOT_TOKEN")
         ?? throw new Exception("DISCORD_BOT_TOKEN is null");
 
     private string ServerID =>
-        _config.GetValue<string>("DISCORD_SERVER_ID")
+        config.GetValue<string>("DISCORD_SERVER_ID")
         ?? throw new Exception("DISCORD_SERVER_ID is null");
-
-    public DiscordClientHost(
-        DiscordSocketClient discordSocketClient,
-        InteractionService interactionService,
-        IServiceProvider serviceProvider,
-        IConfiguration config
-    )
-    {
-        _discordSocketClient = discordSocketClient;
-        _interactionService = interactionService;
-        _serviceProvider = serviceProvider;
-        _config = config;
-    }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _discordSocketClient.InteractionCreated += InteractionCreated;
-        _discordSocketClient.Ready += ClientReady;
+        discordSocketClient.InteractionCreated += InteractionCreated;
+        discordSocketClient.Ready += ClientReady;
 
-        await _discordSocketClient.LoginAsync(TokenType.Bot, BotToken).ConfigureAwait(false);
+        await discordSocketClient.LoginAsync(TokenType.Bot, BotToken).ConfigureAwait(false);
 
-        await _discordSocketClient.StartAsync().ConfigureAwait(false);
+        await discordSocketClient.StartAsync().ConfigureAwait(false);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _discordSocketClient.InteractionCreated -= InteractionCreated;
-        _discordSocketClient.Ready -= ClientReady;
+        discordSocketClient.InteractionCreated -= InteractionCreated;
+        discordSocketClient.Ready -= ClientReady;
 
-        await _discordSocketClient.StopAsync().ConfigureAwait(false);
+        await discordSocketClient.StopAsync().ConfigureAwait(false);
     }
 
-    private Task InteractionCreated(SocketInteraction interaction)
+    private Task<IResult> InteractionCreated(SocketInteraction interaction)
     {
-        var interactionContext = new SocketInteractionContext(_discordSocketClient, interaction);
+        var interactionContext = new SocketInteractionContext(discordSocketClient, interaction);
 
-        return _interactionService.ExecuteCommandAsync(interactionContext, _serviceProvider);
+        return interactionService.ExecuteCommandAsync(interactionContext, serviceProvider);
     }
 
     private async Task ClientReady()
     {
-        await _interactionService
-            .AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider)
+        await interactionService
+            .AddModulesAsync(Assembly.GetExecutingAssembly(), serviceProvider)
             .ConfigureAwait(false);
 
-        await _interactionService
+        await interactionService
             .RegisterCommandsToGuildAsync(ulong.Parse(ServerID))
             .ConfigureAwait(false);
     }
