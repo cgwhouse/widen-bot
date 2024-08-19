@@ -48,7 +48,44 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        await HandleTrackQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+        await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
+            .ConfigureAwait(false);
+    }
+
+    [SlashCommand(
+        "playnext",
+        description: "Plays music, skipping the queue (if any)",
+        runMode: RunMode.Async
+    )]
+    public async Task PlayNextAsync(string query)
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var (player, errorEmbed) = await _playerService
+            .TryGetPlayerAsync(Context, allowConnect: true)
+            .ConfigureAwait(false);
+
+        if (player == null)
+        {
+            if (errorEmbed != null)
+                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
+            return;
+        }
+
+        // Determine search mode we'll initially start with
+        var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+
+        var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
+
+        if (multiItemCheck)
+        {
+            await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+            return;
+        }
+
+        await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: true)
+            .ConfigureAwait(false);
     }
 
     [SlashCommand(
@@ -122,7 +159,8 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
     private async Task HandleTrackQuery(
         QueuedLavalinkPlayer player,
         string query,
-        TrackSearchMode bestGuessSearchMode
+        TrackSearchMode bestGuessSearchMode,
+        bool playNext
     )
     {
         var track = await _audioService
@@ -141,12 +179,27 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
             return;
         }
 
-        var position = await player.PlayAsync(track).ConfigureAwait(false);
+        if (playNext)
+        {
+            var currentItem = player.CurrentItem;
 
-        if (position == 0)
-            await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
+
+            if (currentItem == null)
+                await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            else
+                await FollowupAsync($"🔈 Added to front of queue: {track.Uri}")
+                    .ConfigureAwait(false);
+        }
         else
-            await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
+        {
+            var position = await player.PlayAsync(track).ConfigureAwait(false);
+
+            if (position == 0)
+                await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+            else
+                await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
+        }
     }
 
     private async Task HandleMultiItemQuery(
@@ -173,7 +226,9 @@ public sealed class PlayModule : InteractionModuleBase<SocketInteractionContext>
 
         // Queue the tracks
         foreach (var track in searchResult.Tracks)
+        {
             await player.PlayAsync(track).ConfigureAwait(false);
+        }
 
         // Display the url for the playlist we got back, fallback to name
         string displayText;
