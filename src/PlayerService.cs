@@ -14,6 +14,7 @@ using Lavalink4NET.Integrations.SponsorBlock.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
+using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Configuration;
 
 namespace WidenBot;
@@ -35,6 +36,18 @@ public class PlayerService : IPlayerService
     private readonly IConfiguration _config;
 
     private bool UseSponsorBlock => _config.GetValue<bool>("USE_SPONSORBLOCK");
+
+    private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
+    [
+        SegmentCategory.Sponsor,
+        SegmentCategory.SelfPromotion,
+        SegmentCategory.Interaction,
+        SegmentCategory.Intro,
+        SegmentCategory.Outro,
+        SegmentCategory.Preview,
+        SegmentCategory.OfftopicMusic,
+        SegmentCategory.Filler,
+    ];
 
     public PlayerService(IAudioService audioService, IConfiguration config)
     {
@@ -113,6 +126,47 @@ public class PlayerService : IPlayerService
         return (player: player, errorEmbed: null);
     }
 
+    public static TrackSearchMode DetermineSearchMode(string query)
+    {
+        if (query.Contains("spotify", StringComparison.CurrentCultureIgnoreCase))
+            return TrackSearchMode.Spotify;
+
+        if (query.Contains("soundcloud", StringComparison.CurrentCultureIgnoreCase))
+            return TrackSearchMode.SoundCloud;
+
+        if (query.Contains("music.youtube", StringComparison.CurrentCultureIgnoreCase))
+            return TrackSearchMode.YouTubeMusic;
+
+        return TrackSearchMode.YouTube;
+    }
+
+    public static bool IsMultiItem(string query, TrackSearchMode bestGuessSearchMode)
+    {
+        // Reject if not a direct link. We should only queue multiple things
+        // at once if we know they meant to do it
+        if (!query.Contains("https"))
+            return false;
+
+        if (
+            // Spotify playlist and albums
+            (
+                bestGuessSearchMode == TrackSearchMode.Spotify
+                && (query.Contains("playlist") || query.Contains("album"))
+            )
+            // Youtube playlists, need to ensure that it's a link to the playlist itself, and not just a single item from within a playlist
+            || (
+                bestGuessSearchMode == TrackSearchMode.YouTube
+                && query.Contains("list=")
+                && !query.Contains("index=")
+            )
+            // SoundCloud playlists and albums
+            || (bestGuessSearchMode == TrackSearchMode.SoundCloud && query.Contains("/sets/"))
+        )
+            return true;
+
+        return false;
+    }
+
     private static Embed CreateErrorEmbed(PlayerResult<QueuedLavalinkPlayer> result)
     {
         var title = result.Status switch
@@ -139,16 +193,4 @@ public class PlayerService : IPlayerService
 
         return new EmbedBuilder().WithTitle(title).Build();
     }
-
-    private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
-    [
-        SegmentCategory.Sponsor,
-        SegmentCategory.SelfPromotion,
-        SegmentCategory.Interaction,
-        SegmentCategory.Intro,
-        SegmentCategory.Outro,
-        SegmentCategory.Preview,
-        SegmentCategory.OfftopicMusic,
-        SegmentCategory.Filler,
-    ];
 }
