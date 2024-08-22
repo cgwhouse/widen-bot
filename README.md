@@ -85,7 +85,7 @@ for YouTube. Mileage may vary, disable if you are having issues._
 
 ## Running the Bot
 
-1. If on a Linux host, ensure the `Server/plugins` directory has at least 322 permissions
+1. If on a Linux host, ensure the `Server/plugins` directory has sufficient permissions.
 
 2. From the root of the repository, execute:
 
