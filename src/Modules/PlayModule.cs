@@ -53,6 +53,8 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
 
         await FollowupAsync(test).ConfigureAwait(false);
 
+        //return new EmbedBuilder().WithTitle(title).Build();
+
         //var (player, errorEmbed) = await playerService
         //    .TryGetPlayerAsync(Context, allowConnect: true)
         //    .ConfigureAwait(false);
