@@ -44,6 +44,42 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             .ConfigureAwait(false);
     }
 
+    [SlashCommand("test", description: "dev test", runMode: RunMode.Async)]
+    public async Task TestAsync(string query)
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var test = $"name: {Context.Channel.Name} id: {Context.Channel.Id}";
+
+        await FollowupAsync(test).ConfigureAwait(false);
+
+        //var (player, errorEmbed) = await playerService
+        //    .TryGetPlayerAsync(Context, allowConnect: true)
+        //    .ConfigureAwait(false);
+
+        //if (player == null)
+        //{
+        //    if (errorEmbed != null)
+        //        await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
+        //    return;
+        //}
+
+        //// Determine search mode we'll initially start with
+        //var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+
+        //var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
+
+        //if (multiItemCheck)
+        //{
+        //    await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+        //    return;
+        //}
+
+        //await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
+        //    .ConfigureAwait(false);
+    }
+
     [SlashCommand(
         "playnext",
         description: "Plays music, skipping the queue (if any)",

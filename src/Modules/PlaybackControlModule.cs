@@ -6,7 +6,7 @@ using Lavalink4NET.Players.Queued;
 namespace WidenBot;
 
 [RequireContext(ContextType.Guild)]
-public sealed class PlaybackManagementModule(IPlayerService playerService)
+public sealed class PlaybackControlModule(IPlayerService playerService)
     : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("pause", description: "Pauses the player", runMode: RunMode.Async)]
