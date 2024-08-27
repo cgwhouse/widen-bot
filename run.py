@@ -206,6 +206,7 @@ def write_env_file(user_config):
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
 
     # If provided, inject requiredChannel too
+    # Set to initial dummy value to prevent Docker warning
     required_channel = "none"
     if (
         "requiredChannel" in user_config["discord"]
