@@ -132,7 +132,7 @@ def run_all_bots(user_config_list):
 
     for user_config in user_config_list:
 
-        # Check enabled flag
+        # Check enabled flag and skip
         if not user_config["isEnabled"]:
             print(f"...Skipping {user_config['label']} because 'isEnabled' is false")
             continue
@@ -198,15 +198,12 @@ def write_application_yml(client_id, client_secret):
 
 
 def write_env_file(user_config):
-    env_file_contents = f"CLIENT_PORT={user_config['clientPort']}\n"
-    env_file_contents += f"INSTANCE_LABEL={user_config['label']}\n"
+    env_file_contents = f"INSTANCE_LABEL={user_config['label']}\n"
+
+    env_file_contents += f"USE_SPONSORBLOCK={user_config['useSponsorBlock']}\n"
 
     env_file_contents += f"DISCORD_SERVER_ID={user_config['discord']['serverID']}\n"
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
-
-    env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
-
-    env_file_contents += f"USE_SPONSORBLOCK={user_config['useSponsorBlock']}\n"
 
     # If provided, inject requiredChannel too
     if (
@@ -214,8 +211,12 @@ def write_env_file(user_config):
         and user_config["discord"]["requiredChannel"] != None
     ):
         env_file_contents += (
-            f"REQUIRED_CHANNEL={user_config['discord']['requiredChannel']}"
+            f"REQUIRED_CHANNEL={user_config['discord']['requiredChannel']}\n"
         )
+
+    # Internally managed env vars, users don't mess with these directly
+    env_file_contents += f"CLIENT_PORT={user_config['clientPort']}\n"
+    env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
     write_file_contents(".env", env_file_contents)
 

@@ -34,6 +34,7 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
 {
     private bool UseSponsorBlock => config.GetValue<bool>("USE_SPONSORBLOCK");
 
+    // TODO: just make it a ulong here?
     private string? RequiredChannel => config.GetValue<string?>("REQUIRED_CHANNEL");
 
     private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
