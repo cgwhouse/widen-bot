@@ -80,16 +80,16 @@ public sealed class PlaybackControlModule(IPlayerService playerService)
 
         // Peek at the next thing so we can potentially write a message about it
         var queueCopy = player.Queue;
-        var newCurrentItemUri = queueCopy.Peek()?.Track?.Uri;
+        var newCurrentItem = queueCopy.Peek()?.Track;
 
         await player.SkipAsync().ConfigureAwait(false);
 
         var responseMessage = "Skipped.";
 
-        if (newCurrentItemUri == null)
+        if (newCurrentItem == null)
             responseMessage += " Stopped playing because the queue is now empty.";
         else if (!player.Shuffle)
-            responseMessage += $" Now playing: {newCurrentItemUri}";
+            responseMessage += $" Now playing: {newCurrentItem.Title} ({newCurrentItem.Uri})";
 
         await RespondAsync(responseMessage).ConfigureAwait(false);
     }
