@@ -206,13 +206,14 @@ def write_env_file(user_config):
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
 
     # If provided, inject requiredChannel too
+    required_channel = ""
     if (
         "requiredChannel" in user_config["discord"]
         and user_config["discord"]["requiredChannel"] != None
     ):
-        env_file_contents += (
-            f"REQUIRED_CHANNEL={user_config['discord']['requiredChannel']}\n"
-        )
+        required_channel = user_config["discord"]["requiredChannel"]
+
+    env_file_contents += f"REQUIRED_CHANNEL={required_channel}\n"
 
     # Internally managed env vars, users don't mess with these directly
     env_file_contents += f"CLIENT_PORT={user_config['clientPort']}\n"
