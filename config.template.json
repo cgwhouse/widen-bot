@@ -1,14 +1,16 @@
 [
   {
     "label": "",
+    "isEnabled": true,
+    "useSponsorBlock": true,
     "discord": {
       "serverID": "",
-      "botToken": ""
+      "botToken": "",
+      "requiredChannel": null
     },
     "spotify": {
       "clientID": "",
       "clientSecret": ""
-    },
-    "useSponsorBlock": true
+    }
   }
 ]

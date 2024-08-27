@@ -34,6 +34,8 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
 {
     private bool UseSponsorBlock => config.GetValue<bool>("USE_SPONSORBLOCK");
 
+    private string? RequiredChannel => config.GetValue<string?>("REQUIRED_CHANNEL");
+
     private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
     [
         SegmentCategory.Sponsor,
@@ -55,6 +57,21 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        // Validate channel if RequiredChannel is set
+        if (
+            ulong.TryParse(RequiredChannel, out var reqChannelLong)
+            && interactionContext.Channel.Id != reqChannelLong
+        )
+        {
+            var channelName =
+                interactionContext.Guild.Channels.FirstOrDefault(x => x.Id == reqChannelLong)?.Name
+                ?? "unknown";
+
+            var errorText = $"WidenBot wants you to use #{channelName} for commands.";
+
+            return (player: null, errorEmbed: new EmbedBuilder().WithTitle(errorText).Build());
+        }
 
         var options = new PlayerRetrieveOptions(
             ChannelBehavior: allowConnect ? PlayerChannelBehavior.Join : PlayerChannelBehavior.None,

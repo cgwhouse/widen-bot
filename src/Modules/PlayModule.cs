@@ -179,13 +179,14 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             {
                 await player.PlayAsync(track).ConfigureAwait(false);
 
-                await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+                await FollowupAsync($"🔈 Playing: {track.Title} ({track.Uri})")
+                    .ConfigureAwait(false);
             }
             else
             {
                 await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
 
-                await FollowupAsync($"🔈 Added to front of queue: {track.Uri}")
+                await FollowupAsync($"🔈 Added to front of queue: {track.Title} ({track.Uri})")
                     .ConfigureAwait(false);
             }
         }
@@ -194,9 +195,11 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             var position = await player.PlayAsync(track).ConfigureAwait(false);
 
             if (position == 0)
-                await FollowupAsync($"🔈 Playing: {track.Uri}").ConfigureAwait(false);
+                await FollowupAsync($"🔈 Playing: {track.Title} ({track.Uri})")
+                    .ConfigureAwait(false);
             else
-                await FollowupAsync($"🔈 Added to queue: {track.Uri}").ConfigureAwait(false);
+                await FollowupAsync($"🔈 Added to queue: {track.Title} ({track.Uri})")
+                    .ConfigureAwait(false);
         }
     }
 
@@ -229,23 +232,20 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         }
 
         // Display the url for the playlist we got back, fallback to name
-        string displayText;
+        string? playlistUri;
 
         try
         {
-            var playlistUri = searchResult
+            playlistUri = searchResult
                 .Playlist.AdditionalInformation.FirstOrDefault(x => x.Key == "url")
                 .Value.GetString();
-
-            displayText = string.IsNullOrEmpty(playlistUri)
-                ? searchResult.Playlist.Name
-                : playlistUri;
         }
         catch (InvalidOperationException)
         {
-            displayText = searchResult.Playlist.Name;
+            playlistUri = "unknown";
         }
 
-        await FollowupAsync($"🔈 Added to queue: {displayText}").ConfigureAwait(false);
+        await FollowupAsync($"🔈 Added to queue: {searchResult.Playlist.Name} ({playlistUri})")
+            .ConfigureAwait(false);
     }
 }

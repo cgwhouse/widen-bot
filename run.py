@@ -85,6 +85,12 @@ def handle_user_config():
             if user_config["label"] == "" or not user_config["label"].isalnum():
                 return None
 
+            if user_config["isEnabled"] == "":
+                return None
+
+            if user_config["useSponsorBlock"] == "":
+                return None
+
             if (
                 user_config["discord"]["serverID"] == ""
                 or user_config["discord"]["botToken"] == ""
@@ -95,9 +101,6 @@ def handle_user_config():
                 user_config["spotify"]["clientID"] == ""
                 or user_config["spotify"]["clientSecret"] == ""
             ):
-                return None
-
-            if user_config["useSponsorBlock"] == "":
                 return None
 
             # Generate new password for this run
@@ -126,7 +129,14 @@ def run_all_bots(user_config_list):
     os.chdir("./src")
 
     labels = list()
+
     for user_config in user_config_list:
+
+        # Check enabled flag and skip
+        if not user_config["isEnabled"]:
+            print(f"...Skipping {user_config['label']} because 'isEnabled' is false")
+            continue
+
         labels.append(user_config["label"])
 
         # Lavalink application.yml
@@ -188,15 +198,27 @@ def write_application_yml(client_id, client_secret):
 
 
 def write_env_file(user_config):
-    env_file_contents = f"CLIENT_PORT={user_config['clientPort']}\n"
-    env_file_contents += f"INSTANCE_LABEL={user_config['label']}\n"
+    env_file_contents = f"INSTANCE_LABEL={user_config['label']}\n"
+
+    env_file_contents += f"USE_SPONSORBLOCK={user_config['useSponsorBlock']}\n"
 
     env_file_contents += f"DISCORD_SERVER_ID={user_config['discord']['serverID']}\n"
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
 
-    env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
+    # If provided, inject requiredChannel too
+    # Set to initial dummy value to prevent Docker warning
+    required_channel = "none"
+    if (
+        "requiredChannel" in user_config["discord"]
+        and user_config["discord"]["requiredChannel"] != None
+    ):
+        required_channel = user_config["discord"]["requiredChannel"]
 
-    env_file_contents += f"USE_SPONSORBLOCK={user_config['useSponsorBlock']}\n"
+    env_file_contents += f"REQUIRED_CHANNEL={required_channel}\n"
+
+    # Internally managed env vars, users don't mess with these directly
+    env_file_contents += f"CLIENT_PORT={user_config['clientPort']}\n"
+    env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
 
     write_file_contents(".env", env_file_contents)
 
