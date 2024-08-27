@@ -68,15 +68,17 @@ instructions on installing Docker.
    ```json
    {
      "label": "An arbitrary label for this instance of WidenBot",
+     "isEnabled": true,
+     "useSponsorBlock": true,
      "discord": {
        "serverID": "Right-click on server in Discord and select 'Copy Server ID'",
-       "botToken": "Bot token from Discord Developer Portal"
+       "botToken": "Bot token from Discord Developer Portal",
+       "requiredChannel": "Right-click on channel and select 'Copy Channel ID' to restrict channel usage, set to null if you want to handle via server roles instead"
      },
      "spotify": {
        "clientID": "Client ID from Spotify developer dashboard",
        "clientSecret": "Client secret from Spotify developer dashboard"
-     },
-     "useSponsorBlock": true
+     }
    }
    ```
 
