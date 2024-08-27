@@ -58,7 +58,8 @@ public sealed class GeneralModule(IPlayerService playerService)
         // Also go ahead and build the final portion of response
         var finalPortion = $"\nShuffle: {player.Shuffle}\nRepeat: {player.RepeatMode}\n";
         if (player.CurrentItem?.Track != null)
-            finalPortion += $"Now playing: {player.CurrentItem.Track.Uri}\n";
+            finalPortion +=
+                $"Now playing: {player.CurrentItem.Track.Title} ({player.CurrentItem.Track.Uri})\n";
 
         if (player.Queue.Any())
         {
