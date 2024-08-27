@@ -206,7 +206,7 @@ def write_env_file(user_config):
     env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
 
     # If provided, inject requiredChannel too
-    required_channel = ""
+    required_channel = "none"
     if (
         "requiredChannel" in user_config["discord"]
         and user_config["discord"]["requiredChannel"] != None
