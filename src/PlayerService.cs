@@ -34,7 +34,6 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
 {
     private bool UseSponsorBlock => config.GetValue<bool>("USE_SPONSORBLOCK");
 
-    // TODO: just make it a ulong here?
     private string? RequiredChannel => config.GetValue<string?>("REQUIRED_CHANNEL");
 
     private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
@@ -69,7 +68,7 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
                 interactionContext.Guild.Channels.FirstOrDefault(x => x.Id == reqChannelLong)?.Name
                 ?? "unknown";
 
-            var errorText = $"This WidenBot wants you to use #{channelName} for commands.";
+            var errorText = $"WidenBot wants you to use #{channelName} for commands.";
 
             return (player: null, errorEmbed: new EmbedBuilder().WithTitle(errorText).Build());
         }
