@@ -9,10 +9,10 @@ updates:
     directory: "/src" # Location of package manifests
     schedule:
       interval: "daily"
-groups:
-  lavalink4net:
-    patterns:
-    - "Lavalink4NET*"
-  msftextensions:
-    patterns:
-    - "Microsoft.Extensions*"
+    groups:
+      lavalink4net:
+        patterns:
+        - "Lavalink4NET*"
+      msftextensions:
+        patterns:
+        - "Microsoft.Extensions*"
