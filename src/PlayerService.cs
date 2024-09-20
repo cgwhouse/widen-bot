@@ -161,12 +161,9 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
                 bestGuessSearchMode == TrackSearchMode.Spotify
                 && (query.Contains("playlist") || query.Contains("album"))
             )
-            // Youtube playlists, need to ensure that it's a link to the playlist itself, and not just a single item from within a playlist
-            || (
-                bestGuessSearchMode == TrackSearchMode.YouTube
-                && query.Contains("list=")
-                && !query.Contains("index=")
-            )
+            // Youtube playlists, need to ensure that it's a link to the playlist itself,
+            // and not just a single item from within a playlist
+            || bestGuessSearchMode == TrackSearchMode.YouTube && query.Contains("playlist?list=")
             // SoundCloud playlists and albums
             || (bestGuessSearchMode == TrackSearchMode.SoundCloud && query.Contains("/sets/"))
         )

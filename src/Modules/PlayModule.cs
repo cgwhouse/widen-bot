@@ -157,6 +157,16 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         bool playNext
     )
     {
+        // If this is a direct YouTube link and happens to be from
+        // a video within a playlist, trim the rest of the query string, otherwise
+        // it will just queue the first item in the playlist
+        if (
+            bestGuessSearchMode == TrackSearchMode.YouTube
+            && query.Contains("https")
+            && query.Contains("&")
+        )
+            query = query.Substring(0, query.IndexOf('&'));
+
         var track = await audioService
             .Tracks.LoadTrackAsync(query, bestGuessSearchMode)
             .ConfigureAwait(false);
