@@ -1,3 +1,4 @@
+from contextlib import closing
 import argparse
 import json
 import os
@@ -121,16 +122,18 @@ def handle_user_config():
             while True:
                 print(f"Checking port {current_port} to see if it's open...")
 
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = sock.connect_ex(("127.0.0.1", current_port))
+                with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
 
-                if result == 0:
-                    print(f"Found port {current_port}!")
-                    break
-                else:
-                    current_port += 1
+                    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    result = sock.connect_ex(("127.0.0.1", current_port))
 
-                sock.close()
+                    if result == 0:
+                        print(f"Found port {current_port}!")
+                        break
+                    else:
+                        current_port += 1
+
+                    # sock.close()
 
             user_config["clientPort"] = current_port
             current_port += 1
