@@ -123,23 +123,19 @@ def handle_user_config():
                 print(f"Checking port {current_port} to see if it's open...")
 
                 with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-
-                    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    result = sock.connect_ex(("127.0.0.1", current_port))
-
-                    if result == 0:
+                    if sock.connect_ex(("127.0.0.1", current_port)) == 0:
                         current_port += 1
                     else:
-                        print(f"Found port {current_port}!")
+                        print(
+                            f"Found port {current_port} for WidenBot {user_config["label"]}!"
+                        )
                         break
-
-                    # sock.close()
 
             user_config["clientPort"] = current_port
             current_port += 1
 
         return user_config_list
-    except (FileNotFoundError, KeyError, ValueError):
+    except (FileNotFoundError, KeyError, TypeError, ValueError):
         return None
 
 
