@@ -24,9 +24,9 @@ builder
     .AddLogging(x => x.AddConsole().SetMinimumLevel(LogLevel.Information))
     .AddMemoryCache()
     .AddSingleton<DiscordSocketClient>()
-    // NOTE: below DI is required as of Discord.Net 3.15.0, unintended break that will probably
+    // NOTE: below DI is required as of Discord.Net 3.15.0, unintended break that will hopefully
     // be fixed in the future
-    //.AddSingleton<IRestClientProvider>(x => x.GetRequiredService<DiscordSocketClient>())
+    .AddSingleton<IRestClientProvider>(x => x.GetRequiredService<DiscordSocketClient>())
     .AddSingleton<InteractionService>()
     .AddTransient<IPlayerService, PlayerService>()
     .AddHostedService<DiscordClientHost>()
