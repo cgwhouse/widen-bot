@@ -133,6 +133,7 @@ def handle_user_config():
                 sock.close()
 
             user_config["clientPort"] = current_port
+            current_port += 1
 
         return user_config_list
     except (FileNotFoundError, KeyError, ValueError):
