@@ -3,6 +3,7 @@ import json
 import os
 import random
 import string
+import socket
 import subprocess
 import sys
 
@@ -78,10 +79,11 @@ def handle_user_config():
         user_config_list = json.loads(get_file_contents("config.json"))
 
         # Start at 80 and increment by 1 for each bot in the array
-        client_port = 80
+        current_port = 80
 
         # Validate each config in the array
         for user_config in user_config_list:
+
             if user_config["label"] == "" or not user_config["label"].isalnum():
                 return None
 
@@ -115,8 +117,22 @@ def handle_user_config():
 
             user_config["password"] = password
 
-            user_config["clientPort"] = client_port
-            client_port += 1
+            # Make sure current_port is available, otherwise move on to next
+            while True:
+                print(f"Checking port {current_port} to see if it's open...")
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                result = sock.connect_ex(("127.0.0.1", current_port))
+
+                if result == 0:
+                    print(f"Found port {current_port}!")
+                    break
+                else:
+                    current_port += 1
+
+                sock.close()
+
+            user_config["clientPort"] = current_port
 
         return user_config_list
     except (FileNotFoundError, KeyError, ValueError):
