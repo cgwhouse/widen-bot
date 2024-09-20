@@ -26,7 +26,7 @@ builder
     .AddSingleton<DiscordSocketClient>()
     // NOTE: below DI is required as of Discord.Net 3.15.0, unintended break that will probably
     // be fixed in the future
-    .AddSingleton<IRestClientProvider>(x => x.GetRequiredService<DiscordSocketClient>())
+    //.AddSingleton<IRestClientProvider>(x => x.GetRequiredService<DiscordSocketClient>())
     .AddSingleton<InteractionService>()
     .AddTransient<IPlayerService, PlayerService>()
     .AddHostedService<DiscordClientHost>()
