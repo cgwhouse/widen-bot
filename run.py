@@ -128,10 +128,10 @@ def handle_user_config():
                     result = sock.connect_ex(("127.0.0.1", current_port))
 
                     if result == 0:
+                        current_port += 1
+                    else:
                         print(f"Found port {current_port}!")
                         break
-                    else:
-                        current_port += 1
 
                     # sock.close()
 
