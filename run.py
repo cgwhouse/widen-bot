@@ -127,7 +127,7 @@ def handle_user_config():
                         current_port += 1
                     else:
                         print(
-                            f"Found port {current_port} for WidenBot {user_config["label"]}!"
+                            f"Found port {current_port} for WidenBot {user_config['label']}!"
                         )
                         break
 
@@ -226,7 +226,7 @@ def write_env_file(user_config):
     required_channel = "none"
     if (
         "requiredChannel" in user_config["discord"]
-        and user_config["discord"]["requiredChannel"] != None
+        and user_config["discord"]["requiredChannel"] is not None
     ):
         required_channel = user_config["discord"]["requiredChannel"]
 
