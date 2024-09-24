@@ -12,7 +12,7 @@ import sys
 def main():
     parser = get_parser()
     args = parser.parse_args()
-    user_config_list = handle_user_config()
+    user_config_list = handle_user_config(args.action)
 
     if user_config_list is None:
         print(
@@ -34,15 +34,23 @@ def main():
             parser.print_help()
             return
 
-        subprocess.run(
-            ["docker", "logs", get_container_name(args.label, args.type), "--follow"]
-        )
+        try:
+            subprocess.run(
+                [
+                    "docker",
+                    "logs",
+                    get_container_name(args.label, args.type),
+                    "--follow",
+                ]
+            )
+        except KeyboardInterrupt:
+            return
 
 
 def get_parser():
     parser = argparse.ArgumentParser(
         prog="run.py",
-        description="Run script for WidenBot. If no arguments are provided, all instances in config.json will be rebuilt and restarted.",
+        description="Run script for WidenBot.",
         epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
     )
 
@@ -75,21 +83,41 @@ def get_parser():
     return parser
 
 
-def handle_user_config():
+def handle_user_config(action):
     try:
         user_config_list = json.loads(get_file_contents("config.json"))
+
+        # Only need to validate label and isEnabled if stopping bots or viewing logs
+        if action != "start":
+            for user_config in user_config_list:
+                if user_config["label"] == "" or not user_config["label"].isalnum():
+                    return None
+
+                if user_config["isEnabled"] == "":
+                    return None
+
+                if not user_config["isEnabled"]:
+                    print(
+                        f"...Skipping {user_config['label']} because isEnabled is false"
+                    )
+                    continue
+
+            return user_config_list
 
         # Start at 80 and increment by 1 for each bot in the array
         current_port = 80
 
         # Validate each config in the array
         for user_config in user_config_list:
-
             if user_config["label"] == "" or not user_config["label"].isalnum():
                 return None
 
             if user_config["isEnabled"] == "":
                 return None
+
+            if not user_config["isEnabled"]:
+                print(f"...Skipping {user_config['label']} because isEnabled is false")
+                continue
 
             if user_config["useSponsorBlock"] == "":
                 return None
@@ -120,14 +148,12 @@ def handle_user_config():
 
             # Make sure current_port is available, otherwise move on to next
             while True:
-                print(f"Checking port {current_port} to see if it's open...")
-
                 with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
                     if sock.connect_ex(("127.0.0.1", current_port)) == 0:
                         current_port += 1
                     else:
                         print(
-                            f"Found port {current_port} for WidenBot {user_config['label']}!"
+                            f"Found port {current_port} for WidenBot instance {user_config['label']}!"
                         )
                         break
 
@@ -150,7 +176,6 @@ def run_all_bots(user_config_list):
 
         # Check enabled flag and skip
         if not user_config["isEnabled"]:
-            print(f"...Skipping {user_config['label']} because 'isEnabled' is false")
             continue
 
         labels.append(user_config["label"])
@@ -160,12 +185,8 @@ def run_all_bots(user_config_list):
             user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
         )
 
-        print("...Created audio server config")
-
         # Docker .env file
         write_env_file(user_config)
-
-        print("...Created environment variables")
 
         subprocess.run(
             [
@@ -185,6 +206,11 @@ def run_all_bots(user_config_list):
 
 def stop_all_bots(user_config_list):
     for user_config in user_config_list:
+
+        # Check enabled flag and skip
+        if not user_config["isEnabled"]:
+            continue
+
         label = user_config["label"]
 
         for type in ["client", "server"]:
