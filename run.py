@@ -1,12 +1,12 @@
+from argparse import ArgumentParser
 from contextlib import closing
-import argparse
-import json
-import os
-import random
-import string
-import socket
-import subprocess
-import sys
+from json import loads
+from os import chdir
+from random import randint
+from socket import socket, AF_INET, SOCK_STREAM
+from string import ascii_lowercase, ascii_uppercase, digits
+from subprocess import run
+from sys import argv
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
             return
 
         try:
-            subprocess.run(
+            run(
                 [
                     "docker",
                     "logs",
@@ -48,7 +48,7 @@ def main():
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         prog="run.py",
         description="Run script for WidenBot.",
         epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
@@ -61,7 +61,7 @@ def get_parser():
         help="The 'start' / 'stop' actions start or stop all WidenBots in config.json, and 'logs' shows specific client or server container logs in --follow mode.",
     )
 
-    action_is_logs = "run.py logs" in " ".join(sys.argv)
+    action_is_logs = "run.py logs" in " ".join(argv)
 
     parser.add_argument(
         "-l",
@@ -85,7 +85,7 @@ def get_parser():
 
 def handle_user_config(action):
     try:
-        user_config_list = json.loads(get_file_contents("config.json"))
+        user_config_list = loads(get_file_contents("config.json"))
 
         # Only need to validate label and isEnabled if stopping bots or viewing logs
         if action != "start":
@@ -135,20 +135,18 @@ def handle_user_config(action):
                 return None
 
             # Generate new password for this run
-            alphanumerics = list(
-                string.ascii_lowercase + string.ascii_uppercase + string.digits
-            )
+            alphanumerics = list(ascii_lowercase + ascii_uppercase + digits)
 
             password = ""
 
             for _ in range(15):
-                password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+                password += alphanumerics[randint(0, len(alphanumerics) - 1)]
 
             user_config["password"] = password
 
             # Make sure current_port is available, otherwise move on to next
             while True:
-                with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                with closing(socket(AF_INET, SOCK_STREAM)) as sock:
                     if sock.connect_ex(("127.0.0.1", current_port)) == 0:
                         current_port += 1
                     else:
@@ -168,7 +166,7 @@ def handle_user_config(action):
 def run_all_bots(user_config_list):
     print("Starting WidenBot...")
 
-    os.chdir("./src")
+    chdir("./src")
 
     labels = list()
 
@@ -188,7 +186,7 @@ def run_all_bots(user_config_list):
         # Docker .env file
         write_env_file(user_config)
 
-        subprocess.run(
+        run(
             [
                 "docker",
                 "compose",
@@ -214,7 +212,7 @@ def stop_all_bots(user_config_list):
         label = user_config["label"]
 
         for type in ["client", "server"]:
-            subprocess.run(
+            run(
                 [
                     "docker",
                     "container",
