@@ -1,18 +1,18 @@
+from argparse import ArgumentParser
 from contextlib import closing
-import argparse
-import json
-import os
-import random
-import string
-import socket
-import subprocess
-import sys
+from json import loads
+from os import chdir
+from random import randint
+from socket import socket, AF_INET, SOCK_STREAM
+from string import ascii_lowercase, ascii_uppercase, digits
+from subprocess import run
+from sys import argv
 
 
 def main():
     parser = get_parser()
     args = parser.parse_args()
-    user_config_list = handle_user_config()
+    user_config_list = handle_user_config(args.action)
 
     if user_config_list is None:
         print(
@@ -34,15 +34,23 @@ def main():
             parser.print_help()
             return
 
-        subprocess.run(
-            ["docker", "logs", get_container_name(args.label, args.type), "--follow"]
-        )
+        try:
+            run(
+                [
+                    "docker",
+                    "logs",
+                    get_container_name(args.label, args.type),
+                    "--follow",
+                ]
+            )
+        except KeyboardInterrupt:
+            return
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         prog="run.py",
-        description="Run script for WidenBot. If no arguments are provided, all instances in config.json will be rebuilt and restarted.",
+        description="Run script for WidenBot.",
         epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
     )
 
@@ -53,7 +61,7 @@ def get_parser():
         help="The 'start' / 'stop' actions start or stop all WidenBots in config.json, and 'logs' shows specific client or server container logs in --follow mode.",
     )
 
-    action_is_logs = "run.py logs" in " ".join(sys.argv)
+    action_is_logs = "run.py logs" in " ".join(argv)
 
     parser.add_argument(
         "-l",
@@ -75,21 +83,41 @@ def get_parser():
     return parser
 
 
-def handle_user_config():
+def handle_user_config(action):
     try:
-        user_config_list = json.loads(get_file_contents("config.json"))
+        user_config_list = loads(get_file_contents("config.json"))
+
+        # Only need to validate label and isEnabled if stopping bots or viewing logs
+        if action != "start":
+            for user_config in user_config_list:
+                if user_config["label"] == "" or not user_config["label"].isalnum():
+                    return None
+
+                if user_config["isEnabled"] == "":
+                    return None
+
+                if not user_config["isEnabled"]:
+                    print(
+                        f"...Skipping {user_config['label']} because isEnabled is false"
+                    )
+                    continue
+
+            return user_config_list
 
         # Start at 80 and increment by 1 for each bot in the array
         current_port = 80
 
         # Validate each config in the array
         for user_config in user_config_list:
-
             if user_config["label"] == "" or not user_config["label"].isalnum():
                 return None
 
             if user_config["isEnabled"] == "":
                 return None
+
+            if not user_config["isEnabled"]:
+                print(f"...Skipping {user_config['label']} because isEnabled is false")
+                continue
 
             if user_config["useSponsorBlock"] == "":
                 return None
@@ -107,27 +135,23 @@ def handle_user_config():
                 return None
 
             # Generate new password for this run
-            alphanumerics = list(
-                string.ascii_lowercase + string.ascii_uppercase + string.digits
-            )
+            alphanumerics = list(ascii_lowercase + ascii_uppercase + digits)
 
             password = ""
 
             for _ in range(15):
-                password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+                password += alphanumerics[randint(0, len(alphanumerics) - 1)]
 
             user_config["password"] = password
 
             # Make sure current_port is available, otherwise move on to next
             while True:
-                print(f"Checking port {current_port} to see if it's open...")
-
-                with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+                with closing(socket(AF_INET, SOCK_STREAM)) as sock:
                     if sock.connect_ex(("127.0.0.1", current_port)) == 0:
                         current_port += 1
                     else:
                         print(
-                            f"Found port {current_port} for WidenBot {user_config['label']}!"
+                            f"Found port {current_port} for WidenBot instance {user_config['label']}!"
                         )
                         break
 
@@ -142,7 +166,7 @@ def handle_user_config():
 def run_all_bots(user_config_list):
     print("Starting WidenBot...")
 
-    os.chdir("./src")
+    chdir("./src")
 
     labels = list()
 
@@ -150,7 +174,6 @@ def run_all_bots(user_config_list):
 
         # Check enabled flag and skip
         if not user_config["isEnabled"]:
-            print(f"...Skipping {user_config['label']} because 'isEnabled' is false")
             continue
 
         labels.append(user_config["label"])
@@ -160,14 +183,10 @@ def run_all_bots(user_config_list):
             user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
         )
 
-        print("...Created audio server config")
-
         # Docker .env file
         write_env_file(user_config)
 
-        print("...Created environment variables")
-
-        subprocess.run(
+        run(
             [
                 "docker",
                 "compose",
@@ -185,10 +204,15 @@ def run_all_bots(user_config_list):
 
 def stop_all_bots(user_config_list):
     for user_config in user_config_list:
+
+        # Check enabled flag and skip
+        if not user_config["isEnabled"]:
+            continue
+
         label = user_config["label"]
 
         for type in ["client", "server"]:
-            subprocess.run(
+            run(
                 [
                     "docker",
                     "container",
