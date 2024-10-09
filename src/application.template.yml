@@ -26,9 +26,20 @@ plugins:
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
     clients:
       - MUSIC
+      - TVHTML5EMBEDDED
+      - ANDROID_MUSIC
       #- ANDROID_TESTSUITE
       #- WEB
-      - TVHTML5EMBEDDED
+      - WEBEMBEDDED
+      - ANDROID
+      - ANDROID_LITE
+      - MEDIA_CONNECT
+      - IOS
+      # old client list:
+      #- MUSIC
+      #- ANDROID_TESTSUITE
+      #- WEB
+      #- TVHTML5EMBEDDED
 
 server:
   port: 2333
