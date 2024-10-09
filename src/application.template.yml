@@ -31,7 +31,7 @@ plugins:
       #- ANDROID_TESTSUITE
       #- WEB
       - WEBEMBEDDED
-      - ANDROID
+      #- ANDROID
       - ANDROID_LITE
       - MEDIA_CONNECT
       - IOS
