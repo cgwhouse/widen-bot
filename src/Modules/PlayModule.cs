@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Interactions;
@@ -116,6 +118,54 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         await player.PlayAsync(track).ConfigureAwait(false);
 
         await FollowupAsync("Ooh, baby, it's rainin'!").ConfigureAwait(false);
+    }
+
+    [SlashCommand("holes", description: "I'm tired of this, Grandpa!", runMode: RunMode.Async)]
+    public async Task HolesAsync()
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var (player, errorEmbed) = await playerService
+            .TryGetPlayerAsync(Context, allowConnect: true)
+            .ConfigureAwait(false);
+
+        if (player == null)
+        {
+            if (errorEmbed != null)
+                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
+            return;
+        }
+
+        var holesSoundtrack = ImmutableList.Create(
+            "https://www.youtube.com/watch?v=no0Q92S-k0g",
+            "https://www.youtube.com/watch?v=kZ1A5w8szqo",
+            "https://www.youtube.com/watch?v=-ANbCnTQOvU",
+            "https://www.youtube.com/watch?v=J2TTwV_ItIc",
+            "https://www.youtube.com/watch?v=jBdCSR6WtbQ",
+            "https://www.youtube.com/watch?v=vA_XqkqY-e4",
+            "https://www.youtube.com/watch?v=MoZwMwFIhN0",
+            "https://www.youtube.com/watch?v=_uoo-h6cnoQ",
+            "https://www.youtube.com/watch?v=fRwUN3E_tyI",
+            "https://www.youtube.com/watch?v=ziDG8bBqp38",
+            "https://www.youtube.com/watch?v=6jbGEJH3NQU",
+            "https://www.youtube.com/watch?v=lOEpdIvbmds",
+            "https://www.youtube.com/watch?v=2-MHXtjR7Hk",
+            "https://www.youtube.com/watch?v=7P78_Lr8EUQ",
+            "https://www.youtube.com/watch?v=a-DhqDgHZlk"
+        );
+
+        foreach (var url in holesSoundtrack)
+        {
+            var track = await audioService
+                .Tracks.LoadTrackAsync(url, TrackSearchMode.YouTube)
+                .ConfigureAwait(false);
+
+            if (track != null)
+                await player.PlayAsync(track).ConfigureAwait(false);
+        }
+
+        await FollowupAsync("The old man's been stealin").ConfigureAwait(false);
     }
 
     [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
