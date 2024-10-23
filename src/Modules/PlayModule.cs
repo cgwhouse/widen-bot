@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Interactions;
@@ -116,6 +117,57 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         await player.PlayAsync(track).ConfigureAwait(false);
 
         await FollowupAsync("Ooh, baby, it's rainin'!").ConfigureAwait(false);
+    }
+
+    [SlashCommand("holes", description: "I'm tired of this, Grandpa!", runMode: RunMode.Async)]
+    public async Task HolesAsync()
+    {
+        await DeferAsync().ConfigureAwait(false);
+
+        var (player, errorEmbed) = await playerService
+            .TryGetPlayerAsync(Context, allowConnect: true)
+            .ConfigureAwait(false);
+
+        if (player == null)
+        {
+            if (errorEmbed != null)
+                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+
+            return;
+        }
+
+        var holesSoundtrack = ImmutableList.Create(
+            "no0Q92S-k0g",
+            "kZ1A5w8szqo",
+            "-ANbCnTQOvU",
+            "J2TTwV_ItIc",
+            "jBdCSR6WtbQ",
+            "vA_XqkqY-e4",
+            "MoZwMwFIhN0",
+            "_uoo-h6cnoQ",
+            "fRwUN3E_tyI",
+            "ziDG8bBqp38",
+            "6jbGEJH3NQU",
+            "lOEpdIvbmds",
+            "2-MHXtjR7Hk",
+            "7P78_Lr8EUQ",
+            "a-DhqDgHZlk"
+        );
+
+        foreach (var videoID in holesSoundtrack)
+        {
+            var track = await audioService
+                .Tracks.LoadTrackAsync(
+                    $"https://www.youtube.com/watch?v={videoID}",
+                    TrackSearchMode.YouTube
+                )
+                .ConfigureAwait(false);
+
+            if (track != null)
+                await player.PlayAsync(track).ConfigureAwait(false);
+        }
+
+        await FollowupAsync("The old man's been stealin!").ConfigureAwait(false);
     }
 
     [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
