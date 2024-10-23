@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -165,7 +164,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
                 await player.PlayAsync(track).ConfigureAwait(false);
         }
 
-        await FollowupAsync("The old man's been stealin").ConfigureAwait(false);
+        await FollowupAsync("The old man's been stealin!").ConfigureAwait(false);
     }
 
     [SlashCommand("creed", description: "Hold me down", runMode: RunMode.Async)]
