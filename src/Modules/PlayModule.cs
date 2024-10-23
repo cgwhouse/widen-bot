@@ -137,27 +137,30 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         }
 
         var holesSoundtrack = ImmutableList.Create(
-            "https://www.youtube.com/watch?v=no0Q92S-k0g",
-            "https://www.youtube.com/watch?v=kZ1A5w8szqo",
-            "https://www.youtube.com/watch?v=-ANbCnTQOvU",
-            "https://www.youtube.com/watch?v=J2TTwV_ItIc",
-            "https://www.youtube.com/watch?v=jBdCSR6WtbQ",
-            "https://www.youtube.com/watch?v=vA_XqkqY-e4",
-            "https://www.youtube.com/watch?v=MoZwMwFIhN0",
-            "https://www.youtube.com/watch?v=_uoo-h6cnoQ",
-            "https://www.youtube.com/watch?v=fRwUN3E_tyI",
-            "https://www.youtube.com/watch?v=ziDG8bBqp38",
-            "https://www.youtube.com/watch?v=6jbGEJH3NQU",
-            "https://www.youtube.com/watch?v=lOEpdIvbmds",
-            "https://www.youtube.com/watch?v=2-MHXtjR7Hk",
-            "https://www.youtube.com/watch?v=7P78_Lr8EUQ",
-            "https://www.youtube.com/watch?v=a-DhqDgHZlk"
+            "no0Q92S-k0g",
+            "kZ1A5w8szqo",
+            "-ANbCnTQOvU",
+            "J2TTwV_ItIc",
+            "jBdCSR6WtbQ",
+            "vA_XqkqY-e4",
+            "MoZwMwFIhN0",
+            "_uoo-h6cnoQ",
+            "fRwUN3E_tyI",
+            "ziDG8bBqp38",
+            "6jbGEJH3NQU",
+            "lOEpdIvbmds",
+            "2-MHXtjR7Hk",
+            "7P78_Lr8EUQ",
+            "a-DhqDgHZlk"
         );
 
-        foreach (var url in holesSoundtrack)
+        foreach (var videoID in holesSoundtrack)
         {
             var track = await audioService
-                .Tracks.LoadTrackAsync(url, TrackSearchMode.YouTube)
+                .Tracks.LoadTrackAsync(
+                    $"https://www.youtube.com/watch?v={videoID}",
+                    TrackSearchMode.YouTube
+                )
                 .ConfigureAwait(false);
 
             if (track != null)
