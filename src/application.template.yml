@@ -26,9 +26,10 @@ plugins:
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
     clients:
       - MUSIC
-      - ANDROID_VR
       - WEB
+      - MWEB
       - WEBEMBEDDED
+      - ANDROID_VR
 
 server:
   port: 2333
