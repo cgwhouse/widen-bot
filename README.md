@@ -1,16 +1,28 @@
 # WidenBot
 
-WidenBot is your private music bot for Discord.
+WidenBot is a simple, self-hosted (_by you!_) music bot for Discord.
 
-**Disclaimer: Due to the nature of what a music bot is trying to accomplish, it
-can be prone to occasional breakage.**
+Inspired by past and present titans such as Groovy, Rythm, ProBot, etc.
+Only this time, no unnecessary features, misbehavior,
+or tacky premium / monetization.
 
-A WidenBot instance consists of three components:
+The purpose of this project is to serve as:
 
-- A discord bot, configured via the Discord developer portal
-- The audio server ([Lavalink](https://github.com/lavalink-devs/Lavalink)), a
-  standalone Java application
-- The client, a .NET service
+1. A **personal** jukebox for you and your Discord server(s).
+   Although there is no magic "Add WidenBot to Server" button,
+   this barrier to entry doubles as a protective layer that (hopefully)
+   prevents the project / bot from being seen as an abuser of upstream services.
+   _YouTube, for example, would prefer not to be used in this way;
+   We believe it is a major reason why other mass-hosted bots are
+   inevitably taken down, or must charge a fee to actually work properly._
+
+2. An up-to-date reference implementation of a Discord bot
+   built with .NET and hosted via Docker
+
+**Disclaimer: Due to the nature of what a music bot is trying to accomplish,
+it can be prone to breakage which is often outside of our control.
+In any case, please feel free to reach out directly or open an issue
+if you run into trouble.**
 
 ## Dependencies
 
@@ -24,11 +36,12 @@ instructions on installing Docker.
 
 ## Discord Developer Portal
 
-1. Go to the Discord Developer Portal, login as the Discord account that should
-   own the bot, and create a new application
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications),
+   login as the Discord account that should own the bot, and create a new application
+
 2. Within the Bot settings:
 
-   a. Disable "Public Bot" (optional, but recommended)
+   a. Disable "Public Bot" (optional)
 
    b. Enable "Server Members Intent" and "Message Content Intent"
 
