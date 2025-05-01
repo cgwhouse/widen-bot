@@ -1,7 +1,7 @@
 services:
   widenbot-server:
     container_name: ${INSTANCE_LABEL}-widenbot-server
-    image: ghcr.io/lavalink-devs/lavalink:master-alpine
+    image: ghcr.io/lavalink-devs/lavalink:dev-distroless
     restart: unless-stopped
     networks:
       - widenbot-net
