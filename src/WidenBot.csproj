@@ -16,11 +16,11 @@
     <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.0.27" />
     <PackageReference Include="Lavalink4NET.Integrations.Lavasrc" Version="4.0.27" />
     <PackageReference Include="Lavalink4NET.Integrations.SponsorBlock" Version="4.0.27" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
   </ItemGroup>
 
 </Project>
