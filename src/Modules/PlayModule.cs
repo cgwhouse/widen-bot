@@ -50,6 +50,8 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             else
                 await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
                     .ConfigureAwait(false);
+
+            await Task.Delay(3000).ConfigureAwait(false);
         }
     }
 
