@@ -13,43 +13,8 @@ namespace WidenBot.Modules;
 public sealed class PlayModule(IPlayerService playerService, IAudioService audioService)
     : InteractionModuleBase<SocketInteractionContext>
 {
-    [SlashCommand("playTest", description: "Plays music", runMode: RunMode.Async)]
-    public async Task PlayTestAsync(string[] query)
-    {
-        await DeferAsync().ConfigureAwait(false);
-
-        var (player, errorEmbed) = await playerService
-            .TryGetPlayerAsync(Context, allowConnect: true)
-            .ConfigureAwait(false);
-
-        if (player == null)
-        {
-            if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
-
-            return;
-        }
-
-        await FollowupAsync("No results, this is a test").ConfigureAwait(false);
-        return;
-
-        // Determine search mode we'll initially start with
-        // var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
-
-        // var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
-
-        // if (multiItemCheck)
-        // {
-        //     await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
-        //     return;
-        // }
-
-        // await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
-        //     .ConfigureAwait(false);
-    }
-
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
-    public async Task PlayAsync(string query)
+    public async Task PlayAsync(string originalQuery)
     {
         await DeferAsync().ConfigureAwait(false);
 
@@ -65,19 +30,26 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             return;
         }
 
-        // Determine search mode we'll initially start with
-        var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+        // Query may contain multiple items, handle individually if so
+        var queryList = originalQuery.Split(';');
 
-        var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
-
-        if (multiItemCheck)
+        foreach (var query in queryList)
         {
-            await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
-            return;
-        }
+            // Determine search mode we'll initially start with
+            var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
 
-        await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
-            .ConfigureAwait(false);
+            var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
+
+            if (multiItemCheck)
+            {
+                await HandleMultiItemQuery(player, query, bestGuessSearchMode)
+                    .ConfigureAwait(false);
+                return;
+            }
+
+            await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
+                .ConfigureAwait(false);
+        }
     }
 
     [SlashCommand(
