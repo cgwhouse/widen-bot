@@ -3,7 +3,7 @@ using Discord.Interactions;
 using Lavalink4NET.Players.Preconditions;
 using Lavalink4NET.Players.Queued;
 
-namespace WidenBot;
+namespace WidenBot.Modules;
 
 [RequireContext(ContextType.Guild)]
 public sealed class PlaybackControlModule(IPlayerService playerService)

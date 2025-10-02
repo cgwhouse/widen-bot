@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.Interactions;
 
-namespace WidenBot;
+namespace WidenBot.Modules;
 
 [RequireContext(ContextType.Guild)]
 public sealed class GeneralModule(IPlayerService playerService)
