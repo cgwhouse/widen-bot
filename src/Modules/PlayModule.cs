@@ -251,22 +251,10 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
 
         if (addToFront)
         {
-            // TODO: Might not need this logic here anymore, is checked upstream
-            // leave commented out for now
-            // if (player.CurrentItem == null)
-            // {
-            //     await player.PlayAsync(track).ConfigureAwait(false);
-
-            //     await FollowupAsync($"🔈 Playing: {track.Title} ({track.Uri})")
-            //         .ConfigureAwait(false);
-            // }
-            // else
-            // {
             await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
 
             await FollowupAsync($"🔈 Added to front of queue: {track.Title} ({track.Uri})")
                 .ConfigureAwait(false);
-            //}
         }
         else
         {
