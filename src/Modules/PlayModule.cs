@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Configuration.Assemblies;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Interactions;
@@ -31,29 +30,17 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             return;
         }
 
-        // Query may contain multiple items, handle individually if so
+        // Query may contain one or more items
         var queryAsList = query.Split(';');
 
         for (int i = 0; i < queryAsList.Length; i++)
-        {
-            // Get rid of any extra whitespace around the semicolons
-            var queryItem = queryAsList[i].TrimStart().TrimEnd();
-
-            // Determine search mode we'll initially start with
-            var bestGuessSearchMode = PlayerService.DetermineSearchMode(queryItem);
-
-            if (PlayerService.IsMultiItem(queryItem, bestGuessSearchMode))
-                await HandleMultiItemQuery(player, queryItem, bestGuessSearchMode)
-                    .ConfigureAwait(false);
-            else
-                await HandleTrackQuery(player, queryItem, bestGuessSearchMode, playNext: false)
-                    .ConfigureAwait(false);
-
-            // If we have anything else to query, wait a few seconds
-            // Seems to be necessary, otherwise the audio server gets confused
-            if (i != queryAsList.Length - 1)
-                await Task.Delay(3000).ConfigureAwait(false);
-        }
+            await HandleQueryItem(
+                    player,
+                    queryAsList[i],
+                    isLast: i == queryAsList.Length - 1,
+                    addToFront: false
+                )
+                .ConfigureAwait(false);
     }
 
     [SlashCommand(
@@ -77,66 +64,36 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             return;
         }
 
-        // Query may contain multiple items, handle individually if so
+        // Query may contain one or more items
         var queryAsList = query.Split(';');
 
         // If nothing currently playing, just need to go in order and queue each thing normally
         if (player.CurrentItem == null)
         {
             for (int i = 0; i < queryAsList.Length; i++)
-            {
-                var queryItem = queryAsList[i].TrimStart().TrimEnd();
-
-                // Determine search mode we'll initially start with
-                var bestGuessSearchMode = PlayerService.DetermineSearchMode(queryItem);
-
-                if (PlayerService.IsMultiItem(queryItem, bestGuessSearchMode))
-                {
-                    await FollowupAsync(
-                            "Sorry, /playnext cannot be used with album or playlist queries."
-                        )
-                        .ConfigureAwait(false);
-
-                    continue;
-                }
-
-                await HandleTrackQuery(player, queryItem, bestGuessSearchMode, playNext: false)
+                await HandleQueryItem(
+                        player,
+                        queryAsList[i],
+                        isLast: i == queryAsList.Length - 1,
+                        allowMultiItem: false,
+                        addToFront: false
+                    )
                     .ConfigureAwait(false);
-
-                // If we have anything else to query, wait a few seconds
-                // Seems to be necessary, otherwise the audio server gets confused
-                if (i != queryAsList.Length - 1)
-                    await Task.Delay(3000).ConfigureAwait(false);
-            }
         }
         else
         {
-            // Need to insert each thing at the front, in reverse order
+            // Need to insert each thing at the front, in reverse order.
+            // Makes it so the list of things is all added to the front, but plays in the
+            // order in which it was provided.
             for (int i = queryAsList.Length - 1; i >= 0; i--)
-            {
-                var queryItem = queryAsList[i].TrimStart().TrimEnd();
-
-                // Determine search mode we'll initially start with
-                var bestGuessSearchMode = PlayerService.DetermineSearchMode(queryItem);
-
-                if (PlayerService.IsMultiItem(queryItem, bestGuessSearchMode))
-                {
-                    await FollowupAsync(
-                            "Sorry, /playnext cannot be used with album or playlist queries."
-                        )
-                        .ConfigureAwait(false);
-
-                    continue;
-                }
-
-                await HandleTrackQuery(player, queryItem, bestGuessSearchMode, playNext: true)
+                await HandleQueryItem(
+                        player,
+                        queryAsList[i],
+                        isLast: i == 0,
+                        allowMultiItem: false,
+                        addToFront: true
+                    )
                     .ConfigureAwait(false);
-
-                // If we have anything else to query, wait a few seconds
-                // Seems to be necessary, otherwise the audio server gets confused
-                if (i != 0)
-                    await Task.Delay(3000).ConfigureAwait(false);
-            }
         }
     }
 
@@ -263,7 +220,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         QueuedLavalinkPlayer player,
         string query,
         TrackSearchMode bestGuessSearchMode,
-        bool playNext
+        bool addToFront
     )
     {
         // If this is a direct YouTube link and happens to be from
@@ -292,22 +249,24 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
             return;
         }
 
-        if (playNext)
+        if (addToFront)
         {
-            if (player.CurrentItem == null)
-            {
-                await player.PlayAsync(track).ConfigureAwait(false);
+            // TODO: Might not need this logic here anymore, is checked upstream
+            // leave commented out for now
+            // if (player.CurrentItem == null)
+            // {
+            //     await player.PlayAsync(track).ConfigureAwait(false);
 
-                await FollowupAsync($"🔈 Playing: {track.Title} ({track.Uri})")
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
+            //     await FollowupAsync($"🔈 Playing: {track.Title} ({track.Uri})")
+            //         .ConfigureAwait(false);
+            // }
+            // else
+            // {
+            await player.Queue.InsertAsync(0, new TrackQueueItem(track)).ConfigureAwait(false);
 
-                await FollowupAsync($"🔈 Added to front of queue: {track.Title} ({track.Uri})")
-                    .ConfigureAwait(false);
-            }
+            await FollowupAsync($"🔈 Added to front of queue: {track.Title} ({track.Uri})")
+                .ConfigureAwait(false);
+            //}
         }
         else
         {
@@ -364,5 +323,48 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
 
         await FollowupAsync($"🔈 Added to queue: {searchResult.Playlist.Name} ({playlistUri})")
             .ConfigureAwait(false);
+    }
+
+    private async Task HandleQueryItem(
+        QueuedLavalinkPlayer player,
+        string input,
+        bool isLast,
+        bool addToFront,
+        bool allowMultiItem = true
+    )
+    {
+        // Sanity check, gracefully handles extra delimiter characters, etc.
+        if (string.IsNullOrEmpty(input))
+            return;
+
+        // Get rid of any extra whitespace around the semicolons
+        var query = input.TrimStart().TrimEnd();
+
+        // Determine search mode we'll initially start with
+        var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+
+        if (PlayerService.IsMultiItem(query, bestGuessSearchMode))
+        {
+            if (!allowMultiItem)
+            {
+                await FollowupAsync(
+                        "Sorry, album or playlist queries cannot be used with this command.",
+                        ephemeral: true
+                    )
+                    .ConfigureAwait(false);
+
+                return;
+            }
+
+            await HandleMultiItemQuery(player, query, bestGuessSearchMode).ConfigureAwait(false);
+        }
+        else
+            await HandleTrackQuery(player, query, bestGuessSearchMode, addToFront)
+                .ConfigureAwait(false);
+
+        // If we have anything else to query, wait a few seconds.
+        // Seems to be necessary, otherwise the audio server gets confused
+        if (!isLast)
+            await Task.Delay(3000).ConfigureAwait(false);
     }
 }
