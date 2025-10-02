@@ -15,7 +15,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
     : InteractionModuleBase<SocketInteractionContext>
 {
     [SlashCommand("play", description: "Plays music", runMode: RunMode.Async)]
-    public async Task PlayAsync(string originalQuery)
+    public async Task PlayAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
 
@@ -32,26 +32,27 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         }
 
         // Query may contain multiple items, handle individually if so
-        var queryList = originalQuery.Split(';');
+        var queryAsList = query.Split(';');
 
-        foreach (var queryItem in queryList)
+        for (int i = 0; i < queryAsList.Length; i++)
         {
             // Get rid of any extra whitespace around the semicolons
-            var query = queryItem.TrimStart().TrimEnd();
+            var queryItem = queryAsList[i].TrimStart().TrimEnd();
 
             // Determine search mode we'll initially start with
-            var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+            var bestGuessSearchMode = PlayerService.DetermineSearchMode(queryItem);
 
-            var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
-
-            if (multiItemCheck)
-                await HandleMultiItemQuery(player, query, bestGuessSearchMode)
+            if (PlayerService.IsMultiItem(queryItem, bestGuessSearchMode))
+                await HandleMultiItemQuery(player, queryItem, bestGuessSearchMode)
                     .ConfigureAwait(false);
             else
-                await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
+                await HandleTrackQuery(player, queryItem, bestGuessSearchMode, playNext: false)
                     .ConfigureAwait(false);
 
-            await Task.Delay(3000).ConfigureAwait(false);
+            // If we have anything else to query, wait a few seconds
+            // Seems to be necessary, otherwise the audio server gets confused
+            if (i != queryAsList.Length - 1)
+                await Task.Delay(3000).ConfigureAwait(false);
         }
     }
 
@@ -60,7 +61,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         description: "Plays music, skipping the queue (if any)",
         runMode: RunMode.Async
     )]
-    public async Task PlayNextAsync(string originalQuery)
+    public async Task PlayNextAsync(string query)
     {
         await DeferAsync().ConfigureAwait(false);
 
@@ -77,21 +78,19 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         }
 
         // Query may contain multiple items, handle individually if so
-        var queryList = originalQuery.Split(';');
+        var queryAsList = query.Split(';');
 
         // If nothing currently playing, just need to go in order and queue each thing normally
         if (player.CurrentItem == null)
         {
-            foreach (var queryItem in queryList)
+            for (int i = 0; i < queryAsList.Length; i++)
             {
-                var query = queryItem.TrimStart().TrimEnd();
+                var queryItem = queryAsList[i].TrimStart().TrimEnd();
 
                 // Determine search mode we'll initially start with
-                var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+                var bestGuessSearchMode = PlayerService.DetermineSearchMode(queryItem);
 
-                var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
-
-                if (multiItemCheck)
+                if (PlayerService.IsMultiItem(queryItem, bestGuessSearchMode))
                 {
                     await FollowupAsync(
                             "Sorry, /playnext cannot be used with album or playlist queries."
@@ -101,23 +100,26 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
                     continue;
                 }
 
-                await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: false)
+                await HandleTrackQuery(player, queryItem, bestGuessSearchMode, playNext: false)
                     .ConfigureAwait(false);
+
+                // If we have anything else to query, wait a few seconds
+                // Seems to be necessary, otherwise the audio server gets confused
+                if (i != queryAsList.Length - 1)
+                    await Task.Delay(3000).ConfigureAwait(false);
             }
         }
         else
         {
             // Need to insert each thing at the front, in reverse order
-            for (int i = queryList.Length - 1; i >= 0; i--)
+            for (int i = queryAsList.Length - 1; i >= 0; i--)
             {
-                var query = queryList[i].TrimStart().TrimEnd();
+                var queryItem = queryAsList[i].TrimStart().TrimEnd();
 
                 // Determine search mode we'll initially start with
-                var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+                var bestGuessSearchMode = PlayerService.DetermineSearchMode(queryItem);
 
-                var multiItemCheck = PlayerService.IsMultiItem(query, bestGuessSearchMode);
-
-                if (multiItemCheck)
+                if (PlayerService.IsMultiItem(queryItem, bestGuessSearchMode))
                 {
                     await FollowupAsync(
                             "Sorry, /playnext cannot be used with album or playlist queries."
@@ -127,8 +129,13 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
                     continue;
                 }
 
-                await HandleTrackQuery(player, query, bestGuessSearchMode, playNext: true)
+                await HandleTrackQuery(player, queryItem, bestGuessSearchMode, playNext: true)
                     .ConfigureAwait(false);
+
+                // If we have anything else to query, wait a few seconds
+                // Seems to be necessary, otherwise the audio server gets confused
+                if (i != 0)
+                    await Task.Delay(3000).ConfigureAwait(false);
             }
         }
     }
