@@ -3,7 +3,7 @@ from contextlib import closing
 from json import loads
 from os import chdir
 from random import randint
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import AF_INET, SOCK_STREAM, socket
 from string import ascii_lowercase, ascii_uppercase, digits
 from subprocess import run
 from sys import argv
