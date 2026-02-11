@@ -25,11 +25,10 @@ plugins:
     allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
     clients:
-      - MUSIC
-      - WEB
-      - MWEB
-      - WEBEMBEDDED
+      - TVHTML5_SIMPLY
       - ANDROID_VR
+      - WEB
+      - WEBEMBEDDED
 
 server:
   port: 2333
@@ -42,8 +41,6 @@ lavalink:
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.1"
     - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.1"
     - dependency: "dev.lavalink.youtube:youtube-plugin:1.17.0"
-      #- dependency: "dev.lavalink.youtube:youtube-plugin:0e5cfca4e88c32db430ce76e6866b13035c85d22"
-      #snapshot: true
   server:
     password: ""
     sources:
