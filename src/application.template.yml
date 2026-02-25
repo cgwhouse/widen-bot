@@ -27,7 +27,9 @@ plugins:
     clients:
       - TVHTML5_SIMPLY
       - ANDROID_VR
+      - ANDROID_MUSIC
       - WEB
+      - MWEB
       - WEBEMBEDDED
 
 server:
@@ -40,7 +42,7 @@ lavalink:
     - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.1"
     - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.1"
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.17.0"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.0"
   server:
     password: ""
     sources:
