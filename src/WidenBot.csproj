@@ -8,7 +8,7 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="3.18.0" />
+    <PackageReference Include="Discord.Net" Version="3.19.0" />
     <PackageReference Include="Lavalink4NET.Discord.NET" Version="4.1.0" />
     <PackageReference Include="Lavalink4NET.InactivityTracking" Version="4.1.0" />
     <PackageReference Include="Lavalink4NET.Integrations.Lavasearch" Version="4.1.0" />
