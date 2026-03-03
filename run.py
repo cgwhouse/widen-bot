@@ -1,4 +1,8 @@
-"""TODO"""
+"""
+TODO:
+    Test logs command, make sure it still works when there are actual logs
+    Play around with malformed config.json
+"""
 
 from argparse import ArgumentParser
 from contextlib import closing
@@ -17,33 +21,44 @@ def main():
     argument_parser = get_argument_parser()
     args = argument_parser.parse_args()
 
-    # Make sure config.json exists, and load it in
+    # If the desired action is to view logs, just do that and exit
+    if args.action == "logs":
+        container_name = get_container_name(args.label, args.type)
+        view_logs(container_name)
+        return
+
+    # We are either starting or stopping WidenBots, make sure config.json exists and load it
     try:
         user_config_list = loads(get_file_contents("config.json"))
     except FileNotFoundError:
-        print("config.json must exist alongside this script")
+        print("ERROR: config.json must exist alongside this script")
         return
+
+    # if len(user_config_list == 0):
+    #     print("ERROR: config.json is malformed, refer to config.template.json")
 
     # Loop through each config in config.json
     for i in range(len(user_config_list)):
 
         # No matter what the desired action is, we need a valid label and present IsEnabled flag
         user_config = validate_label_and_enabled_flag(user_config_list[i])
+
         if user_config is None:
-            print(f"Config #{i} is not enabled, or not labeled correctly - skipping")
+            print(
+                f"Config #{i+1} in config.json is not enabled, or not labeled correctly - skipping"
+            )
+
             continue
 
-    # Available actions are start, stop, view logs
-    match args.action:
-        case "start":
-            # TODO:
-            return
-        case "stop":
-            # TODO:
-            return
-        case "logs":
-            # TODO:
-            return
+        # Available actions are start, stop, view logs
+        match args.action:
+            case "start":
+                return
+            case "stop":
+                return
+            case _:
+                print("Unexpected action")
+                return
 
     # If desired action is stop or view logs, less validation to do
     # But basically there's validation we need to do every time no matter what
@@ -62,26 +77,7 @@ def main():
     elif args.action == "stop":
         stop_all_bots(user_config_list)
     else:
-        # Validate provided label
-        labels = list()
-        for user_config in user_config_list:
-            labels.append(user_config["label"])
-
-        if args.label not in labels:
-            argument_parser.print_help()
-            return
-
-        try:
-            run(
-                [
-                    "docker",
-                    "logs",
-                    get_container_name(args.label, args.type),
-                    "--follow",
-                ]
-            )
-        except KeyboardInterrupt:
-            return
+        print("error!")
 
 
 def get_argument_parser():
@@ -120,12 +116,29 @@ def get_argument_parser():
     return parser
 
 
+def view_logs(container_name):
+    try:
+        run(
+            [
+                "docker",
+                "logs",
+                container_name,
+                "--follow",
+            ]
+        )
+    except:
+        pass
+
+
 def validate_label_and_enabled_flag(user_config):
     try:
         if (
             # Alphanumeric label is required
             user_config["label"] == ""
             or not user_config["label"].isalnum()
+            # Max length for Docker container name is 128,
+            # and each WidenBot container name will automatically have 16 characters in it
+            or len(user_config["label"]) > 112
             # IsEnabled must be true
             or user_config["isEnabled"] == ""
             or not user_config["isEnabled"]
