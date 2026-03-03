@@ -1,3 +1,5 @@
+"""TODO"""
+
 from argparse import ArgumentParser
 from contextlib import closing
 from json import loads
@@ -10,9 +12,44 @@ from sys import argv
 
 
 def main():
-    parser = get_parser()
-    args = parser.parse_args()
-    user_config_list = handle_user_config(args.action)
+
+    # Parse command line arguments via ArgumentParser
+    argument_parser = get_argument_parser()
+    args = argument_parser.parse_args()
+
+    # Make sure config.json exists, and load it in
+    try:
+        user_config_list = loads(get_file_contents("config.json"))
+    except FileNotFoundError:
+        print("config.json must exist alongside this script")
+        return
+
+    # Loop through each config in config.json
+    for i in range(len(user_config_list)):
+
+        # No matter what the desired action is, we need a valid label and present IsEnabled flag
+        user_config = validate_label_and_enabled_flag(user_config_list[i])
+        if user_config is None:
+            print(f"Config #{i} is not enabled, or not labeled correctly - skipping")
+            continue
+
+    # Available actions are start, stop, view logs
+    match args.action:
+        case "start":
+            # TODO:
+            return
+        case "stop":
+            # TODO:
+            return
+        case "logs":
+            # TODO:
+            return
+
+    # If desired action is stop or view logs, less validation to do
+    # But basically there's validation we need to do every time no matter what
+    # maybe we should loop through at this top level
+
+    user_config_list = validate_user_config(args.action)
 
     if user_config_list is None:
         print(
@@ -31,7 +68,7 @@ def main():
             labels.append(user_config["label"])
 
         if args.label not in labels:
-            parser.print_help()
+            argument_parser.print_help()
             return
 
         try:
@@ -47,7 +84,7 @@ def main():
             return
 
 
-def get_parser():
+def get_argument_parser():
     parser = ArgumentParser(
         prog="run.py",
         description="Run script for WidenBot.",
@@ -83,8 +120,26 @@ def get_parser():
     return parser
 
 
-def handle_user_config(action):
+def validate_label_and_enabled_flag(user_config):
     try:
+        if (
+            # Alphanumeric label is required
+            user_config["label"] == ""
+            or not user_config["label"].isalnum()
+            # IsEnabled must be true
+            or user_config["isEnabled"] == ""
+            or not user_config["isEnabled"]
+        ):
+            return None
+    except (KeyError, ValueError):
+        return None
+
+    return user_config
+
+
+def validate_user_config(action):
+    try:
+        # Open the config.json
         user_config_list = loads(get_file_contents("config.json"))
 
         # Only need to validate label and isEnabled if stopping bots or viewing logs
