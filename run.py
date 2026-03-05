@@ -1,7 +1,9 @@
 """
 TODO:
-    Test logs command, make sure it still works when there are actual logs
-    Play around with malformed config.json
+
+    try to remove any try catches that aren't actually needed
+    Play around with malformed config.json full run
+    full run of all commands / scenarios we can think of
 """
 
 from argparse import ArgumentParser
@@ -29,55 +31,55 @@ def main():
 
     # We are either starting or stopping WidenBots, make sure config.json exists and load it
     try:
-        user_config_list = loads(get_file_contents("config.json"))
+        config_json = loads(get_file_contents("config.json"))
     except FileNotFoundError:
         print("ERROR: config.json must exist alongside this script")
         return
 
-    # if len(user_config_list == 0):
-    #     print("ERROR: config.json is malformed, refer to config.template.json")
+    # Get the server list from config
+    try:
+        server_list = config_json["discordServers"]
+        if len(server_list) == 0:
+            raise RuntimeError
+    except (KeyError, RuntimeError):
+        print(
+            "ERROR: 'discordServers' is missing or empty / malformed, refer to config.template.jsonc"
+        )
 
-    # Loop through each config in config.json
-    for i in range(len(user_config_list)):
+    for i in range(len(server_list)):
+        server_config = server_list[i]
 
-        # No matter what the desired action is, we need a valid label and present IsEnabled flag
-        user_config = validate_label_and_enabled_flag(user_config_list[i])
-
-        if user_config is None:
+        # Whether starting or stopping, we need to check labels and IsEnabled flags
+        if not validate_label_and_enabled_flag(server_config):
             print(
-                f"Config #{i+1} in config.json is not enabled, or not labeled correctly - skipping"
+                f"WARNING: Config #{i + 1} in config.json is not enabled, or not labeled correctly - skipping"
             )
-
             continue
 
-        # Available actions are start, stop, view logs
-        match args.action:
-            case "start":
-                return
-            case "stop":
-                return
-            case _:
-                print("Unexpected action")
-                return
+        # If desired action is stop, we have all we need to do that now
+        if args.action == "stop":
+            stop_widenbot_instance(server_config)
+            continue
 
-    # If desired action is stop or view logs, less validation to do
-    # But basically there's validation we need to do every time no matter what
-    # maybe we should loop through at this top level
+        # Sanity check
+        if args.action != "start":
+            print(f"ERROR: Unexpected action '{args.action}', exiting")
+            return
 
-    user_config_list = validate_user_config(args.action)
+        # Make sure we have the minimum configs required to start this WidenBot
+        if not validate_server_config_for_start(server_list[i]):
+            print(
+                f"WARNING: Config '{server_config["label"]}' in config.json is missing a required field - skipping"
+            )
+            continue
 
-    if user_config_list is None:
-        print(
-            "config.json must exist in main directory (same as this script), and must be fully specified. See 'WidenBot Config' section of README.md"
-        )
-        return
+        # TODO:
+        # build out the remaining bits of the config that we need to start
+        # write application yml once, if needed
+        # for now, assume spotify is still required (but don't write code to validate it)
+        # write env file
 
-    if args.action == "start":
-        run_all_bots(user_config_list)
-    elif args.action == "stop":
-        stop_all_bots(user_config_list)
-    else:
-        print("error!")
+        start_widenbot_instance(server_config)
 
 
 def get_argument_parser():
@@ -87,11 +89,15 @@ def get_argument_parser():
         epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
     )
 
+    action_help_text = """
+The 'start' and 'stop' actions will start or stop all WidenBots in config.json.
+If any WidenBots are already running and 'start' is specified, they will be restarted.
+The 'logs' action shows specific client or server container logs in --follow mode.
+Typically, the server logs will be the more helpful of the two if there is a problem.
+    """
+
     parser.add_argument(
-        "action",
-        type=str,
-        choices=["start", "stop", "logs"],
-        help="The 'start' / 'stop' actions start or stop all WidenBots in config.json, and 'logs' shows specific client or server container logs in --follow mode.",
+        "action", type=str, choices=["start", "stop", "logs"], help=action_help_text
     )
 
     action_is_logs = "run.py logs" in " ".join(argv)
@@ -130,77 +136,85 @@ def view_logs(container_name):
         pass
 
 
-def validate_label_and_enabled_flag(user_config):
+def validate_label_and_enabled_flag(server_config):
     try:
-        if (
-            # Alphanumeric label is required
-            user_config["label"] == ""
-            or not user_config["label"].isalnum()
-            # Max length for Docker container name is 128,
-            # and each WidenBot container name will automatically have 16 characters in it
-            or len(user_config["label"]) > 112
-            # IsEnabled must be true
-            or user_config["isEnabled"] == ""
-            or not user_config["isEnabled"]
-        ):
-            return None
+        return (
+            # Label must be alphanumeric
+            "label" in server_config
+            and server_config["label"].isalnum()
+            # Max length of 112, because 16 chars are assumed
+            # and Docker max container name length is 128 chars
+            and len(server_config["label"]) <= 112
+            # Config must be enabled
+            and server_config["isEnabled"] == True
+        )
     except (KeyError, ValueError):
-        return None
+        return False
 
-    return user_config
+
+def stop_widenbot_instance(server_config):
+    label = server_config["label"]
+
+    for type in ["client", "server"]:
+        run(
+            [
+                "docker",
+                "container",
+                "kill",
+                get_container_name(label, type),
+            ]
+        )
+
+    print(f"INFO: WidenBot instance {label} has been stopped.")
+
+
+def validate_server_config_for_start(server_config):
+
+    try:
+        return len(server_config["serverID"]) > 0 and len(server_config["botToken"] > 0)
+    except KeyError:
+        return False
 
 
 def validate_user_config(action):
     try:
-        # Open the config.json
-        user_config_list = loads(get_file_contents("config.json"))
+        # # Open the config.json
+        # user_config_list = loads(get_file_contents("config.json"))
 
-        # Only need to validate label and isEnabled if stopping bots or viewing logs
-        if action != "start":
-            for user_config in user_config_list:
-                if user_config["label"] == "" or not user_config["label"].isalnum():
-                    return None
+        # # Only need to validate label and isEnabled if stopping bots or viewing logs
+        # if action != "start":
+        #     for user_config in user_config_list:
+        #         if user_config["label"] == "" or not user_config["label"].isalnum():
+        #             return None
 
-                if user_config["isEnabled"] == "":
-                    return None
+        #         if user_config["isEnabled"] == "":
+        #             return None
 
-                if not user_config["isEnabled"]:
-                    print(
-                        f"...Skipping {user_config['label']} because isEnabled is false"
-                    )
-                    continue
+        #         if not user_config["isEnabled"]:
+        #             print(
+        #                 f"...Skipping {user_config['label']} because isEnabled is false"
+        #             )
+        #             continue
 
-            return user_config_list
+        #     return user_config_list
 
         # Start at 80 and increment by 1 for each bot in the array
         current_port = 80
 
         # Validate each config in the array
         for user_config in user_config_list:
-            if user_config["label"] == "" or not user_config["label"].isalnum():
-                return None
 
-            if user_config["isEnabled"] == "":
-                return None
+            # if (
+            #     user_config["discord"]["serverID"] == ""
+            #     or user_config["discord"]["botToken"] == ""
+            # ):
+            #     return None
 
-            if not user_config["isEnabled"]:
-                print(f"...Skipping {user_config['label']} because isEnabled is false")
-                continue
-
-            if user_config["useSponsorBlock"] == "":
-                return None
-
-            if (
-                user_config["discord"]["serverID"] == ""
-                or user_config["discord"]["botToken"] == ""
-            ):
-                return None
-
-            if (
-                user_config["spotify"]["clientID"] == ""
-                or user_config["spotify"]["clientSecret"] == ""
-            ):
-                return None
+            # if (
+            #     user_config["spotify"]["clientID"] == ""
+            #     or user_config["spotify"]["clientSecret"] == ""
+            # ):
+            #     return None
 
             # Generate new password for this run
             alphanumerics = list(ascii_lowercase + ascii_uppercase + digits)
@@ -231,65 +245,43 @@ def validate_user_config(action):
         return None
 
 
-def run_all_bots(user_config_list):
-    print("Starting WidenBot...")
+def start_widenbot_instance(server_config):
+    # print("Starting WidenBot...")
 
+    # FIXME: can we do this without chdir?
     chdir("./src")
 
-    labels = list()
+    # labels = list()
 
-    for user_config in user_config_list:
+    # for server_config in user_config_list:
 
-        # Check enabled flag and skip
-        if not user_config["isEnabled"]:
-            continue
+    # Check enabled flag and skip
 
-        labels.append(user_config["label"])
+    # labels.append(server_config["label"])
 
-        # Lavalink application.yml
-        write_application_yml(
-            user_config["spotify"]["clientID"], user_config["spotify"]["clientSecret"]
-        )
+    # Lavalink application.yml
+    write_application_yml(
+        server_config["spotify"]["clientID"], server_config["spotify"]["clientSecret"]
+    )
 
-        # Docker .env file
-        write_env_file(user_config)
+    # Docker .env file
+    write_env_file(server_config)
 
-        run(
-            [
-                "docker",
-                "compose",
-                "-p",
-                user_config["label"],
-                "up",
-                "--build",
-                "--force-recreate",
-                "--detach",
-            ]
-        )
-
-    print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
+    run(
+        [
+            "docker",
+            "compose",
+            "-p",
+            server_config["label"],
+            "up",
+            "--build",
+            "--force-recreate",
+            "--detach",
+        ]
+    )
 
 
-def stop_all_bots(user_config_list):
-    for user_config in user_config_list:
-
-        # Check enabled flag and skip
-        if not user_config["isEnabled"]:
-            continue
-
-        label = user_config["label"]
-
-        for type in ["client", "server"]:
-            run(
-                [
-                    "docker",
-                    "container",
-                    "kill",
-                    get_container_name(label, type),
-                ]
-            )
-
-        print(f"WidenBot instance {label} has been stopped.")
+print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
 
 
 def write_application_yml(client_id, client_secret):
