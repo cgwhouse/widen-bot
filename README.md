@@ -1,85 +1,81 @@
 # WidenBot
 
-WidenBot is a simple, self-hosted (_by you!_) music bot for Discord.
+WidenBot is a simple, self-hosted music bot for Discord.
 
 Inspired by past and present titans such as Groovy, Rythm, ProBot, etc.
 But this time: no unnecessary features, misbehavior, or monetization.
 
-The purpose of this project is to serve as:
-
-1. A reliable, personal jukebox for you and your Discord server(s)
-2. A simple reference implementation of a Discord bot
-   built with .NET and hosted via Docker
+The purpose of this project is to serve as a reliable, personal jukebox
+for you and your Discord servers.
 
 **Due to the nature of what a music bot is trying to accomplish,
 it can be prone to breakage which is often outside of WidenBot's direct control.
-In any case, please feel free to reach out directly or open an issue
-if you run into trouble.**
+In any case, please feel free to reach out directly or open an issue if you run into trouble.**
 
-## Quick Start
+## Setup Guide
 
-Hosting a WidenBot requires Python 3 and Docker.
-See [Docker install](https://docs.docker.com/engine/install/)
-for instructions on installing Docker.
+### Dependencies
 
-1. Go to the [Discord Developer Portal](https://discord.com/developers/applications),
-   login as the Discord account that should own the bot, and create a new application
-2. Within the Bot settings:
+- Git
+- Python 3
+- [Docker](https://docs.docker.com/engine/install/)
 
-   - Disable "Public Bot" (optional)
-   - Enable "Server Members Intent" and "Message Content Intent"
-   - Click the "Reset Token" button and save the resulting token for later
+### Hosting
 
-3. Within the OAuth settings:
-
-   - Add a redirect for `https://discord.com` (Under "General" sub-category)
-   - Generate an invite URL with the `application.commands` and `bot` scopes,
-     and the following permissions:
-     - Read Messages/View Channels
-     - Send Messages
-     - Manage Messages
-     - Use Slash Commands
-     - Connect
-     - Speak
-
-4. Use the generated URL to invite the bot to a server of your choice
-5. Go to the [Spotify developer dashboard](https://developer.spotify.com/dashboard)
-   and sign in with whatever Spotify account you want to use
-6. Create a new Spotify app for OAuth purposes
-   (Development mode and other defaults should be sufficient),
-   and save the client ID and secret for later
-7. Clone this repository, and copy the contents of
-   `config.template.json` into a new file called `config.json`
-8. For each instance of WidenBot you want to run, add an object to the array
-   in your new `config.json` like so:
-
-   ```json
-   {
-     "label": "An arbitrary label for this instance of WidenBot",
-     "isEnabled": true,
-     "useSponsorBlock": true,
-     "discord": {
-       "serverID": "Right-click on server in Discord and select 'Copy Server ID'",
-       "botToken": "Bot token from Discord Developer Portal",
-       "requiredChannel": "Right-click on channel and select 'Copy Channel ID' to restrict channel usage, set to null if you want to handle via server roles instead"
-     },
-     "spotify": {
-       "clientID": "Client ID from Spotify developer dashboard",
-       "clientSecret": "Client secret from Spotify developer dashboard"
-     }
-   }
-   ```
-
-9. If on a Linux host, ensure the `src/plugins` directory has sufficient permissions.
-
-10. From the root of the repository, execute:
-
-```bash
-python3 run.py start
-```
-
-The bot can be hosted from any machine that can install Docker and Python 3.
-If you need a hosting platform, DigitalOcean makes it easy to set up a server,
-feel free to use the referral badge below which apparently provides a credit:
+I host my personal instance on a Raspberry Pi, but if you need or want a hosting platform, I recommend DigitalOcean. Here is my referral badge:
 
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg)](https://www.digitalocean.com/?refcode=eb2eb2fc76ce&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
+
+### Configuration
+
+1. Clone this repository:
+
+   ```bash
+   git clone https://github.com/cgwhouse/widen-bot && cd widen-bot
+   ```
+
+2. Create a new `config.json` using the template:
+
+   ```bash
+   cp config.template.jsonc config.json
+   ```
+
+3. Login to the [Discord Developer Portal](https://discord.com/developers/applications). For each Discord server you want to add a WidenBot to, do the following:
+   1. Create a new application
+
+   2. Within the Bot settings:
+      - Disable "Public Bot"
+      - Enable "Server Members Intent" and "Message Content Intent"
+      - Click the "Reset Token" button and add the token to your `config.json`
+
+   3. Within the OAuth2 settings:
+      - Add a redirect for `https://discord.com`
+      - Generate an invite URL with the `applications.commands` and `bot` scopes,
+        and the following Bot permissions:
+        - View Channels
+        - Send Messages
+        - Manage Messages
+        - Use Slash Commands
+        - Connect
+        - Speak
+      - Use the generated URL to invite the bot to your server (paste in web browser)
+
+   4. Right-click on your server in Discord, select "Copy Server ID", and add the value to your `config.json`
+
+### Spotify Integration (optional, requires Spotify Premium)
+
+1. Sign in to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+
+2. Create a new Spotify app (Development mode, other defaults should be sufficient)
+
+3. Add the clientID and secret to `config.json`
+
+## Run
+
+- If on a Linux host, ensure the `src/plugins` directory has sufficient permissions.
+- Remove template descriptions / comments from `config.json`
+- From the root of the repository, execute:
+
+```bash
+python3 widenbot.py start
+```
