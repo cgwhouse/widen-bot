@@ -2,11 +2,11 @@
 
 WidenBot is a simple, self-hosted music bot for Discord.
 
-Inspired by past and present titans such as Groovy, Rythm, ProBot, etc.
-But this time: no unnecessary features, misbehavior, or monetization.
-
 The purpose of this project is to serve as a reliable, personal jukebox
 for you and your Discord servers.
+
+Inspired by past and present titans such as Groovy, Rythm, ProBot, etc.
+But this time: no unnecessary features, misbehavior, or monetization.
 
 **Due to the nature of what a music bot is trying to accomplish,
 it can be prone to breakage which is often outside of WidenBot's direct control.
@@ -73,7 +73,7 @@ I host my personal instance on a Raspberry Pi, but if you need or want a hosting
 ## Run
 
 - If on a Linux host, ensure the `src/plugins` directory has sufficient permissions.
-- Remove template descriptions / comments from `config.json`
+- Remove template comments from `config.json`
 - From the root of the repository, execute:
 
 ```bash
