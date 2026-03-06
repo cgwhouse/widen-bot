@@ -33,8 +33,7 @@ from socket import AF_INET, SOCK_STREAM, socket
 def main():
     print("\nThank you for using WidenBot!\n")
 
-    argument_parser = get_argument_parser()
-    args = argument_parser.parse_args()
+    args = get_argument_parser().parse_args()
 
     if args.action == "logs":
         view_logs(get_container_name(args.label, args.type))
@@ -89,6 +88,10 @@ def view_logs(container_name):
         pass
 
 
+def get_container_name(label, type):
+    return f"{label}-widenbot-{type}"
+
+
 def get_config_json():
     try:
         return json.loads(get_file_contents("config.json"))
@@ -98,6 +101,32 @@ def get_config_json():
     except JSONDecodeError:
         print("ERROR: config.json is not a valid JSON document.\n")
         return None
+
+
+def spotify_is_enabled(server_config):
+    return (
+        "spotify" in server_config
+        and server_config["spotify"] != None
+        and "clientID" in server_config["spotify"]
+        and "clientSecret" in server_config["spotify"]
+        and isinstance(server_config["spotify"]["clientID"], str)
+        and isinstance(server_config["spotify"]["clientSecret"], str)
+    )
+
+
+def write_application_yml(config, spotify_enabled):
+    application_yml = get_file_contents("src/application.template.yml")
+
+    # If Spotify integration is configured, add required bits to the YAML
+    if spotify_enabled:
+        application_yml = (
+            application_yml.replace("spotify: false", "spotify: true")
+            .replace("SPOTIFY_CLIENT_ID", config["spotify"]["clientID"])
+            .replace("SPOTIFY_CLIENT_SECRET", config["spotify"]["clientSecret"])
+        )
+
+    write_file_contents("src/application.yml", application_yml)
+    print("INFO: Wrote updated src/application.yml\n")
 
 
 def get_config_server_list(config):
@@ -201,32 +230,6 @@ def start_widenbot_instance(server_config, spotify_enabled):
     print(f"INFO: WidenBot instance '{server_config["label"]}' has been started.\n")
 
 
-def write_application_yml(config, spotify_enabled):
-    application_yml = get_file_contents("src/application.template.yml")
-
-    # If Spotify integration is configured, add required bits to the YAML
-    if spotify_enabled:
-        application_yml = (
-            application_yml.replace("spotify: false", "spotify: true")
-            .replace("SPOTIFY_CLIENT_ID", config["spotify"]["clientID"])
-            .replace("SPOTIFY_CLIENT_SECRET", config["spotify"]["clientSecret"])
-        )
-
-    write_file_contents("src/application.yml", application_yml)
-    print("INFO: Wrote updated src/application.yml\n")
-
-
-def spotify_is_enabled(server_config):
-    return (
-        "spotify" in server_config
-        and server_config["spotify"] != None
-        and "clientID" in server_config["spotify"]
-        and "clientSecret" in server_config["spotify"]
-        and isinstance(server_config["spotify"]["clientID"], str)
-        and isinstance(server_config["spotify"]["clientSecret"], str)
-    )
-
-
 def write_env_file(server_config, password, client_port, spotify_enabled):
     env_file_contents = f"CLIENT_PORT={client_port}\n"
     env_file_contents += f"INSTANCE_LABEL={server_config["label"]}\n"
@@ -259,10 +262,6 @@ def get_file_contents(path):
 def write_file_contents(path, contents):
     with open(path, "w") as f:
         f.write(contents)
-
-
-def get_container_name(label, type):
-    return f"{label}-widenbot-{type}"
 
 
 def get_argument_parser():
