@@ -47,8 +47,10 @@ def main():
     if config is None:
         return
 
+    spotify_enabled = spotify_is_enabled(config)
+
     if args.action == "start":
-        write_application_yml(config)
+        write_application_yml(config, spotify_enabled)
 
     server_list = get_config_server_list(config)
     if server_list is None:
@@ -73,7 +75,7 @@ def main():
             )
             continue
 
-        start_widenbot_instance(server_config)
+        start_widenbot_instance(server_config, spotify_enabled)
 
 
 def view_logs(container_name):
@@ -157,7 +159,7 @@ def validate_server_config_for_start(server_config):
     )
 
 
-def start_widenbot_instance(server_config):
+def start_widenbot_instance(server_config, spotify_enabled):
     # Generate password that client + server will use to talk to each other
     password = ""
 
@@ -182,7 +184,7 @@ def start_widenbot_instance(server_config):
     )
 
     # Write .env file for Docker
-    write_env_file(server_config, password, client_port)
+    write_env_file(server_config, password, client_port, spotify_enabled)
 
     subprocess.run(
         [
@@ -202,34 +204,39 @@ def start_widenbot_instance(server_config):
     print(f"INFO: WidenBot instance '{server_config["label"]}' has been started.\n")
 
 
-def write_application_yml(server_config):
+def write_application_yml(config, spotify_enabled):
     application_yml = get_file_contents("src/application.template.yml")
 
     # If Spotify integration is configured, add required bits to the YAML
-    if (
-        "spotify" in server_config
-        and server_config["spotify"] != None
-        and "clientID" in server_config["spotify"]
-        and "clientSecret" in server_config["spotify"]
-        and isinstance(server_config["spotify"]["clientID"], str)
-        and isinstance(server_config["spotify"]["clientSecret"], str)
-    ):
+    if spotify_enabled:
         application_yml = (
             application_yml.replace("spotify: false", "spotify: true")
-            .replace("SPOTIFY_CLIENT_ID", server_config["spotify"]["clientID"])
-            .replace("SPOTIFY_CLIENT_SECRET", server_config["spotify"]["clientSecret"])
+            .replace("SPOTIFY_CLIENT_ID", config["spotify"]["clientID"])
+            .replace("SPOTIFY_CLIENT_SECRET", config["spotify"]["clientSecret"])
         )
 
     write_file_contents("src/application.yml", application_yml)
     print("INFO: Wrote updated src/application.yml\n")
 
 
-def write_env_file(server_config, password, client_port):
+def spotify_is_enabled(server_config):
+    return (
+        "spotify" in server_config
+        and server_config["spotify"] != None
+        and "clientID" in server_config["spotify"]
+        and "clientSecret" in server_config["spotify"]
+        and isinstance(server_config["spotify"]["clientID"], str)
+        and isinstance(server_config["spotify"]["clientSecret"], str)
+    )
+
+
+def write_env_file(server_config, password, client_port, spotify_enabled):
     env_file_contents = f"CLIENT_PORT={client_port}\n"
     env_file_contents += f"INSTANCE_LABEL={server_config["label"]}\n"
     env_file_contents += f"WIDENBOT_PASSWORD={password}\n"
     env_file_contents += f"DISCORD_SERVER_ID={server_config["serverID"]}\n"
     env_file_contents += f"DISCORD_BOT_TOKEN={server_config["botToken"]}\n"
+    env_file_contents += f"SPOTIFY_ENABLED={str(spotify_enabled).lower()}\n"
 
     # NOTE: Inject config for requiredChannel if provided, set to initial dummy value to prevent Docker warning
     if (
