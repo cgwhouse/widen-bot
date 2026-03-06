@@ -75,10 +75,6 @@ builder
     });
 
 var app = builder.Build();
-
-var useSponsorBlock = builder.Configuration.GetValue<bool>("USE_SPONSORBLOCK");
-
-if (useSponsorBlock)
-    app.UseSponsorBlock();
+app.UseSponsorBlock();
 
 await app.RunAsync();

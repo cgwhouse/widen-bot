@@ -16,11 +16,8 @@ services:
     expose:
       - 2333
     environment:
-      # Java options
       - _JAVA_OPTIONS=-Xmx6G
-      # Lavalink server port
       - SERVER_PORT=2333
-      # Lavalink password
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
   widenbot-client:
     depends_on:

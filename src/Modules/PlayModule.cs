@@ -25,7 +25,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -59,7 +59,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -113,7 +113,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -145,7 +145,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -196,7 +196,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }

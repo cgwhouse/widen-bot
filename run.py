@@ -5,6 +5,8 @@ TODO:
     Play around with malformed config.json full run
     full run of all commands / scenarios we can think of
     we don't want the logs to be too spaced out
+    test multiple bots at once during final end to end
+    suppress command output when stopping bots, maybe
 """
 
 import contextlib
@@ -79,10 +81,6 @@ def main():
                 f"WARNING: Config '{server_config["label"]}' in config.json is missing a required field - skipping\n"
             )
             continue
-
-        # TODO:
-        # build out the remaining bits of the config that we need to start
-        # write env file
 
         start_widenbot_instance(server_config)
 
@@ -167,109 +165,82 @@ def stop_widenbot_instance(label):
             ]
         )
 
-    print(f"INFO: WidenBot instance {label} has been stopped.\n")
+    print(f"INFO: WidenBot instance {label} has been stopped\n")
 
 
 def validate_server_config_for_start(server_config):
+    return (
+        "serverID" in server_config
+        and isinstance(server_config["serverID"], str)
+        and len(server_config["serverID"]) > 0
+        and "botToken" in server_config
+        and isinstance(server_config["botToken"], str)
+        and len(server_config["botToken"] > 0)
+    )
 
-    try:
-        return len(server_config["serverID"]) > 0 and len(server_config["botToken"] > 0)
-    except KeyError:
-        return False
 
-
-def validate_user_config(action):
-    try:
-        # # Open the config.json
-        # user_config_list = loads(get_file_contents("config.json"))
-
-        # # Only need to validate label and isEnabled if stopping bots or viewing logs
-        # if action != "start":
-        #     for user_config in user_config_list:
-        #         if user_config["label"] == "" or not user_config["label"].isalnum():
-        #             return None
-
-        #         if user_config["isEnabled"] == "":
-        #             return None
-
-        #         if not user_config["isEnabled"]:
-        #             print(
-        #                 f"...Skipping {user_config['label']} because isEnabled is false"
-        #             )
-        #             continue
-
-        #     return user_config_list
-
-        # Start at 80 and increment by 1 for each bot in the array
-        current_port = 80
-
-        # Validate each config in the array
-        for user_config in user_config_list:
-
-            # if (
-            #     user_config["discord"]["serverID"] == ""
-            #     or user_config["discord"]["botToken"] == ""
-            # ):
-            #     return None
-
-            # if (
-            #     user_config["spotify"]["clientID"] == ""
-            #     or user_config["spotify"]["clientSecret"] == ""
-            # ):
-            #     return None
-
-            # Generate new password for this run
-            alphanumerics = list(
-                string.ascii_lowercase + string.ascii_uppercase + string.digits
-            )
-
-            password = ""
-
-            for _ in range(15):
-                password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
-
-            user_config["password"] = password
-
-            # Make sure current_port is available, otherwise move on to next
-            while True:
-                with contextlib.closing(socket(AF_INET, SOCK_STREAM)) as sock:
-                    if sock.connect_ex(("127.0.0.1", current_port)) == 0:
-                        current_port += 1
-                    else:
-                        print(
-                            f"Found port {current_port} for WidenBot instance {user_config['label']}!"
-                        )
-                        break
-
-            user_config["clientPort"] = current_port
-            current_port += 1
-
-        return user_config_list
-    except (FileNotFoundError, KeyError, TypeError, ValueError):
-        return None
+# def validate_user_config(server_config):
+#     # Start at 80 and increment by 1 for each bot in the array
+#     current_port = 80
+#
+#     # Validate each config in the array
+#     for user_config in user_config_list:
+#
+#         # Generate new password for this run
+#         alphanumerics = list(
+#             string.ascii_lowercase + string.ascii_uppercase + string.digits
+#         )
+#
+#         password = ""
+#
+#         for _ in range(15):
+#             password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
+#
+#         user_config["password"] = password
+#
+#         # Make sure current_port is available, otherwise move on to next
+#         while True:
+#             with contextlib.closing(socket(AF_INET, SOCK_STREAM)) as sock:
+#                 if sock.connect_ex(("127.0.0.1", current_port)) == 0:
+#                     current_port += 1
+#                 else:
+#                     print(
+#                         f"Found port {current_port} for WidenBot instance {user_config['label']}!"
+#                     )
+#                     break
+#
+#         user_config["clientPort"] = current_port
+#         current_port += 1
+#
+#     return user_config_list
 
 
 def start_widenbot_instance(server_config):
-    # print("Starting WidenBot...")
+    # Generate password that client + server will use to talk to each other
+    password = ""
 
-    # FIXME: can we do this without chdir?
-    # chdir("./src")
+    alphanumerics = list(
+        string.ascii_lowercase + string.ascii_uppercase + string.digits
+    )
 
-    # labels = list()
+    for _ in range(15):
+        password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
 
-    # for server_config in user_config_list:
+    # We need to find an available port for the client container to bind to on the host
+    client_port = 80
+    while True:
+        with contextlib.closing(socket(AF_INET, SOCK_STREAM)) as sock:
+            if sock.connect_ex(("127.0.0.1", client_port)) == 0:
+                client_port += 1
+            else:
+                break
 
-    # Check enabled flag and skip
+    print(
+        f"INFO: Using port {client_port} for WidenBot instance '{server_config["label"]}'\n"
+    )
 
-    # labels.append(server_config["label"])
-
-    # Lavalink application.yml
-    # write_application_yml(
-    #     server_config["spotify"]["clientID"], server_config["spotify"]["clientSecret"]
-    # )
-
-    # Docker .env file
-    write_env_file(server_config)
+    # Write .env file for Docker
+    write_env_file(server_config, password, client_port)
 
     subprocess.run(
         [
@@ -281,11 +252,11 @@ def start_widenbot_instance(server_config):
             "--build",
             "--force-recreate",
             "--detach",
-        ]
+        ],
+        cwd="./src",
     )
 
-
-# print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
+    print(f"INFO: WidenBot instance '{server_config["label"]}' has been started\n")
 
 
 def write_application_yml(server_config):
@@ -310,30 +281,26 @@ def write_application_yml(server_config):
     print("INFO: Wrote updated src/application.yml\n")
 
 
-def write_env_file(user_config):
-    env_file_contents = f"INSTANCE_LABEL={user_config['label']}\n"
+def write_env_file(server_config, password, client_port):
+    env_file_contents = f"INSTANCE_LABEL={server_config["label"]}\n"
+    env_file_contents += f"DISCORD_SERVER_ID={server_config["serverID"]}\n"
+    env_file_contents += f"DISCORD_BOT_TOKEN={server_config["botToken"]}\n"
+    env_file_contents += f"LAVALINK_PASSWORD={password}\n"
+    env_file_contents += f"CLIENT_PORT={client_port}\n"
 
-    env_file_contents += f"USE_SPONSORBLOCK={user_config['useSponsorBlock']}\n"
-
-    env_file_contents += f"DISCORD_SERVER_ID={user_config['discord']['serverID']}\n"
-    env_file_contents += f"DISCORD_BOT_TOKEN={user_config['discord']['botToken']}\n"
-
-    # If provided, inject requiredChannel too
-    # Set to initial dummy value to prevent Docker warning
+    # NOTE: Inject config for requiredChannel if provided, set to initial dummy value to prevent Docker warning
     required_channel = "none"
+
     if (
-        "requiredChannel" in user_config["discord"]
-        and user_config["discord"]["requiredChannel"] is not None
+        "requiredChannel" in server_config
+        and isinstance(server_config["requiredChannel"], str)
+        and len(server_config["requiredChannel"]) > 0
     ):
-        required_channel = user_config["discord"]["requiredChannel"]
+        required_channel = server_config["requiredChannel"]
 
     env_file_contents += f"REQUIRED_CHANNEL={required_channel}\n"
 
-    # Internally managed env vars, users don't mess with these directly
-    env_file_contents += f"CLIENT_PORT={user_config['clientPort']}\n"
-    env_file_contents += f"LAVALINK_PASSWORD={user_config['password']}\n"
-
-    write_file_contents(".env", env_file_contents)
+    write_file_contents("src/.env", env_file_contents)
 
 
 def get_file_contents(path):
