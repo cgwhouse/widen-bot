@@ -16,7 +16,15 @@ Dependencies:
     * Docker and Docker Compose installed and running on the host machine.
     * A valid `config.json` file residing in the same directory as this script.
 
-See widenbot.py --help for usage instructions.
+Usage:
+    python widenbot.py <action> [-l LABEL] [-t TYPE]
+
+Positional Arguments:
+    action      The operation to perform: 'start', 'stop', or 'logs'.
+
+Optional Arguments:
+    -l, --label Specify the instance label (Required if action is 'logs').
+    -t, --type  Specify container type: 'client' or 'server' (Required if action is 'logs').
 """
 
 import contextlib
