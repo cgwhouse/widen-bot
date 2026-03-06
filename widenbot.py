@@ -19,9 +19,6 @@ Dependencies:
 See widenbot.py --help for usage instructions.
 """
 
-# TODO:
-# full E2E
-
 import contextlib
 import json
 import random
