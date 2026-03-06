@@ -235,13 +235,13 @@ def write_env_file(server_config, password, client_port, spotify_enabled):
     env_file_contents += f"DISCORD_BOT_TOKEN={server_config["botToken"]}\n"
     env_file_contents += f"SPOTIFY_ENABLED={str(spotify_enabled).lower()}\n"
 
-    # NOTE: Inject config for requiredChannel if provided, set to initial dummy value to prevent Docker warning
+    # NOTE: Inject config for requiredChannelID if provided, set to initial dummy value to prevent Docker warning
     if (
-        "requiredChannel" in server_config
-        and isinstance(server_config["requiredChannel"], str)
-        and len(server_config["requiredChannel"]) > 0
+        "requiredChannelID" in server_config
+        and isinstance(server_config["requiredChannelID"], str)
+        and len(server_config["requiredChannelID"]) > 0
     ):
-        required_channel = server_config["requiredChannel"]
+        required_channel = server_config["requiredChannelID"]
     else:
         required_channel = "none"
 
