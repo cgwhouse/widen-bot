@@ -6,15 +6,15 @@ TODO:
     full run of all commands / scenarios we can think of
 """
 
+import contextlib
+import json
+import random
+import string
+import subprocess
+import sys
 from argparse import ArgumentParser
-from contextlib import closing
-from json import loads
-from os import chdir
-from random import randint
+from json import JSONDecodeError
 from socket import AF_INET, SOCK_STREAM, socket
-from string import ascii_lowercase, ascii_uppercase, digits
-from subprocess import run
-from sys import argv
 
 
 def main():
@@ -31,20 +31,30 @@ def main():
 
     # We are either starting or stopping WidenBots, make sure config.json exists and load it
     try:
-        config_json = loads(get_file_contents("config.json"))
+        config_json = json.loads(get_file_contents("config.json"))
     except FileNotFoundError:
-        print("ERROR: config.json must exist alongside this script")
+        print("\nERROR: config.json must exist alongside this script\n")
+        return
+    except JSONDecodeError:
+        print("\nERROR: config.json is not a valid JSON document\n")
         return
 
+    # If action is start, write application.yml once for all configured servers
+    if args.action == "start":
+        write_application_yml(config_json)
+
     # Get the server list from config
-    try:
-        server_list = config_json["discordServers"]
-        if len(server_list) == 0:
-            raise RuntimeError
-    except (KeyError, RuntimeError):
+    if not (
+        "discordServers" in config_json
+        and isinstance(config_json["discordServers"], list)
+        and len(config_json["discordServers"]) > 0
+    ):
         print(
-            "ERROR: 'discordServers' is missing or empty / malformed, refer to config.template.jsonc"
+            "\nERROR: 'discordServers' is missing or empty / malformed, refer to config.template.jsonc\n"
         )
+        return
+
+    server_list = config_json["discordServers"]
 
     for i in range(len(server_list)):
         server_config = server_list[i]
@@ -52,7 +62,7 @@ def main():
         # Whether starting or stopping, we need to check labels and IsEnabled flags
         if not validate_label_and_enabled_flag(server_config):
             print(
-                f"WARNING: Config #{i + 1} in config.json is not enabled, or not labeled correctly - skipping"
+                f"\nWARNING: Config #{i + 1} in config.json is not enabled, or not labeled correctly - skipping\n"
             )
             continue
 
@@ -61,15 +71,10 @@ def main():
             stop_widenbot_instance(server_config)
             continue
 
-        # Sanity check
-        if args.action != "start":
-            print(f"ERROR: Unexpected action '{args.action}', exiting")
-            return
-
         # Make sure we have the minimum configs required to start this WidenBot
         if not validate_server_config_for_start(server_list[i]):
             print(
-                f"WARNING: Config '{server_config["label"]}' in config.json is missing a required field - skipping"
+                f"\nWARNING: Config '{server_config["label"]}' in config.json is missing a required field - skipping\n"
             )
             continue
 
@@ -100,7 +105,7 @@ Typically, the server logs will be the more helpful of the two if there is a pro
         "action", type=str, choices=["start", "stop", "logs"], help=action_help_text
     )
 
-    action_is_logs = "run.py logs" in " ".join(argv)
+    action_is_logs = "run.py logs" in " ".join(sys.argv)
 
     parser.add_argument(
         "-l",
@@ -124,7 +129,7 @@ Typically, the server logs will be the more helpful of the two if there is a pro
 
 def view_logs(container_name):
     try:
-        run(
+        subprocess.run(
             [
                 "docker",
                 "logs",
@@ -137,26 +142,25 @@ def view_logs(container_name):
 
 
 def validate_label_and_enabled_flag(server_config):
-    try:
-        return (
-            # Label must be alphanumeric
-            "label" in server_config
-            and server_config["label"].isalnum()
-            # Max length of 112, because 16 chars are assumed
-            # and Docker max container name length is 128 chars
-            and len(server_config["label"]) <= 112
-            # Config must be enabled
-            and server_config["isEnabled"] == True
-        )
-    except (KeyError, ValueError):
-        return False
+    return (
+        # Label must be present + string + alphanumeric
+        "label" in server_config
+        and isinstance(server_config["label"], str)
+        and server_config["label"].isalnum()
+        # Max length of 112, because 16 chars are assumed and Docker max container name length is 128 chars
+        and len(server_config["label"]) <= 112
+        # Config must be enabled
+        and "isEnabled" in server_config
+        and isinstance(server_config["isEnabled"], bool)
+        and server_config["isEnabled"]
+    )
 
 
 def stop_widenbot_instance(server_config):
     label = server_config["label"]
 
     for type in ["client", "server"]:
-        run(
+        subprocess.run(
             [
                 "docker",
                 "container",
@@ -165,7 +169,7 @@ def stop_widenbot_instance(server_config):
             ]
         )
 
-    print(f"INFO: WidenBot instance {label} has been stopped.")
+    print(f"\nINFO: WidenBot instance {label} has been stopped.\n")
 
 
 def validate_server_config_for_start(server_config):
@@ -217,18 +221,20 @@ def validate_user_config(action):
             #     return None
 
             # Generate new password for this run
-            alphanumerics = list(ascii_lowercase + ascii_uppercase + digits)
+            alphanumerics = list(
+                string.ascii_lowercase + string.ascii_uppercase + string.digits
+            )
 
             password = ""
 
             for _ in range(15):
-                password += alphanumerics[randint(0, len(alphanumerics) - 1)]
+                password += alphanumerics[random.randint(0, len(alphanumerics) - 1)]
 
             user_config["password"] = password
 
             # Make sure current_port is available, otherwise move on to next
             while True:
-                with closing(socket(AF_INET, SOCK_STREAM)) as sock:
+                with contextlib.closing(socket(AF_INET, SOCK_STREAM)) as sock:
                     if sock.connect_ex(("127.0.0.1", current_port)) == 0:
                         current_port += 1
                     else:
@@ -249,7 +255,7 @@ def start_widenbot_instance(server_config):
     # print("Starting WidenBot...")
 
     # FIXME: can we do this without chdir?
-    chdir("./src")
+    # chdir("./src")
 
     # labels = list()
 
@@ -260,14 +266,14 @@ def start_widenbot_instance(server_config):
     # labels.append(server_config["label"])
 
     # Lavalink application.yml
-    write_application_yml(
-        server_config["spotify"]["clientID"], server_config["spotify"]["clientSecret"]
-    )
+    # write_application_yml(
+    #     server_config["spotify"]["clientID"], server_config["spotify"]["clientSecret"]
+    # )
 
     # Docker .env file
     write_env_file(server_config)
 
-    run(
+    subprocess.run(
         [
             "docker",
             "compose",
@@ -281,20 +287,28 @@ def start_widenbot_instance(server_config):
     )
 
 
-print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
+# print(f"\nWidenBot instance(s) {', '.join(labels)} are now running!")
 
 
-def write_application_yml(client_id, client_secret):
-    spotify_client_id = "SPOTIFY_CLIENT_ID"
-    spotify_client_secret = "SPOTIFY_CLIENT_SECRET"
+def write_application_yml(server_config):
+    application_yml = get_file_contents("src/application.template.yml")
 
-    lavalink_config_raw = get_file_contents("application.template.yml")
+    # If Spotify integration is configured, add required bits to the YAML
+    if (
+        "spotify" in server_config
+        and server_config["spotify"] != None
+        and "clientID" in server_config["spotify"]
+        and "clientSecret" in server_config["spotify"]
+        and isinstance(server_config["spotify"]["clientID"], str)
+        and isinstance(server_config["spotify"]["clientSecret"], str)
+    ):
+        application_yml = (
+            application_yml.replace("spotify: false", "spotify: true")
+            .replace("SPOTIFY_CLIENT_ID", server_config["spotify"]["clientID"])
+            .replace("SPOTIFY_CLIENT_SECRET", server_config["spotify"]["clientSecret"])
+        )
 
-    lavalink_config_updated = lavalink_config_raw.replace(
-        spotify_client_id, client_id
-    ).replace(spotify_client_secret, client_secret)
-
-    write_file_contents("application.yml", lavalink_config_updated)
+    write_file_contents("src/application.yml", application_yml)
 
 
 def write_env_file(user_config):
