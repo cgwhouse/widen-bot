@@ -4,6 +4,7 @@ TODO:
     try to remove any try catches that aren't actually needed
     Play around with malformed config.json full run
     full run of all commands / scenarios we can think of
+    we don't want the logs to be too spaced out
 """
 
 import contextlib
@@ -18,39 +19,40 @@ from socket import AF_INET, SOCK_STREAM, socket
 
 
 def main():
+    print("\nThank you for using WidenBot!\n")
 
-    # Parse command line arguments via ArgumentParser
+    # Parse command line arguments
     argument_parser = get_argument_parser()
     args = argument_parser.parse_args()
 
-    # If the desired action is to view logs, just do that and exit
+    # Just cut to the chase if we're viewing logs
     if args.action == "logs":
-        container_name = get_container_name(args.label, args.type)
-        view_logs(container_name)
+        view_logs(get_container_name(args.label, args.type))
         return
 
     # We are either starting or stopping WidenBots, make sure config.json exists and load it
     try:
         config_json = json.loads(get_file_contents("config.json"))
     except FileNotFoundError:
-        print("\nERROR: config.json must exist alongside this script\n")
+        print("ERROR: config.json must exist alongside this script\n")
         return
     except JSONDecodeError:
-        print("\nERROR: config.json is not a valid JSON document\n")
+        print("ERROR: config.json is not a valid JSON document\n")
         return
 
-    # If action is start, write application.yml once for all configured servers
+    # If we're starting WidenBots, write application.yml (once for all configured bots)
+    # This includes adding configs for any optional integrations (Spotify, Apple Music)
     if args.action == "start":
         write_application_yml(config_json)
 
-    # Get the server list from config
+    # Get server list from the config
     if not (
         "discordServers" in config_json
         and isinstance(config_json["discordServers"], list)
         and len(config_json["discordServers"]) > 0
     ):
         print(
-            "\nERROR: 'discordServers' is missing or empty / malformed, refer to config.template.jsonc\n"
+            "ERROR: 'discordServers' is missing or empty / malformed, refer to config.template.jsonc\n"
         )
         return
 
@@ -62,26 +64,24 @@ def main():
         # Whether starting or stopping, we need to check labels and IsEnabled flags
         if not validate_label_and_enabled_flag(server_config):
             print(
-                f"\nWARNING: Config #{i + 1} in config.json is not enabled, or not labeled correctly - skipping\n"
+                f"WARNING: Config #{i + 1} in config.json is not enabled, or not labeled correctly - skipping\n"
             )
             continue
 
-        # If desired action is stop, we have all we need to do that now
+        # If desired action is stop, do that and move on
         if args.action == "stop":
-            stop_widenbot_instance(server_config)
+            stop_widenbot_instance(server_config["label"])
             continue
 
-        # Make sure we have the minimum configs required to start this WidenBot
+        # We are starting, make sure we have the minimum configs required
         if not validate_server_config_for_start(server_list[i]):
             print(
-                f"\nWARNING: Config '{server_config["label"]}' in config.json is missing a required field - skipping\n"
+                f"WARNING: Config '{server_config["label"]}' in config.json is missing a required field - skipping\n"
             )
             continue
 
         # TODO:
         # build out the remaining bits of the config that we need to start
-        # write application yml once, if needed
-        # for now, assume spotify is still required (but don't write code to validate it)
         # write env file
 
         start_widenbot_instance(server_config)
@@ -137,7 +137,7 @@ def view_logs(container_name):
                 "--follow",
             ]
         )
-    except:
+    except KeyboardInterrupt:
         pass
 
 
@@ -156,9 +156,7 @@ def validate_label_and_enabled_flag(server_config):
     )
 
 
-def stop_widenbot_instance(server_config):
-    label = server_config["label"]
-
+def stop_widenbot_instance(label):
     for type in ["client", "server"]:
         subprocess.run(
             [
@@ -169,7 +167,7 @@ def stop_widenbot_instance(server_config):
             ]
         )
 
-    print(f"\nINFO: WidenBot instance {label} has been stopped.\n")
+    print(f"INFO: WidenBot instance {label} has been stopped.\n")
 
 
 def validate_server_config_for_start(server_config):
@@ -309,6 +307,7 @@ def write_application_yml(server_config):
         )
 
     write_file_contents("src/application.yml", application_yml)
+    print("INFO: Wrote updated src/application.yml\n")
 
 
 def write_env_file(user_config):
