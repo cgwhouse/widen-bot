@@ -38,15 +38,15 @@ builder
             builder.Configuration.GetValue<string>("INSTANCE_LABEL")
             ?? throw new Exception("INSTANCE_LABEL is null");
 
-        var lavalinkPassword =
-            builder.Configuration.GetValue<string>("LAVALINK_PASSWORD")
-            ?? throw new Exception("LAVALINK_PASSWORD is null");
+        var widenbotPassword =
+            builder.Configuration.GetValue<string>("WIDENBOT_PASSWORD")
+            ?? throw new Exception("WIDENBOT_PASSWORD is null");
 
         // Comment out to debug against a locally running Lavalink server
         config.BaseAddress = new Uri($"http://{instanceLabel}-widenbot-server:2333");
 
         config.Label = $"WidenBot-{instanceLabel}";
-        config.Passphrase = lavalinkPassword;
+        config.Passphrase = widenbotPassword;
         config.ReadyTimeout = TimeSpan.FromSeconds(10);
     })
     // Lavalink inactivity tracking general settings
