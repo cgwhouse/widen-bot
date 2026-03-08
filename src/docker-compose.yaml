@@ -16,12 +16,9 @@ services:
     expose:
       - 2333
     environment:
-      # Java options
       - _JAVA_OPTIONS=-Xmx6G
-      # Lavalink server port
       - SERVER_PORT=2333
-      # Lavalink password
-      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+      - LAVALINK_SERVER_PASSWORD=${WIDENBOT_PASSWORD}
   widenbot-client:
     depends_on:
       - widenbot-server
@@ -34,10 +31,10 @@ services:
       - ${CLIENT_PORT}:${CLIENT_PORT}
     environment:
       - INSTANCE_LABEL=${INSTANCE_LABEL}
-      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD}
+      - WIDENBOT_PASSWORD=${WIDENBOT_PASSWORD}
       - DISCORD_SERVER_ID=${DISCORD_SERVER_ID}
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-      - USE_SPONSORBLOCK=${USE_SPONSORBLOCK}
+      - SPOTIFY_ENABLED=${SPOTIFY_ENABLED}
       - REQUIRED_CHANNEL=${REQUIRED_CHANNEL}
 
 networks:

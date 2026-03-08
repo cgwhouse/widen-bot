@@ -28,13 +28,13 @@ public interface IPlayerService
         ImmutableArray<IPlayerPrecondition> preconditions = default,
         CancellationToken cancellationToken = default
     );
+    public TrackSearchMode DetermineSearchMode(string query);
 }
 
 public class PlayerService(IAudioService audioService, IConfiguration config) : IPlayerService
 {
-    private bool UseSponsorBlock => config.GetValue<bool>("USE_SPONSORBLOCK");
-
     private string? RequiredChannel => config.GetValue<string?>("REQUIRED_CHANNEL");
+    private bool SpotifyEnabled => config.GetValue<bool>("SPOTIFY_ENABLED");
 
     private static readonly ImmutableArray<SegmentCategory> sponsorBlockCategories =
     [
@@ -102,41 +102,38 @@ public class PlayerService(IAudioService audioService, IConfiguration config) : 
                 .SetVolumeAsync(0.25f, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
-        // Ensure SponsorBlock if enabled
-        if (UseSponsorBlock)
+        // Ensure SponsorBlock
+        try
         {
-            try
-            {
-                var categories = await player
-                    .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+            var categories = await player
+                .GetSponsorBlockCategoriesAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
 
-                if (!categories.SequenceEqual(sponsorBlockCategories))
-                    await player
-                        .UpdateSponsorBlockCategoriesAsync(
-                            sponsorBlockCategories,
-                            cancellationToken: cancellationToken
-                        )
-                        .ConfigureAwait(false);
-            }
-            catch (HttpRequestException)
-            {
-                // Endpoint returns 404 when no SponsorBlock categories are set yet
+            if (!categories.SequenceEqual(sponsorBlockCategories))
                 await player
                     .UpdateSponsorBlockCategoriesAsync(
                         sponsorBlockCategories,
                         cancellationToken: cancellationToken
                     )
                     .ConfigureAwait(false);
-            }
+        }
+        catch (HttpRequestException)
+        {
+            // Endpoint returns 404 when no SponsorBlock categories are set yet
+            await player
+                .UpdateSponsorBlockCategoriesAsync(
+                    sponsorBlockCategories,
+                    cancellationToken: cancellationToken
+                )
+                .ConfigureAwait(false);
         }
 
-        return (player: player, errorEmbed: null);
+        return (player, errorEmbed: null);
     }
 
-    public static TrackSearchMode DetermineSearchMode(string query)
+    public TrackSearchMode DetermineSearchMode(string query)
     {
-        if (query.Contains("spotify", StringComparison.CurrentCultureIgnoreCase))
+        if (SpotifyEnabled && query.Contains("spotify", StringComparison.CurrentCultureIgnoreCase))
             return TrackSearchMode.Spotify;
 
         if (query.Contains("soundcloud", StringComparison.CurrentCultureIgnoreCase))

@@ -25,7 +25,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -59,7 +59,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -113,7 +113,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -145,7 +145,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -196,7 +196,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         if (player == null)
         {
             if (errorEmbed != null)
-                await FollowupAsync(embed: errorEmbed).ConfigureAwait(false);
+                await FollowupAsync(embed: errorEmbed, ephemeral: true).ConfigureAwait(false);
 
             return;
         }
@@ -329,7 +329,7 @@ public sealed class PlayModule(IPlayerService playerService, IAudioService audio
         var query = input.TrimStart().TrimEnd();
 
         // Determine search mode we'll initially start with
-        var bestGuessSearchMode = PlayerService.DetermineSearchMode(query);
+        var bestGuessSearchMode = playerService.DetermineSearchMode(query);
 
         if (PlayerService.IsMultiItem(query, bestGuessSearchMode))
         {

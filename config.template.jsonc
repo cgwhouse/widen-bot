@@ -1,0 +1,30 @@
+{
+  // Optional, use Spotify to lookup tracks. Leave blank or remove to disable.
+  // See README.md for instructions.
+  "spotify": {
+    "clientID": "",
+    "clientSecret": ""
+  },
+  // List of Discord servers to run a WidenBot for
+  "discordServers": [
+    {
+      // Alphanumeric label for differentiating the containers from each other.
+      // Will also be used to view logs, so just make it something convenient and recognizable.
+      // Max length of 112 characters.
+      "label": "",
+      // If IsEnabled is false, this server will be ignored during start / stop commands.
+      "isEnabled": true,
+      // Unique ID of the Discord server this WidenBot should be added to.
+      // To retrieve it, right-click in the sidebar of Discord and select "Copy Server ID".
+      "serverID": "",
+      // Can be generated via the Discord Developer Portal after configuring your bot user.
+      // See README.md for instructions.
+      "botToken": "",
+      // Optional, restrict bot commands to a specific channel within the server.
+      // Leave blank or remove to disable.
+      // If users disobey, they will receive an error message. To retrieve it,
+      // right-click on the desired channel in your server and select "Copy Channel ID".
+      "requiredChannelID": ""
+    }
+  ]
+}
