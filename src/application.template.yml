@@ -21,6 +21,12 @@ plugins:
     allowSearch: true
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
+    remoteCipher:
+      url: "https://cipher.kikkia.dev/"
+    # Uncomment if OAuth is needed (TODO: add README instructions / explanation)
+    #oauth:
+      #enabled: true
+      #refreshToken: ""
     clients:
       - TVHTML5_SIMPLY
       - ANDROID_VR
@@ -28,6 +34,8 @@ plugins:
       - WEB
       - MWEB
       - WEBEMBEDDED
+      # Uncomment if OAuth is needed
+      #- TV
 
 server:
   port: 2333
@@ -39,7 +47,7 @@ lavalink:
     - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
     - dependency: "com.github.topi314.lavasrc:lavasrc-plugin:4.8.1"
     - dependency: "com.github.topi314.sponsorblock:sponsorblock-plugin:3.0.1"
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.0"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.1"
   server:
     password: ""
     sources:
@@ -91,6 +99,7 @@ logging:
   level:
     root: INFO
     lavalink: INFO
+    dev.lavalink.youtube.http.YoutubeOauth2Handler: INFO
 
   request:
     enabled: true
