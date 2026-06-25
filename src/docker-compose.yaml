@@ -14,6 +14,9 @@ services:
       - _JAVA_OPTIONS=-Xmx${LAVALINK_MAX_MEMORY:?maxMemory is required in config.json}
       - SERVER_PORT=2333
       - LAVALINK_SERVER_PASSWORD=${WIDENBOT_PASSWORD}
+      - PLUGINS_LAVASRC_SOURCES_SPOTIFY=${SPOTIFY_ENABLED}
+      - PLUGINS_LAVASRC_SPOTIFY_CLIENTID=${SPOTIFY_CLIENT_ID}
+      - PLUGINS_LAVASRC_SPOTIFY_CLIENTSECRET=${SPOTIFY_CLIENT_SECRET}
   widenbot-client:
     depends_on:
       - widenbot-server

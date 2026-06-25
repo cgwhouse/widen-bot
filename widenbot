@@ -10,8 +10,6 @@ Key functionality:
 * Action routing: `start`, `stop`, and `logs` operations for bot instances.
 * Interactive setup: `init` / `add` build or extend `config.json` without
   hand-editing JSON.
-* Dynamic configuration: Generates the necessary `.env` and `application.yml`
-  files from `config.json` and the templates in `src/`.
 * Port allocation: Finds and binds an available local port for each client
   container.
 * Docker orchestration: Drives Docker Compose to pull (or build), recreate,
@@ -50,8 +48,6 @@ CONFIG_PATH = "config.json"
 # Relative reference written into generated configs so editors (e.g. VS Code)
 # provide autocomplete + validation against config.schema.json.
 CONFIG_SCHEMA_REF = "./config.schema.json"
-APPLICATION_TEMPLATE_PATH = "src/application.template.yml"
-APPLICATION_PATH = "src/application.yml"
 ENV_PATH = "src/.env"
 
 # Suggested in the wizard only when host RAM can't be detected; not a runtime
@@ -113,9 +109,6 @@ def main() -> int:
 
     spotify = get_spotify_config(config)
 
-    if args.action == "start":
-        write_application_yml(spotify)
-
     for index, raw_server in enumerate(servers):
         if not has_valid_label(raw_server) or not is_enabled(raw_server):
             print(
@@ -140,7 +133,7 @@ def main() -> int:
 
         start_widenbot_instance(
             to_server_config(raw_server),
-            spotify is not None,
+            spotify,
             max_memory,
             build_locally=args.build,
         )
@@ -255,30 +248,15 @@ def to_server_config(raw_server: dict) -> ServerConfig:
 
 
 # ---------------------------------------------------------------------------
-# File generation (application.yml + .env)
+# .env generation
 # ---------------------------------------------------------------------------
-
-
-def write_application_yml(spotify: Optional[SpotifyConfig]) -> None:
-    application_yml = get_file_contents(APPLICATION_TEMPLATE_PATH)
-
-    # If Spotify integration is configured, add the required bits to the YAML.
-    if spotify is not None:
-        application_yml = (
-            application_yml.replace("spotify: false", "spotify: true")
-            .replace("SPOTIFY_CLIENT_ID", spotify.client_id)
-            .replace("SPOTIFY_CLIENT_SECRET", spotify.client_secret)
-        )
-
-    write_file_contents(APPLICATION_PATH, application_yml)
-    print(f"INFO: Wrote updated {APPLICATION_PATH}\n")
 
 
 def write_env_file(
     server: ServerConfig,
     password: str,
     client_port: int,
-    spotify_enabled: bool,
+    spotify: Optional[SpotifyConfig],
     max_memory: str,
 ) -> None:
     lines = [
@@ -287,7 +265,11 @@ def write_env_file(
         f"WIDENBOT_PASSWORD={password}",
         f"DISCORD_SERVER_ID={server.server_id}",
         f"DISCORD_BOT_TOKEN={server.bot_token}",
-        f"SPOTIFY_ENABLED={str(spotify_enabled).lower()}",
+        # Consumed by the client, and by the server to toggle the lavasrc
+        # Spotify source + supply its credentials (see docker-compose.yaml).
+        f"SPOTIFY_ENABLED={str(spotify is not None).lower()}",
+        f"SPOTIFY_CLIENT_ID={spotify.client_id if spotify else ''}",
+        f"SPOTIFY_CLIENT_SECRET={spotify.client_secret if spotify else ''}",
         # Defaults to the literal "none" when unset to avoid a Docker Compose warning.
         f"REQUIRED_CHANNEL={server.required_channel_id}",
         f"LAVALINK_MAX_MEMORY={max_memory}",
@@ -302,7 +284,7 @@ def write_env_file(
 
 def start_widenbot_instance(
     server: ServerConfig,
-    spotify_enabled: bool,
+    spotify: Optional[SpotifyConfig],
     max_memory: str,
     build_locally: bool = False,
 ) -> None:
@@ -313,7 +295,7 @@ def start_widenbot_instance(
 
     print(f"INFO: Using port {client_port} for WidenBot instance '{server.label}'.\n")
 
-    write_env_file(server, password, client_port, spotify_enabled, max_memory)
+    write_env_file(server, password, client_port, spotify, max_memory)
 
     # NOTE: Docker Compose doesn't allow caps in project names.
     project = server.label.lower()

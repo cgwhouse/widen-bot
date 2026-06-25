@@ -15,6 +15,5 @@ src/.env
 src/bin
 src/obj
 
-# Lavalink server
-src/application.yml
+# Lavalink plugins
 src/plugins/*.jar
