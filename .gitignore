@@ -5,6 +5,9 @@
 /.vscode
 /.cache
 
+# Python
+__pycache__/
+
 # Environment variables
 src/.env
 

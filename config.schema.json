@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/cgwhouse/widen-bot/config.schema.json",
+  "title": "WidenBot configuration",
+  "description": "Configuration for one or more self-hosted WidenBot instances.",
+  "type": "object",
+  "required": ["maxMemory", "discordServers"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL to this JSON schema, enabling editor validation."
+    },
+    "spotify": {
+      "type": ["object", "null"],
+      "description": "Optional. Use Spotify to look up tracks. Omit or leave blank to disable.",
+      "additionalProperties": false,
+      "properties": {
+        "clientID": {
+          "type": "string",
+          "description": "Spotify app client ID from the Spotify Developer Dashboard."
+        },
+        "clientSecret": {
+          "type": "string",
+          "description": "Spotify app client secret from the Spotify Developer Dashboard."
+        }
+      }
+    },
+    "maxMemory": {
+      "type": "string",
+      "description": "Required. Max JVM heap for EACH Lavalink server container, in -Xmx form (e.g. \"512M\", \"1G\", \"2G\"). Use no less than 512M, and no more than ~50% of the host's RAM (leave ~1G free for the OS and bot client). This applies per instance, so N servers use roughly N times this amount.",
+      "pattern": "^[0-9]+[MmGg]$"
+    },
+    "discordServers": {
+      "type": "array",
+      "description": "List of Discord servers to run a WidenBot for.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["label", "isEnabled", "serverID", "botToken"],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Alphanumeric label used to distinguish containers and to view logs. Max length 112.",
+            "pattern": "^[A-Za-z0-9]+$",
+            "maxLength": 112
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "description": "If false, this server is ignored during start / stop commands."
+          },
+          "serverID": {
+            "type": "string",
+            "description": "Unique ID of the Discord server. Right-click the server in Discord and select \"Copy Server ID\".",
+            "minLength": 1
+          },
+          "botToken": {
+            "type": "string",
+            "description": "Bot token generated via the Discord Developer Portal.",
+            "minLength": 1
+          },
+          "requiredChannelID": {
+            "type": "string",
+            "description": "Optional. Restrict bot commands to a specific channel. Omit or leave blank to disable."
+          }
+        }
+      }
+    }
+  }
+}

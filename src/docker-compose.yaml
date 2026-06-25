@@ -5,24 +5,20 @@ services:
     restart: unless-stopped
     networks:
       - widenbot-net
-    # Uncomment this to make the server accessible from outside of Docker (e.g. local debugging)
-    # ports:
-    #   - 2333:2333
     volumes:
-      # Mount application.yml from the same directory
       - ./application.yml:/opt/Lavalink/application.yml
-      # Persist plugins between restarts
       - ./plugins/:/opt/Lavalink/plugins/
     expose:
       - 2333
     environment:
-      - _JAVA_OPTIONS=-Xmx6G
+      - _JAVA_OPTIONS=-Xmx${LAVALINK_MAX_MEMORY:?maxMemory is required in config.json}
       - SERVER_PORT=2333
       - LAVALINK_SERVER_PASSWORD=${WIDENBOT_PASSWORD}
   widenbot-client:
     depends_on:
       - widenbot-server
     container_name: ${INSTANCE_LABEL}-widenbot-client
+    image: ghcr.io/cgwhouse/widen-bot:latest
     build: .
     restart: unless-stopped
     networks:

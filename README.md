@@ -17,8 +17,8 @@ In any case, please feel free to reach out directly or open an issue if you run 
 ### Dependencies
 
 - Git
-- Python 3
-- [Docker](https://docs.docker.com/engine/install/)
+- Python 3.9+
+- Docker
 
 ### Hosting
 
@@ -34,10 +34,29 @@ I host my personal instance on a Raspberry Pi, but if you need or want a hosting
    git clone https://github.com/cgwhouse/widen-bot && cd widen-bot
    ```
 
-2. Create a new `config.json` using the template:
+2. Create a `config.json` by running the interactive setup wizard (no manual JSON editing required):
 
    ```bash
-   cp config.template.jsonc config.json
+   ./widenbot init
+   ```
+
+   To add another server later, run `./widenbot add`.
+
+   Prefer to write the file by hand? Create `config.json` yourself using the shape below. The generated and hand-written files both reference [`config.schema.json`](config.schema.json) via the `"$schema"` key, which gives editors such as VS Code autocomplete and live validation; the schema documents every field:
+
+   ```json
+   {
+     "$schema": "./config.schema.json",
+     "maxMemory": "1G",
+     "discordServers": [
+       {
+         "label": "myserver",
+         "isEnabled": true,
+         "serverID": "",
+         "botToken": ""
+       }
+     ]
+   }
    ```
 
 3. Login to the [Discord Developer Portal](https://discord.com/developers/applications). For each Discord server you want to add a WidenBot to, do the following:
@@ -68,14 +87,49 @@ I host my personal instance on a Raspberry Pi, but if you need or want a hosting
 
 2. Create a new Spotify app (Development mode, other defaults should be sufficient)
 
-3. Add the clientID and secret to `config.json`
+3. Add the clientID and secret to `config.json` (leave both blank to keep Spotify disabled)
+
+### Server memory
+
+Each WidenBot instance runs its own Lavalink server, which is a Java process. The top-level `"maxMemory"` setting in `config.json` controls its max JVM heap (`-Xmx`), and is **required**. The `init` wizard prompts for it and suggests a value based on your host's RAM — if you'd rather not decide, just press Enter to accept the suggestion.
+
+```json
+"maxMemory": "1G"
+```
+
+How to choose a value:
+
+- **No less than `512M`.** Below this, Lavalink can become unstable or get killed under load.
+- **No more than ~50% of the host's total RAM.** Leave at least ~1G free for the operating system, the bot client, and anything else running on the machine. Never set it at or above total RAM — the container will be OOM-killed.
+- **It applies per instance.** Each enabled server gets its own Lavalink server with this heap, so running N servers uses roughly N times this amount. Budget for that if you run several.
+
+For example, on a 2 GB Raspberry Pi running one bot, `512M`–`1G` is a sensible range; on an 8 GB host running a single bot, `2G`–`4G` is comfortable. (The previous fixed `6G` value would not even fit on most of these hosts.)
 
 ## Run
 
-- If on a Linux host, ensure the `src/plugins` directory has sufficient permissions.
-- Remove template comments from `config.json`
+- If on a Linux host, ensure the `src/plugins` directory is writable by Docker so Lavalink can download its plugins, e.g. `chmod -R u+rwX src/plugins`.
 - From the root of the repository, execute:
 
 ```bash
-python3 widenbot.py start
+./widenbot start
 ```
+
+By default this pulls the prebuilt client image from GitHub Container Registry. To build the image locally from the Dockerfile instead (for development, or if you've modified the C# client), pass `--build`:
+
+```bash
+./widenbot start --build
+```
+
+Use `./widenbot stop` to stop all instances, and `./widenbot --help` to see every command.
+
+## Troubleshooting
+
+- **Inspect logs.** Most problems surface in the server logs:
+
+  ```bash
+  ./widenbot logs -l <label> -t server   # or: -t client
+  ```
+
+- **Bot is online but won't play / connect.** Check the server logs first — playback issues are usually source-related (e.g. a YouTube change) and originate in Lavalink, not the C# client.
+- **Server container keeps restarting or gets OOM-killed.** Lower `"maxMemory"` in `config.json` and run `start` again.
+- **`config.json is not a valid JSON document`.** A hand-edited config has a syntax error (e.g. a trailing comma or a stray comment — JSON does not allow comments). Re-run `./widenbot init` to regenerate it, or validate it against `config.schema.json` in your editor.

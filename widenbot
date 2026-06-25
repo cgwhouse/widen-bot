@@ -1,0 +1,644 @@
+#!/usr/bin/env python3
+"""
+widenbot
+
+Primary orchestrator for deploying and managing instances of WidenBot via
+Docker. It parses a local `config.json` file to dynamically configure and spin
+up independent bot instances across multiple Discord servers.
+
+Key functionality:
+* Action routing: `start`, `stop`, and `logs` operations for bot instances.
+* Interactive setup: `init` / `add` build or extend `config.json` without
+  hand-editing JSON.
+* Dynamic configuration: Generates the necessary `.env` and `application.yml`
+  files from `config.json` and the templates in `src/`.
+* Port allocation: Finds and binds an available local port for each client
+  container.
+* Docker orchestration: Drives Docker Compose to pull (or build), recreate,
+  and tear down containers.
+
+Dependencies:
+    * Docker and Docker Compose installed and running on the host machine.
+    * Python 3.9+ (standard library only).
+    * A valid `config.json` residing alongside this script (see `init`).
+
+Usage:
+    ./widenbot start [--build]
+    ./widenbot stop
+    ./widenbot logs -l LABEL -t {client|server}
+    ./widenbot init
+    ./widenbot add
+"""
+
+from __future__ import annotations
+
+import contextlib
+import json
+import os
+import re
+import secrets
+import string
+import subprocess
+import sys
+from argparse import ArgumentParser
+from dataclasses import dataclass
+from json import JSONDecodeError
+from socket import AF_INET, SOCK_STREAM, socket
+from typing import Optional
+
+CONFIG_PATH = "config.json"
+# Relative reference written into generated configs so editors (e.g. VS Code)
+# provide autocomplete + validation against config.schema.json.
+CONFIG_SCHEMA_REF = "./config.schema.json"
+APPLICATION_TEMPLATE_PATH = "src/application.template.yml"
+APPLICATION_PATH = "src/application.yml"
+ENV_PATH = "src/.env"
+
+# Suggested in the wizard only when host RAM can't be detected; not a runtime
+# fallback -- maxMemory is required in config.json.
+DEFAULT_MAX_MEMORY = "1G"
+# Lavalink can become unstable / OOM under load below this heap size.
+MIN_MEMORY_MB = 512
+PASSWORD_LENGTH = 15
+# Docker container names max out at 128 chars; we append up to ~16 chars.
+MAX_LABEL_LENGTH = 112
+
+
+class ConfigError(Exception):
+    """Raised when config.json is missing, unparseable, or structurally invalid."""
+
+
+@dataclass
+class SpotifyConfig:
+    client_id: str
+    client_secret: str
+
+
+@dataclass
+class ServerConfig:
+    label: str
+    server_id: str
+    bot_token: str
+    required_channel_id: str = "none"
+
+
+# ---------------------------------------------------------------------------
+# Entry point / dispatch
+# ---------------------------------------------------------------------------
+
+
+def main() -> int:
+    print("\nThank you for using WidenBot!\n")
+
+    args = build_parser().parse_args()
+
+    if args.action == "logs":
+        view_logs(get_container_name(args.label, args.type))
+        return 0
+
+    if args.action == "init":
+        return run_init()
+
+    if args.action == "add":
+        return run_add()
+
+    try:
+        config = load_config()
+        servers = get_server_list(config)
+        # maxMemory is only consumed when starting; don't require it to stop.
+        max_memory = get_max_memory(config) if args.action == "start" else None
+    except ConfigError as error:
+        print(f"ERROR: {error}\n")
+        return 1
+
+    spotify = get_spotify_config(config)
+
+    if args.action == "start":
+        write_application_yml(spotify)
+
+    for index, raw_server in enumerate(servers):
+        if not has_valid_label(raw_server) or not is_enabled(raw_server):
+            print(
+                f"WARNING: Config #{index + 1} in {CONFIG_PATH} is not enabled, "
+                "or not labeled correctly - skipping.\n"
+            )
+            continue
+
+        label = raw_server["label"]
+
+        if args.action == "stop":
+            stop_widenbot_instance(label)
+            continue
+
+        problems = start_field_problems(raw_server)
+        if problems:
+            print(
+                f"WARNING: Config '{label}' in {CONFIG_PATH} has missing or invalid "
+                f"required field(s): {', '.join(problems)} - skipping.\n"
+            )
+            continue
+
+        start_widenbot_instance(
+            to_server_config(raw_server),
+            spotify is not None,
+            max_memory,
+            build_locally=args.build,
+        )
+
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Config loading and validation
+# ---------------------------------------------------------------------------
+
+
+def load_config() -> dict:
+    try:
+        return json.loads(get_file_contents(CONFIG_PATH))
+    except FileNotFoundError:
+        raise ConfigError(
+            f"{CONFIG_PATH} must exist alongside this script. "
+            "Run './widenbot init' to create one."
+        )
+    except JSONDecodeError as error:
+        raise ConfigError(f"{CONFIG_PATH} is not a valid JSON document ({error}).")
+
+
+def get_server_list(config: dict) -> list:
+    servers = config.get("discordServers")
+    if not (isinstance(servers, list) and len(servers) > 0):
+        raise ConfigError(
+            "'discordServers' is missing or empty / malformed. "
+            "Run './widenbot init' to generate a valid config, "
+            "or see config.schema.json for the expected shape."
+        )
+    return servers
+
+
+def get_spotify_config(config: dict) -> Optional[SpotifyConfig]:
+    spotify = config.get("spotify")
+    if not isinstance(spotify, dict):
+        return None
+
+    client_id = spotify.get("clientID")
+    client_secret = spotify.get("clientSecret")
+
+    if (
+        isinstance(client_id, str)
+        and len(client_id) > 0
+        and isinstance(client_secret, str)
+        and len(client_secret) > 0
+    ):
+        return SpotifyConfig(client_id=client_id, client_secret=client_secret)
+
+    return None
+
+
+def get_max_memory(config: dict) -> str:
+    value = config.get("maxMemory")
+    if not (isinstance(value, str) and value.strip()):
+        raise ConfigError(
+            "'maxMemory' is required. Run './widenbot init' to set it, "
+            'or add e.g. "maxMemory": "1G" to config.json (see config.schema.json).'
+        )
+
+    parsed = parse_memory(value)
+    if parsed is None:
+        raise ConfigError(
+            f"'maxMemory' is invalid ({value!r}). Use a number followed by "
+            'M or G, e.g. "512M" or "1G".'
+        )
+
+    megabytes, normalized = parsed
+    if megabytes < MIN_MEMORY_MB:
+        raise ConfigError(
+            f"'maxMemory' is too low ({normalized}). Use no less than {MIN_MEMORY_MB}M."
+        )
+
+    return normalized
+
+
+def has_valid_label(raw_server: dict) -> bool:
+    label = raw_server.get("label")
+    return (
+        isinstance(label, str)
+        and label.isalnum()
+        and 0 < len(label) <= MAX_LABEL_LENGTH
+    )
+
+
+def is_enabled(raw_server: dict) -> bool:
+    return raw_server.get("isEnabled") is True
+
+
+def start_field_problems(raw_server: dict) -> list:
+    problems = []
+    for key in ("serverID", "botToken"):
+        value = raw_server.get(key)
+        if not (isinstance(value, str) and len(value) > 0):
+            problems.append(key)
+    return problems
+
+
+def to_server_config(raw_server: dict) -> ServerConfig:
+    channel = raw_server.get("requiredChannelID")
+    required_channel = (
+        channel if isinstance(channel, str) and len(channel) > 0 else "none"
+    )
+    return ServerConfig(
+        label=raw_server["label"],
+        server_id=raw_server["serverID"],
+        bot_token=raw_server["botToken"],
+        required_channel_id=required_channel,
+    )
+
+
+# ---------------------------------------------------------------------------
+# File generation (application.yml + .env)
+# ---------------------------------------------------------------------------
+
+
+def write_application_yml(spotify: Optional[SpotifyConfig]) -> None:
+    application_yml = get_file_contents(APPLICATION_TEMPLATE_PATH)
+
+    # If Spotify integration is configured, add the required bits to the YAML.
+    if spotify is not None:
+        application_yml = (
+            application_yml.replace("spotify: false", "spotify: true")
+            .replace("SPOTIFY_CLIENT_ID", spotify.client_id)
+            .replace("SPOTIFY_CLIENT_SECRET", spotify.client_secret)
+        )
+
+    write_file_contents(APPLICATION_PATH, application_yml)
+    print(f"INFO: Wrote updated {APPLICATION_PATH}\n")
+
+
+def write_env_file(
+    server: ServerConfig,
+    password: str,
+    client_port: int,
+    spotify_enabled: bool,
+    max_memory: str,
+) -> None:
+    lines = [
+        f"CLIENT_PORT={client_port}",
+        f"INSTANCE_LABEL={server.label}",
+        f"WIDENBOT_PASSWORD={password}",
+        f"DISCORD_SERVER_ID={server.server_id}",
+        f"DISCORD_BOT_TOKEN={server.bot_token}",
+        f"SPOTIFY_ENABLED={str(spotify_enabled).lower()}",
+        # Defaults to the literal "none" when unset to avoid a Docker Compose warning.
+        f"REQUIRED_CHANNEL={server.required_channel_id}",
+        f"LAVALINK_MAX_MEMORY={max_memory}",
+    ]
+    write_file_contents(ENV_PATH, "\n".join(lines) + "\n")
+
+
+# ---------------------------------------------------------------------------
+# Docker orchestration
+# ---------------------------------------------------------------------------
+
+
+def start_widenbot_instance(
+    server: ServerConfig,
+    spotify_enabled: bool,
+    max_memory: str,
+    build_locally: bool = False,
+) -> None:
+    # Generate the password that the client + server will use to talk to each other.
+    password = generate_password()
+
+    client_port = find_available_port()
+
+    print(f"INFO: Using port {client_port} for WidenBot instance '{server.label}'.\n")
+
+    write_env_file(server, password, client_port, spotify_enabled, max_memory)
+
+    # NOTE: Docker Compose doesn't allow caps in project names.
+    project = server.label.lower()
+
+    if not build_locally:
+        # Default: fetch the published image. If it can't be pulled (e.g. offline
+        # or not yet published), `up` falls back to building from the Dockerfile.
+        subprocess.run(["docker", "compose", "-p", project, "pull"], cwd="./src")
+
+    up_command = [
+        "docker",
+        "compose",
+        "-p",
+        project,
+        "up",
+        "--force-recreate",
+        "--detach",
+    ]
+    if build_locally:
+        up_command.append("--build")
+
+    subprocess.run(up_command, cwd="./src")
+
+    print(f"INFO: WidenBot instance '{server.label}' has been started.\n")
+
+
+def stop_widenbot_instance(label: str) -> None:
+    for container_type in ("client", "server"):
+        subprocess.run(
+            [
+                "docker",
+                "container",
+                "kill",
+                get_container_name(label, container_type),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    print(f"INFO: WidenBot instance {label} has been stopped.\n")
+
+
+def view_logs(container_name: str) -> None:
+    try:
+        subprocess.run(["docker", "logs", container_name, "--follow"])
+    except KeyboardInterrupt:
+        pass
+
+
+def get_container_name(label: str, container_type: str) -> str:
+    return f"{label}-widenbot-{container_type}"
+
+
+def generate_password() -> str:
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(PASSWORD_LENGTH))
+
+
+def find_available_port(start: int = 80) -> int:
+    port = start
+    while True:
+        with contextlib.closing(socket(AF_INET, SOCK_STREAM)) as sock:
+            if sock.connect_ex(("127.0.0.1", port)) == 0:
+                port += 1
+            else:
+                return port
+
+
+# ---------------------------------------------------------------------------
+# Interactive setup (init / add)
+# ---------------------------------------------------------------------------
+
+
+def run_init() -> int:
+    if os.path.exists(CONFIG_PATH):
+        print(
+            f"ERROR: {CONFIG_PATH} already exists. "
+            "Use './widenbot add' to add another server.\n"
+        )
+        return 1
+
+    try:
+        config: dict = {"$schema": CONFIG_SCHEMA_REF}
+
+        if prompt_yes_no("Enable Spotify integration? (requires Spotify Premium)"):
+            config["spotify"] = {
+                "clientID": prompt_nonempty("Spotify clientID"),
+                "clientSecret": prompt_nonempty("Spotify clientSecret"),
+            }
+
+        config["maxMemory"] = prompt_max_memory()
+        config["discordServers"] = [prompt_server()]
+    except KeyboardInterrupt:
+        print("\nAborted.\n")
+        return 1
+
+    write_config(config)
+    print(f"INFO: Wrote {CONFIG_PATH}. Run './widenbot start' when ready.\n")
+    return 0
+
+
+def run_add() -> int:
+    try:
+        config = load_config()
+        servers = get_server_list(config)
+    except ConfigError as error:
+        print(f"ERROR: {error}\n")
+        return 1
+
+    try:
+        servers.append(prompt_server())
+    except KeyboardInterrupt:
+        print("\nAborted.\n")
+        return 1
+
+    write_config(config)
+    print(f"INFO: Added server to {CONFIG_PATH}.\n")
+    return 0
+
+
+def prompt_server() -> dict:
+    server = {
+        "label": prompt_label(),
+        "isEnabled": True,
+        "serverID": prompt_nonempty("Discord server ID"),
+        "botToken": prompt_nonempty("Discord bot token"),
+    }
+
+    channel = input("Required channel ID (optional, press Enter to skip): ").strip()
+    if channel:
+        server["requiredChannelID"] = channel
+
+    return server
+
+
+def prompt_label() -> str:
+    while True:
+        label = input("Instance label (alphanumeric, e.g. myserver): ").strip()
+        if label.isalnum() and 0 < len(label) <= MAX_LABEL_LENGTH:
+            return label
+        print(
+            f"  Label must be alphanumeric and at most {MAX_LABEL_LENGTH} characters."
+        )
+
+
+def prompt_nonempty(label: str) -> str:
+    while True:
+        value = input(f"{label}: ").strip()
+        if value:
+            return value
+        print("  This value is required.")
+
+
+def prompt_yes_no(question: str) -> bool:
+    while True:
+        answer = input(f"{question} [y/N]: ").strip().lower()
+        if answer in ("", "n", "no"):
+            return False
+        if answer in ("y", "yes"):
+            return True
+        print("  Please answer 'y' or 'n'.")
+
+
+def prompt_max_memory() -> str:
+    total_mb = detect_total_memory_mb()
+    default = recommended_memory(total_mb)
+
+    print("\nEach WidenBot runs its own Lavalink server, a Java process whose")
+    print("max memory (JVM -Xmx) you set here. Guidance for choosing a value:")
+    if total_mb is not None:
+        print(f"  - This host appears to have ~{format_memory(total_mb)} of RAM.")
+    print(
+        f"  - No less than {MIN_MEMORY_MB}M; below that Lavalink may crash under load."
+    )
+    print("  - No more than ~50% of total RAM. Leave at least ~1G free for the OS,")
+    print("    the bot client, and anything else running on the host.")
+    print("  - This value applies to EACH instance, so running N servers uses about")
+    print("    N times this much memory. Budget accordingly if you add more later.")
+
+    while True:
+        raw = input(f"Max server memory [{default}]: ").strip() or default
+
+        parsed = parse_memory(raw)
+        if parsed is None:
+            print("  Enter a number followed by M or G, e.g. 512M or 1G.")
+            continue
+
+        megabytes, normalized = parsed
+
+        if megabytes < MIN_MEMORY_MB:
+            print(f"  Too low - use no less than {MIN_MEMORY_MB}M.")
+            continue
+
+        if total_mb is not None:
+            if megabytes >= total_mb:
+                print(
+                    f"  Too high - that meets or exceeds total RAM "
+                    f"(~{format_memory(total_mb)}). Choose a smaller value."
+                )
+                continue
+            if megabytes > total_mb * 3 // 4:
+                if not prompt_yes_no(
+                    f"  {normalized} is over 75% of total RAM and risks "
+                    "out-of-memory crashes. Use it anyway?"
+                ):
+                    continue
+
+        return normalized
+
+
+def parse_memory(value: str) -> Optional[tuple]:
+    """Parse an -Xmx-style size (e.g. '512M', '2G') into (megabytes, normalized)."""
+    match = re.fullmatch(r"\s*(\d+)\s*([MmGg])\s*", value)
+    if match is None:
+        return None
+    amount = int(match.group(1))
+    unit = match.group(2).upper()
+    megabytes = amount * (1024 if unit == "G" else 1)
+    return megabytes, f"{amount}{unit}"
+
+
+def format_memory(megabytes: int) -> str:
+    if megabytes % 1024 == 0:
+        return f"{megabytes // 1024}G"
+    if megabytes >= 1024:
+        return f"{megabytes / 1024:.1f}G"
+    return f"{megabytes}M"
+
+
+def recommended_memory(total_mb: Optional[int]) -> str:
+    if total_mb is None:
+        return DEFAULT_MAX_MEMORY
+    half = total_mb // 2
+    if half < MIN_MEMORY_MB:
+        return f"{MIN_MEMORY_MB}M"
+    # Round down to a whole gigabyte for a tidy suggestion when possible.
+    if half >= 1024:
+        return f"{half // 1024}G"
+    return f"{half}M"
+
+
+def detect_total_memory_mb() -> Optional[int]:
+    try:
+        return (os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")) // (
+            1024 * 1024
+        )
+    except (AttributeError, ValueError, OSError):
+        return None
+
+
+def write_config(config: dict) -> None:
+    write_file_contents(CONFIG_PATH, json.dumps(config, indent=2) + "\n")
+
+
+# ---------------------------------------------------------------------------
+# Low-level helpers
+# ---------------------------------------------------------------------------
+
+
+def get_file_contents(path: str) -> str:
+    with open(path, "r") as f:
+        return f.read()
+
+
+def write_file_contents(path: str, contents: str) -> None:
+    with open(path, "w") as f:
+        f.write(contents)
+
+
+def build_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        prog="widenbot",
+        description="Run script for WidenBot.",
+        epilog="Visit https://github.com/cgwhouse/widen-bot for setup instructions.",
+    )
+
+    subparsers = parser.add_subparsers(dest="action", required=True)
+
+    start = subparsers.add_parser(
+        "start",
+        help="Start (or restart) all enabled WidenBots in config.json.",
+    )
+    start.add_argument(
+        "--build",
+        action="store_true",
+        help="Build the client image locally from the Dockerfile instead of "
+        "pulling the published image.",
+    )
+    subparsers.add_parser(
+        "stop",
+        help="Stop all enabled WidenBots in config.json.",
+    )
+
+    logs = subparsers.add_parser(
+        "logs",
+        help="Follow the client or server logs for a single instance. "
+        "If there is a problem, the server logs are usually more helpful.",
+    )
+    logs.add_argument(
+        "-l",
+        "--label",
+        required=True,
+        type=str,
+        help="The WidenBot instance whose logs should be viewed.",
+    )
+    logs.add_argument(
+        "-t",
+        "--type",
+        required=True,
+        type=str,
+        choices=["client", "server"],
+        help="Whether to view client or server logs.",
+    )
+
+    subparsers.add_parser(
+        "init",
+        help="Interactively create a new config.json.",
+    )
+    subparsers.add_parser(
+        "add",
+        help="Interactively add a server to an existing config.json.",
+    )
+
+    return parser
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,5 @@
+# Needed to keep f-strings compatible with 3.9+
+target-version = "py39"
+
+# Script has no .py extension, include explicitly
+extend-include = ["widenbot"]
