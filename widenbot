@@ -42,21 +42,15 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from json import JSONDecodeError
 from socket import AF_INET, SOCK_STREAM, socket
-from typing import Optional
+from typing import Any, Optional, cast
 
 CONFIG_PATH = "config.json"
-# Relative reference written into generated configs so editors (e.g. VS Code)
-# provide autocomplete + validation against config.schema.json.
 CONFIG_SCHEMA_REF = "./config.schema.json"
 ENV_PATH = "src/.env"
 
-# Suggested in the wizard only when host RAM can't be detected; not a runtime
-# fallback -- maxMemory is required in config.json.
 DEFAULT_MAX_MEMORY = "1G"
-# Lavalink can become unstable / OOM under load below this heap size.
 MIN_MEMORY_MB = 512
 PASSWORD_LENGTH = 15
-# Docker container names max out at 128 chars; we append up to ~16 chars.
 MAX_LABEL_LENGTH = 112
 
 
@@ -76,11 +70,6 @@ class ServerConfig:
     server_id: str
     bot_token: str
     required_channel_id: str = "none"
-
-
-# ---------------------------------------------------------------------------
-# Entry point / dispatch
-# ---------------------------------------------------------------------------
 
 
 def main() -> int:
@@ -131,6 +120,9 @@ def main() -> int:
             )
             continue
 
+        # Only the 'start' path reaches here (the 'stop' branch above continues),
+        # and max_memory is always resolved for 'start'.
+        assert max_memory is not None
         start_widenbot_instance(
             to_server_config(raw_server),
             spotify,
@@ -146,7 +138,7 @@ def main() -> int:
 # ---------------------------------------------------------------------------
 
 
-def load_config() -> dict:
+def load_config() -> dict[str, Any]:
     try:
         return json.loads(get_file_contents(CONFIG_PATH))
     except FileNotFoundError:
@@ -158,24 +150,25 @@ def load_config() -> dict:
         raise ConfigError(f"{CONFIG_PATH} is not a valid JSON document ({error}).")
 
 
-def get_server_list(config: dict) -> list:
+def get_server_list(config: dict[str, Any]) -> list[Any]:
     servers = config.get("discordServers")
-    if not (isinstance(servers, list) and len(servers) > 0):
+    if not isinstance(servers, list) or not servers:
         raise ConfigError(
             "'discordServers' is missing or empty / malformed. "
             "Run './widenbot init' to generate a valid config, "
             "or see config.schema.json for the expected shape."
         )
-    return servers
+    return cast("list[Any]", servers)
 
 
-def get_spotify_config(config: dict) -> Optional[SpotifyConfig]:
+def get_spotify_config(config: dict[str, Any]) -> Optional[SpotifyConfig]:
     spotify = config.get("spotify")
     if not isinstance(spotify, dict):
         return None
 
-    client_id = spotify.get("clientID")
-    client_secret = spotify.get("clientSecret")
+    entry = cast("dict[str, Any]", spotify)
+    client_id = entry.get("clientID")
+    client_secret = entry.get("clientSecret")
 
     if (
         isinstance(client_id, str)
@@ -188,7 +181,7 @@ def get_spotify_config(config: dict) -> Optional[SpotifyConfig]:
     return None
 
 
-def get_max_memory(config: dict) -> str:
+def get_max_memory(config: dict[str, Any]) -> str:
     value = config.get("maxMemory")
     if not (isinstance(value, str) and value.strip()):
         raise ConfigError(
@@ -212,7 +205,7 @@ def get_max_memory(config: dict) -> str:
     return normalized
 
 
-def has_valid_label(raw_server: dict) -> bool:
+def has_valid_label(raw_server: dict[str, Any]) -> bool:
     label = raw_server.get("label")
     return (
         isinstance(label, str)
@@ -221,12 +214,12 @@ def has_valid_label(raw_server: dict) -> bool:
     )
 
 
-def is_enabled(raw_server: dict) -> bool:
+def is_enabled(raw_server: dict[str, Any]) -> bool:
     return raw_server.get("isEnabled") is True
 
 
-def start_field_problems(raw_server: dict) -> list:
-    problems = []
+def start_field_problems(raw_server: dict[str, Any]) -> list[str]:
+    problems: list[str] = []
     for key in ("serverID", "botToken"):
         value = raw_server.get(key)
         if not (isinstance(value, str) and len(value) > 0):
@@ -234,7 +227,7 @@ def start_field_problems(raw_server: dict) -> list:
     return problems
 
 
-def to_server_config(raw_server: dict) -> ServerConfig:
+def to_server_config(raw_server: dict[str, Any]) -> ServerConfig:
     channel = raw_server.get("requiredChannelID")
     required_channel = (
         channel if isinstance(channel, str) and len(channel) > 0 else "none"
@@ -364,11 +357,6 @@ def find_available_port(start: int = 80) -> int:
                 return port
 
 
-# ---------------------------------------------------------------------------
-# Interactive setup (init / add)
-# ---------------------------------------------------------------------------
-
-
 def run_init() -> int:
     if os.path.exists(CONFIG_PATH):
         print(
@@ -378,7 +366,7 @@ def run_init() -> int:
         return 1
 
     try:
-        config: dict = {"$schema": CONFIG_SCHEMA_REF}
+        config: dict[str, Any] = {"$schema": CONFIG_SCHEMA_REF}
 
         if prompt_yes_no("Enable Spotify integration? (requires Spotify Premium)"):
             config["spotify"] = {
@@ -416,8 +404,8 @@ def run_add() -> int:
     return 0
 
 
-def prompt_server() -> dict:
-    server = {
+def prompt_server() -> dict[str, Any]:
+    server: dict[str, Any] = {
         "label": prompt_label(),
         "isEnabled": True,
         "serverID": prompt_nonempty("Discord server ID"),
@@ -506,7 +494,7 @@ def prompt_max_memory() -> str:
         return normalized
 
 
-def parse_memory(value: str) -> Optional[tuple]:
+def parse_memory(value: str) -> Optional[tuple[int, str]]:
     """Parse an -Xmx-style size (e.g. '512M', '2G') into (megabytes, normalized)."""
     match = re.fullmatch(r"\s*(\d+)\s*([MmGg])\s*", value)
     if match is None:
@@ -546,7 +534,7 @@ def detect_total_memory_mb() -> Optional[int]:
         return None
 
 
-def write_config(config: dict) -> None:
+def write_config(config: dict[str, Any]) -> None:
     write_file_contents(CONFIG_PATH, json.dumps(config, indent=2) + "\n")
 
 
